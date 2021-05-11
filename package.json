@@ -1,0 +1,22 @@
+{
+  "name": "autoanki",
+  "version": "0.0.1",
+  "description": "Automatic anki toolkit",
+  "scripts": {
+  },
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@commitlint/cli": "^8.2.0",
+    "@commitlint/config-conventional": "^8.2.0",
+    "husky": "^6.0.0",
+    "prettier": "^1.18.2"
+  },
+  "dependencies": {
+    "json-schema-to-typescript": "^9.1.1"
+  }
+}
