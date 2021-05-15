@@ -1,0 +1,17 @@
+{
+  "name": "@autoanki/joplin-plugin",
+  "version": "0.0.1",
+  "description": "Automatic anki toolkit - core logic",
+  "scripts": {
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/chenlijun99/autoanki.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+  },
+  "dependencies": {
+  }
+}
