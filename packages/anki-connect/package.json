@@ -1,0 +1,24 @@
+{
+  "name": "@autoanki/anki-connect",
+  "version": "0.0.1",
+  "description": "Automatic anki toolkit - anki connect wrapper",
+  "type": "module",
+  "source": "src/index.ts",
+  "exports": "./dist/anki-connect.modern.js",
+  "main": "./dist/anki-connect.cjs",
+  "module": "./dist/anki-connect.module.js",
+  "unpkg": "./dist/anki-connect.umd.js",
+  "scripts": {
+    "build": "microbundle",
+    "dev": "microbundle watch",
+    "prepare": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/chenlijun99/autoanki.git"
+  },
+  "author": "Lijun Chen",
+  "license": "ISC",
+  "devDependencies": {},
+  "dependencies": {}
+}

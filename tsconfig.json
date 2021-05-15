@@ -2,7 +2,7 @@
   "compilerOptions": {
     "strict": true,
     "pretty": true,
-    "sourceMap": true
-	"skipLibCheck": true,
+    "sourceMap": true,
+    "skipLibCheck": true
   }
 }
