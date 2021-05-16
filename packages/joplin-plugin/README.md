@@ -1,5 +1,7 @@
 # Joplin Plugin
 
+[![npm](https://img.shields.io/npm/v/joplin-plugin-anki-sync)](https://www.npmjs.com/package/joplin-plugin-anki-sync)
+
 This is a template to create a new Joplin plugin.
 
 The main two files you will want to look at are:
