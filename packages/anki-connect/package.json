@@ -2,6 +2,12 @@
   "name": "@autoanki/anki-connect",
   "version": "0.0.1",
   "description": "Automatic anki toolkit - anki connect wrapper",
+  "keywords": [
+    "anki",
+    "anki-connect",
+    "markdown",
+    "srs"
+  ],
   "type": "module",
   "source": "src/index.ts",
   "exports": "./dist/anki-connect.modern.js",
