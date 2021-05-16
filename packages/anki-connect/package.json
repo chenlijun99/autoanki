@@ -14,6 +14,7 @@
   "main": "./dist/anki-connect.cjs",
   "module": "./dist/anki-connect.module.js",
   "unpkg": "./dist/anki-connect.umd.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "build": "microbundle",
     "dev": "microbundle watch",
