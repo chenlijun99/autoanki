@@ -422,5 +422,8 @@ tags
 ### Project specific ###
 
 CHANGELOG.md
-packages/mobile/android/**
-packages/mobile/ios/**
+packages/joplin-plugin/api/
+packages/joplin-plugin/dist/
+packages/joplin-plugin/plugin.config.json
+packages/joplin-plugin/GENERATOR_DOC.md
+packages/joplin-plugin/webpack.config.js

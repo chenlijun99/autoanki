@@ -58,11 +58,6 @@ package.json
 # Ignore .eslintrc.js
 .eslintrc.js
 
-# @medsense/web
-packages/web/next.config.js
-packages/web/out/
-packages/web/_next/
-
-# @medsense/desktop
-packages/desktop/webpack.main.additions.js
-packages/desktop/static/@medsense-web/_next/
+# @autoanki/joplin-plugin
+packages/joplin-plugin/webpack.config.js
+packages/joplin-plugin/api/*
