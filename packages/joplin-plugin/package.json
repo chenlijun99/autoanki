@@ -1,5 +1,5 @@
 {
-  "name": "@autoanki/joplin-plugin-anki-sync",
+  "name": "joplin-plugin-anki-sync",
   "version": "0.0.1",
   "scripts": {
     "dist": "webpack --joplin-plugin-config buildMain && webpack --joplin-plugin-config buildExtraScripts && webpack --joplin-plugin-config createArchive",
