@@ -1,18 +1,32 @@
 {
   "name": "@autoanki/cli",
   "version": "0.0.1",
-  "description": "Automatic anki toolkit - core logic",
-  "scripts": {
-  },
+  "description": "Automatic anki toolkit - CLI",
+  "keywords": [
+    "cli",
+    "anki",
+    "markdown",
+    "srs"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/chenlijun99/autoanki.git"
   },
-  "author": "",
+  "scripts": {
+    "build": "tsc",
+    "dev": "ts-node src/index.ts",
+    "prepare": "yarn run build"
+  },
+  "bin": {
+    "autoanki": "./bin/autoanki"
+  },
   "license": "ISC",
   "devDependencies": {
+    "@types/yargs": "^16.0.1"
   },
   "dependencies": {
+    "@autoanki/core": "*",
+    "winston": "^3.3.3",
+    "yargs": "^17.0.1"
   }
 }
-
