@@ -1,6 +1,6 @@
 {
   "name": "@autoanki/core",
-  "version": "0.0.2-next.0",
+  "version": "0.0.2-next.1",
   "description": "Automatic anki toolkit - core logic",
   "keywords": [
     "anki",
@@ -27,6 +27,6 @@
   },
   "license": "ISC",
   "dependencies": {
-    "@autoanki/anki-connect": "^0.0.2-next.0"
+    "@autoanki/anki-connect": "^0.0.2-next.1"
   }
 }
