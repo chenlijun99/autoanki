@@ -11,6 +11,10 @@ export type ActionsToPayloadMap = {
       response: Record<string, number>;
     };
   };
+  /**
+   * Accepts an array of card IDs and returns an object with each deck name as
+   * a key, and its value an array of the given cards which belong to it.
+   */
   getDecks: {
     6: {
       request: {

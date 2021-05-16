@@ -17,14 +17,26 @@ export class AnkiConnectService {
     return `http://127.0.0.1::${this.port}`;
   }
 
+  /**
+   * Call anki-connect API
+   *
+   * @private
+   * See https://github.com/microsoft/TypeScript/issues/29131
+   */
   async invoke<
     ActionName extends keyof ActionsToPayloadMap,
-    VersionNumber extends 6
+    VersionNumber extends 6,
+    RequestParams = ActionsToPayloadMap[ActionName][VersionNumber]['request'],
+    Response = ActionsToPayloadMap[ActionName][VersionNumber]['response']
   >(
-    action: ActionName,
-    version: VersionNumber,
-    params: ActionsToPayloadMap[ActionName][VersionNumber]['request']
-  ): Promise<ActionsToPayloadMap[ActionName][VersionNumber]['response']> {
+    ...args: RequestParams extends void
+      ? [ActionName, VersionNumber]
+      : [ActionName, VersionNumber, RequestParams]
+  ): Promise<Response> {
+    const action = args[0];
+    const version = args[1];
+    const params = args[2];
+
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
       xhr.addEventListener('error', () =>
