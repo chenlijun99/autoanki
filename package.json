@@ -10,7 +10,13 @@
     "lint-styles-fix": "yarn run lint-styles --fix",
     "prettier": "prettier --check  .",
     "prettier-fix": "prettier --write .",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "publish": "echo \"Use 'yarn publish-next' or 'yarn publish-release' instead of 'yarn run publish'\"",
+    "publish-canary": "lerna publish --canary --yes",
+    "publish-next": "lerna publish prerelease --pre-dist-tag=next --preid=next --allow-branch=main --message=\"chore(release): publish next\"",
+    "publish-preminor": "lerna publish preminor --pre-dist-tag=next --preid=next --force-publish --allow-branch=main --message=\"chore(release): publish next pre-minor\"",
+    "publish-rc": "lerna publish prerelease --pre-dist-tag=rc --preid=rc --message=\"chore(release): publish rc\"",
+    "publish-release": "lerna publish patch"
   },
   "repository": {
     "type": "git",

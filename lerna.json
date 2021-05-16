@@ -3,5 +3,13 @@
   "npmClient": "yarn",
   "useWorkspaces": true,
   "registry": "https://registry.npmjs.org/",
-  "packages": ["packages/*"]
+  "packages": ["packages/*"],
+  "command": {
+    "publish": {
+      "allowBranch": "release/*",
+      "bump": "patch",
+      "conventionalCommits": true,
+      "message": "chore(release): publish"
+    }
+  }
 }
