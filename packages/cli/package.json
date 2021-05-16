@@ -1,6 +1,6 @@
 {
   "name": "@autoanki/cli",
-  "version": "0.0.3",
+  "version": "0.0.4-next.0",
   "description": "Automatic anki toolkit - CLI",
   "keywords": [
     "cli",
@@ -28,7 +28,7 @@
     "@types/yargs": "^16.0.1"
   },
   "dependencies": {
-    "@autoanki/core": "*",
+    "@autoanki/core": "^0.0.2-next.0",
     "tslib": "^2.2.0",
     "winston": "^3.3.3",
     "yargs": "^17.0.1"

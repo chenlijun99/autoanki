@@ -1,6 +1,6 @@
 {
   "name": "@autoanki/core",
-  "version": "0.0.1",
+  "version": "0.0.2-next.0",
   "description": "Automatic anki toolkit - core logic",
   "keywords": [
     "anki",
@@ -26,8 +26,7 @@
     "url": "https://github.com/chenlijun99/autoanki.git"
   },
   "license": "ISC",
-  "devDependencies": {},
   "dependencies": {
-    "@autoanki/anki-connect": "*"
+    "@autoanki/anki-connect": "^0.0.2-next.0"
   }
 }

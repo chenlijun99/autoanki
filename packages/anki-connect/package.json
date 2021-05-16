@@ -1,6 +1,6 @@
 {
   "name": "@autoanki/anki-connect",
-  "version": "0.0.1",
+  "version": "0.0.2-next.0",
   "description": "Automatic anki toolkit - anki connect wrapper",
   "keywords": [
     "anki",
@@ -31,7 +31,6 @@
   },
   "author": "Lijun Chen",
   "license": "ISC",
-  "devDependencies": {},
   "dependencies": {
     "axios": "^0.21.1"
   }
