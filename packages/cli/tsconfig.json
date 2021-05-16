@@ -2,9 +2,6 @@
   "extends": "../../tsconfig.json",
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules/"],
-  "bin": {
-    "autoanki": "dist/index.js"
-  },
   "compilerOptions": {
     "module": "CommonJS",
     "moduleResolution": "node",
