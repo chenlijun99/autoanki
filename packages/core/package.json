@@ -2,12 +2,26 @@
   "name": "@autoanki/core",
   "version": "0.0.1",
   "description": "Automatic anki toolkit - core logic",
-  "scripts": {},
+  "keywords": [
+    "anki",
+    "markdown",
+    "srs"
+  ],
+  "type": "module",
+  "source": "src/index.ts",
+  "exports": "./dist/core.modern.js",
+  "main": "./dist/core.cjs",
+  "module": "./dist/core.module.js",
+  "unpkg": "./dist/core.umd.js",
+  "scripts": {
+    "build": "microbundle",
+    "dev": "microbundle watch",
+    "prepare": "npm run build"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/chenlijun99/autoanki.git"
   },
-  "author": "",
   "license": "ISC",
   "devDependencies": {},
   "dependencies": {
