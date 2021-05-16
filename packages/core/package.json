@@ -7,6 +7,9 @@
     "markdown",
     "srs"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "source": "src/index.ts",
   "exports": "./dist/core.modern.js",

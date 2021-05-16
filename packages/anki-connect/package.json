@@ -11,6 +11,7 @@
   "type": "module",
   "main": "src/index.ts",
   "publishConfig": {
+    "access": "public",
     "type": "commonjs",
     "source": "src/index.ts",
     "exports": "./dist/anki-connect.modern.js",

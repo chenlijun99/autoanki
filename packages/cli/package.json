@@ -12,6 +12,9 @@
     "type": "git",
     "url": "https://github.com/chenlijun99/autoanki.git"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsc",
     "dev": "ts-node src/index.ts",
