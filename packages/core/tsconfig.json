@@ -3,6 +3,17 @@
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules/"],
   "compilerOptions": {
-    "target": "ES2015"
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    "target": "ES2017",
+    "removeComments": true,
+    "esModuleInterop": true,
+    "sourceMap": true,
+    "outDir": "./dist",
+    "baseUrl": "./",
+    "incremental": true,
+    "importHelpers": true,
+    "rootDir": "src"
   }
 }
