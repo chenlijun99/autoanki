@@ -1,3 +1,5 @@
+import axios from 'axios';
+
 import type { ActionsToPayloadMap as NoteActionsToPayloadMap } from './note';
 import type { ActionsToPayloadMap as DeckActionsToPayloadMap } from './deck';
 
@@ -37,34 +39,22 @@ export class AnkiConnectService {
     const version = args[1];
     const params = args[2];
 
-    return new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      xhr.addEventListener('error', () =>
-        reject(new Error('failed to issue request'))
-      );
-      xhr.addEventListener('load', () => {
-        try {
-          const response: any = JSON.parse(xhr.responseText);
-          if (Object.getOwnPropertyNames(response).length !== 2) {
-            throw new Error('response has an unexpected number of fields');
-          }
-          if (!response.error) {
-            throw new Error('response is missing required error field');
-          }
-          if (!response.result) {
-            throw new Error('response is missing required result field');
-          }
-          if (response.error) {
-            throw response.error;
-          }
-          resolve(response.result);
-        } catch (e) {
-          reject(e);
-        }
-      });
-
-      xhr.open('POST', this.apiBaseUrl);
-      xhr.send(JSON.stringify({ action, version, params }));
-    });
+    const response = await axios.post(
+      this.apiBaseUrl,
+      JSON.stringify({ action, version, params })
+    );
+    if (Object.getOwnPropertyNames(response.data).length !== 2) {
+      throw new Error('response has an unexpected number of fields');
+    }
+    if (!('error' in response.data)) {
+      throw new Error('response is missing required error field');
+    }
+    if (!('result' in response.data)) {
+      throw new Error('response is missing required result field');
+    }
+    if (response.data.error) {
+      throw response.data.error;
+    }
+    return response.data.result;
   }
 }

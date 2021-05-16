@@ -9,16 +9,20 @@
     "srs"
   ],
   "type": "module",
-  "source": "src/index.ts",
-  "exports": "./dist/anki-connect.modern.js",
-  "main": "./dist/anki-connect.cjs",
-  "module": "./dist/anki-connect.module.js",
-  "unpkg": "./dist/anki-connect.umd.js",
-  "types": "dist/index.d.ts",
+  "main": "src/index.ts",
+  "publishConfig": {
+    "type": "commonjs",
+    "source": "src/index.ts",
+    "exports": "./dist/anki-connect.modern.js",
+    "main": "./dist/anki-connect.js",
+    "module": "./dist/anki-connect.module.js",
+    "unpkg": "./dist/anki-connect.umd.js",
+    "types": "dist/index.d.ts"
+  },
   "scripts": {
-    "build": "microbundle",
+    "build": "rimraf dist/ && microbundle",
     "dev": "microbundle watch",
-    "prepare": "npm run build"
+    "prepack": "npm run build"
   },
   "repository": {
     "type": "git",
@@ -27,5 +31,7 @@
   "author": "Lijun Chen",
   "license": "ISC",
   "devDependencies": {},
-  "dependencies": {}
+  "dependencies": {
+    "axios": "^0.21.1"
+  }
 }

@@ -42,7 +42,7 @@
     "husky": "^6.0.0",
     "lerna": "^4.0.0",
     "lint-staged": "^10.2.11",
-    "microbundle": "^0.13.0",
+    "microbundle": "https://github.com/developit/microbundle.git",
     "prettier": "^2.0.5",
     "rimraf": "^3.0.2",
     "stylelint": "^9.3.0",
