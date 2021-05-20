@@ -54,7 +54,7 @@ function matchAllDelimiters(text: string, regex: string, type: DelimiterType) {
   });
 }
 
-const newLineRegex = String.raw`(\r\n|\r|\n)`;
+const newLineRegex = String.raw`(\r\n|\r|\n|$)`;
 
 /**
  * Use a serious parser
@@ -115,12 +115,14 @@ export async function parse(
         if (delimiters[j + 1].type !== DelimiterType.FIELD_END) {
           throw new Error('Expected field end delimiter');
         }
-        note.fields[delimiters[j].match[1]] = text
-          .slice(
-            delimiters[j].match.index! + delimiters[j].match[0].length,
-            delimiters[j + 1].match.index
-          )
-          .trim();
+        const fieldName = delimiters[j].match[1];
+        if (note.fields[fieldName] !== undefined) {
+          throw new Error(`Duplicate field: ${fieldName}`);
+        }
+        note.fields[fieldName] = text.slice(
+          delimiters[j].match.index! + delimiters[j].match[0].length,
+          delimiters[j + 1].match.index
+        );
         j += 1;
       }
     }
