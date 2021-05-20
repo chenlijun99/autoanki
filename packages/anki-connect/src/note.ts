@@ -1,6 +1,6 @@
 import type { MediaFile } from './media';
 
-type NoteId = number;
+export type NoteId = number;
 
 export type ActionsToPayloadMap = {
   /**
@@ -173,7 +173,7 @@ export type ActionsToPayloadMap = {
   };
 };
 
-type NoteMediaFile = MediaFile & {
+export type NoteMediaFile = MediaFile & {
   /**
    * The skipHash field can be optionally provided to skip the inclusion of
    * files with an MD5 hash that matches the provided value. This is useful

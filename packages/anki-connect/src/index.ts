@@ -3,6 +3,9 @@ import axios from 'axios';
 import type { ActionsToPayloadMap as NoteActionsToPayloadMap } from './note';
 import type { ActionsToPayloadMap as DeckActionsToPayloadMap } from './deck';
 
+export * as CardTypes from './card';
+export * as NoteTypes from './note';
+
 type ActionsToPayloadMap = NoteActionsToPayloadMap & DeckActionsToPayloadMap;
 
 /**
