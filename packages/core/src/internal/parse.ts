@@ -130,7 +130,7 @@ export async function parse(
     if (Object.keys(note.fields).length === 0) {
       throw new Error('Empty note');
     }
-    i += j + 1;
+    i = j + 1;
     notes.push(note);
   }
 
