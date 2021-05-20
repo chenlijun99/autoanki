@@ -54,6 +54,8 @@ function matchAllDelimiters(text: string, regex: string, type: DelimiterType) {
   });
 }
 
+const newLineRegex = String.raw`(\r\n|\r|\n)`;
+
 /**
  * Use a serious parser
  */
@@ -64,22 +66,22 @@ export async function parse(
   const delimiters = [
     ...matchAllDelimiters(
       text,
-      config.noteStartDelimiter,
+      `${config.noteStartDelimiter}${newLineRegex}`,
       DelimiterType.NOTE_START
     ),
     ...matchAllDelimiters(
       text,
-      config.noteEndDelimiter,
+      `${config.noteEndDelimiter}${newLineRegex}`,
       DelimiterType.NOTE_END
     ),
     ...matchAllDelimiters(
       text,
-      config.fieldStartDelimiter,
+      `${config.fieldStartDelimiter}${newLineRegex}`,
       DelimiterType.FIELD_START
     ),
     ...matchAllDelimiters(
       text,
-      config.fieldEndDelimiter,
+      `${config.fieldEndDelimiter}${newLineRegex}`,
       DelimiterType.FIELD_END
     ),
   ];

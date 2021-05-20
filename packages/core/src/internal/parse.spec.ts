@@ -9,10 +9,10 @@ interface NoteParseTestConfig extends NoteParseConfig {
 
 const parserTestConfigs: NoteParseTestConfig[] = [
   {
-    fieldStartDelimiter: '~~(.+)\\b',
-    fieldEndDelimiter: '~~\\s',
-    noteStartDelimiter: '---(.+)\\b',
-    noteEndDelimiter: '---(\\s|$)',
+    fieldStartDelimiter: '~~(.+)',
+    fieldEndDelimiter: '~~',
+    noteStartDelimiter: '---(.+)',
+    noteEndDelimiter: '---',
     fieldStartDelimiterBuilder: (field) => `~~${field}\n`,
     fieldEndDelimiterBuilder: () => `~~\n`,
     noteStartDelimiterBuilder: (field) => `---${field}\n`,
