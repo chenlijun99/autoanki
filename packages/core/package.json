@@ -22,7 +22,7 @@
   "scripts": {
     "build": "microbundle",
     "dev": "microbundle watch",
-    "prepare": "npm run build",
+    "prepack": "npm run build",
     "test": "jest",
     "test-update": "jest --updateSnapshot",
     "test-debug": "node --inspect-brk ../../node_modules/.bin/jest --runInBand --watch"
