@@ -61,3 +61,4 @@ package.json
 # @autoanki/joplin-plugin
 packages/joplin-plugin/webpack.config.js
 packages/joplin-plugin/api/*
+packages/*/jest.config.ts

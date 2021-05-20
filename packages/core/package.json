@@ -19,7 +19,8 @@
   "scripts": {
     "build": "microbundle",
     "dev": "microbundle watch",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "test": "jest"
   },
   "repository": {
     "type": "git",
@@ -28,5 +29,10 @@
   "license": "ISC",
   "dependencies": {
     "@autoanki/anki-connect": "^0.0.2-next.1"
+  },
+  "devDependencies": {
+    "@types/jest": "^26.0.23",
+    "jest": "^26.6.3",
+    "ts-jest": "^26.5.6"
   }
 }
