@@ -7,20 +7,25 @@
     "markdown",
     "srs"
   ],
-  "publishConfig": {
-    "access": "public"
-  },
   "type": "module",
-  "source": "src/index.ts",
-  "exports": "./dist/core.modern.js",
-  "main": "./dist/core.cjs",
-  "module": "./dist/core.module.js",
-  "unpkg": "./dist/core.umd.js",
+  "main": "src/index.ts",
+  "publishConfig": {
+    "access": "public",
+    "type": "commonjs",
+    "source": "src/index.ts",
+    "types": "dist/index.d.ts",
+    "exports": "./dist/core.modern.js",
+    "main": "./dist/core.js",
+    "module": "./dist/core.module.js",
+    "unpkg": "./dist/core.umd.js"
+  },
   "scripts": {
     "build": "microbundle",
     "dev": "microbundle watch",
     "prepare": "npm run build",
-    "test": "jest"
+    "test": "jest",
+    "test-update": "jest --updateSnapshot",
+    "test-debug": "node --inspect-brk ../../node_modules/.bin/jest --runInBand --watch"
   },
   "repository": {
     "type": "git",

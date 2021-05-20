@@ -65,5 +65,6 @@ module.exports = {
       },
     ],
     'class-methods-use-this': 'off',
+    'prefer-destructuring': 'off',
   },
 };

@@ -1,0 +1,38 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`note parsing errors should throw on invalid text 1`] = `"Empty note"`;
+
+exports[`note parsing errors should throw on invalid text 2`] = `"Unexpected note start delimiter"`;
+
+exports[`note parsing errors should throw on invalid text 3`] = `"Expected note start delimiter"`;
+
+exports[`note parsing should parse multiple notes 1`] = `
+Array [
+  Object {
+    "fields": Object {
+      "Back": "1 + 1 = 2",
+      "Front": "1 + 1 = ?",
+    },
+    "noteType": "Basic",
+  },
+  Object {
+    "fields": Object {
+      "Back": "1 + 1 = 2",
+      "Front": "1 + 1 = ?",
+    },
+    "noteType": "Basic",
+  },
+]
+`;
+
+exports[`note parsing should parse one note 1`] = `
+Array [
+  Object {
+    "fields": Object {
+      "Back": "1 + 1 = 2",
+      "Front": "1 + 1 = ?",
+    },
+    "noteType": "Basic",
+  },
+]
+`;
