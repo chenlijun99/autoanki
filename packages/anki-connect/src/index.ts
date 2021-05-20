@@ -2,11 +2,15 @@ import axios from 'axios';
 
 import type { ActionsToPayloadMap as NoteActionsToPayloadMap } from './note';
 import type { ActionsToPayloadMap as DeckActionsToPayloadMap } from './deck';
+import type { ActionsToPayloadMap as ModelActionsToPayloadMap } from './model';
 
 export * as CardTypes from './card';
 export * as NoteTypes from './note';
+export * as ModelTypes from './model';
 
-type ActionsToPayloadMap = NoteActionsToPayloadMap & DeckActionsToPayloadMap;
+type ActionsToPayloadMap = NoteActionsToPayloadMap &
+  DeckActionsToPayloadMap &
+  ModelActionsToPayloadMap;
 
 /**
  * Service that exposes an uniform interface to interact with the local Anki

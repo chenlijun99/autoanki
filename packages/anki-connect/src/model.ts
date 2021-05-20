@@ -28,9 +28,7 @@ export type ActionsToPayloadMap = {
    */
   modelNames: {
     6: {
-      request: {
-        note: void;
-      };
+      request: void;
       response: ModelName[];
     };
   };

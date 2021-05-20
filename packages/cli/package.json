@@ -18,7 +18,7 @@
   "scripts": {
     "build": "tsc",
     "dev": "ts-node src/index.ts",
-    "prepare": "yarn run build"
+    "prepack": "yarn run build"
   },
   "bin": {
     "autoanki": "dist/index.js"
@@ -29,6 +29,7 @@
   },
   "dependencies": {
     "@autoanki/core": "^0.0.2-next.1",
+    "cosmiconfig": "^7.0.0",
     "tslib": "^2.2.0",
     "winston": "^3.3.3",
     "yargs": "^17.0.1"

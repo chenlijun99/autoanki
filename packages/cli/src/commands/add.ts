@@ -1,25 +1,47 @@
-import type { CommandModule } from 'yargs';
+import fs from 'fs';
 
-const command: CommandModule = {
-  command: 'add <files..>',
+import type { CommandModule } from 'yargs';
+import { getAutoankiService } from '../middlewares';
+
+interface Args {
+  file: string;
+  deck: string;
+  tags: string[];
+}
+
+async function handler(argv: Args) {
+  const textFileContent = fs.readFileSync(argv.file).toString('utf8');
+
+  const service = getAutoankiService();
+  const operation = await service.add(textFileContent, argv.deck);
+  return operation.execute();
+}
+
+const command: CommandModule<{}, Args> = {
+  command: 'add <file>',
   describe: 'Add all notes in the given markdown file from Anki',
-  handler: () => {},
+  handler,
   builder: (yargs) => {
     return yargs
       .positional('file', {
         type: 'string',
+        demandOption: true,
       })
       .options({
-        d: {
+        deck: {
           description: 'The deck to be used',
           type: 'string',
-          alias: ['d', 'deck'],
+          alias: ['d'],
+          required: true,
           default: 'Autoanki Default',
         },
-        l: {
-          description: `The last version of the same file.  If provided, a diff is performed and notes are appropriately removed from Anki decks`,
+        tags: {
+          description: 'The tags to be added',
           type: 'string',
-          alias: ['l', 'last-version'],
+          alias: ['t'],
+          array: true,
+          required: true,
+          default: ['autoanki'],
         },
       });
   },

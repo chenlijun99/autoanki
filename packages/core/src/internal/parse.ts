@@ -1,4 +1,8 @@
-import { NoteTypes } from '@autoanki/anki-connect';
+import {
+  AnkiConnectService,
+  NoteTypes,
+  ModelTypes,
+} from '@autoanki/anki-connect';
 
 /**
  * Note parsing configuration
@@ -159,4 +163,37 @@ export async function parse(
   }
 
   return notes;
+}
+
+export async function checkSemanticErrors(
+  service: AnkiConnectService,
+  notes: Note[]
+): Promise<Error[] | undefined> {
+  const errors: Error[] = [];
+  const cache: Record<ModelTypes.ModelName, ModelTypes.FieldName[]> = {};
+  const models = await service.invoke('modelNames', 6);
+  notes.forEach(async (note) => {
+    if (!cache[note.noteType]) {
+      if (models.indexOf(note.noteType) < 0) {
+        errors.push(new Error(`Note type ${note.noteType} doesn't exist`));
+        return;
+      }
+
+      cache[note.noteType] = await service.invoke('modelFieldNames', 6, {
+        modelName: note.noteType,
+      });
+    }
+
+    Object.keys(note.fields).forEach((field) => {
+      if (cache[note.noteType].indexOf(field) < 0) {
+        errors.push(
+          new Error(
+            `Field ${field} doesn't exist on note type ${note.noteType}`
+          )
+        );
+      }
+    });
+  });
+
+  return errors.length === 0 ? undefined : errors;
 }

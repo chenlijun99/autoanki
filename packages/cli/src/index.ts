@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 import yargs from 'yargs/yargs';
-import winston from 'winston';
 
 import addCommand from './commands/add';
 import dumpCommand from './commands/dump';
@@ -8,27 +7,11 @@ import syncCommand from './commands/sync';
 import removeCommand from './commands/remove';
 import migrateCommand from './commands/migrate';
 
-interface Args {
+import { initLog, initAutoAnkiService, initConfig } from './middlewares';
+
+export interface GlobalArgs {
   verbose: boolean;
-}
-
-function initLog(argv: Args) {
-  winston.configure({
-    levels: winston.config.cli.levels,
-    format: winston.format.combine(
-      winston.format.colorize(),
-      winston.format.simple()
-    ),
-    transports: [new winston.transports.Console()],
-  });
-
-  winston.addColors(winston.config.cli.colors);
-
-  if (argv.verbose) {
-    winston.level = 'verbose';
-  } else {
-    winston.level = 'info';
-  }
+  port?: number;
 }
 
 /* eslint-disable */
@@ -41,6 +24,13 @@ const argv = yargs(process.argv.slice(2))
   .command(removeCommand)
   .command(migrateCommand)
   .options({
+    port: {
+      description: 'Anki-connect port',
+      type: 'number',
+      alias: ['p'],
+      required: false,
+      global: true,
+    },
     verbose: {
       description: 'Verbose output',
       type: 'boolean',
@@ -50,6 +40,13 @@ const argv = yargs(process.argv.slice(2))
     },
   })
   .demandCommand()
+  .recommendCommands()
   .help()
   .version()
-  .middleware([initLog]).argv;
+  .middleware([
+    (argv) => {
+      initLog(argv.verbose);
+    },
+    initAutoAnkiService,
+    initConfig,
+  ]).argv;
