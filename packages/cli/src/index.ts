@@ -2,41 +2,54 @@
 import yargs from 'yargs/yargs';
 import winston from 'winston';
 
+import addCommand from './commands/add';
+import dumpCommand from './commands/dump';
+import syncCommand from './commands/sync';
+import removeCommand from './commands/remove';
+import migrateCommand from './commands/migrate';
+
 interface Args {
-  buildDirs: string[];
-  outDir: string;
   verbose: boolean;
 }
 
-const argv: Args = yargs(process.argv.slice(2))
+function initLog(argv: Args) {
+  winston.configure({
+    levels: winston.config.cli.levels,
+    format: winston.format.combine(
+      winston.format.colorize(),
+      winston.format.simple()
+    ),
+    transports: [new winston.transports.Console()],
+  });
+
+  winston.addColors(winston.config.cli.colors);
+
+  if (argv.verbose) {
+    winston.level = 'verbose';
+  } else {
+    winston.level = 'info';
+  }
+}
+
+/* eslint-disable */
+const argv = yargs(process.argv.slice(2))
   .scriptName('autoanki')
-  .command('sync', 'Synchronize markdown file with collection', {})
-  .help()
-  .version()
+  .strict()
+  .command(addCommand)
+  .command(dumpCommand)
+  .command(syncCommand)
+  .command(removeCommand)
+  .command(migrateCommand)
   .options({
     verbose: {
       description: 'Verbose output',
       type: 'boolean',
-      alias: ['v', 'verbose'],
+      alias: ['v'],
       default: false,
+      global: true,
     },
-  }).argv as unknown as Args;
-
-winston.configure({
-  levels: winston.config.cli.levels,
-  format: winston.format.combine(
-    winston.format.colorize(),
-    winston.format.simple()
-  ),
-  transports: [new winston.transports.Console()],
-});
-
-winston.addColors(winston.config.cli.colors);
-
-if (argv.verbose) {
-  winston.level = 'verbose';
-} else {
-  winston.level = 'info';
-}
-
-winston.info('Processing input');
+  })
+  .demandCommand()
+  .help()
+  .version()
+  .middleware([initLog]).argv;
