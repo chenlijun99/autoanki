@@ -65,6 +65,7 @@ exports[`note parsing should parse multiple notes: Input text:
 </note> 1`] = `
 Array [
   Object {
+    "endIndex": 106,
     "fields": Object {
       "Back": "1 + 1 = 2
 ",
@@ -72,8 +73,10 @@ Array [
 ",
     },
     "noteType": "Basic",
+    "startIndex": 0,
   },
   Object {
+    "endIndex": 213,
     "fields": Object {
       "Back": "1 + 1 = 2
 ",
@@ -81,8 +84,10 @@ Array [
 ",
     },
     "noteType": "Basic",
+    "startIndex": 107,
   },
   Object {
+    "endIndex": 319,
     "fields": Object {
       "Back": "1 + 1 = 2
 ",
@@ -90,6 +95,7 @@ Array [
 ",
     },
     "noteType": "Basic",
+    "startIndex": 214,
   },
 ]
 `;
@@ -121,6 +127,7 @@ exports[`note parsing should parse multiple notes: Input text:
 --- 1`] = `
 Array [
   Object {
+    "endIndex": 53,
     "fields": Object {
       "Back": "1 + 1 = 2
 ",
@@ -128,8 +135,10 @@ Array [
 ",
     },
     "noteType": "Basic",
+    "startIndex": 0,
   },
   Object {
+    "endIndex": 107,
     "fields": Object {
       "Back": "1 + 1 = 2
 ",
@@ -137,8 +146,10 @@ Array [
 ",
     },
     "noteType": "Basic",
+    "startIndex": 54,
   },
   Object {
+    "endIndex": 160,
     "fields": Object {
       "Back": "1 + 1 = 2
 ",
@@ -146,6 +157,7 @@ Array [
 ",
     },
     "noteType": "Basic",
+    "startIndex": 108,
   },
 ]
 `;
@@ -168,6 +180,7 @@ exports[`note parsing should parse one note: Input text:
 </note> 1`] = `
 Array [
   Object {
+    "endIndex": 112,
     "fields": Object {
       "Back": "1 + 1 = 2
 
@@ -178,6 +191,7 @@ Array [
 ",
     },
     "noteType": "Basic",
+    "startIndex": 1,
   },
 ]
 `;
@@ -200,6 +214,7 @@ exports[`note parsing should parse one note: Input text:
 --- 1`] = `
 Array [
   Object {
+    "endIndex": 59,
     "fields": Object {
       "Back": "1 + 1 = 2
 
@@ -210,6 +225,7 @@ Array [
 ",
     },
     "noteType": "Basic",
+    "startIndex": 1,
   },
 ]
 `;
@@ -225,6 +241,7 @@ exports[`note parsing should parse one note: Input text:
 </note> 1`] = `
 Array [
   Object {
+    "endIndex": 105,
     "fields": Object {
       "Back": "1 + 1 = 2
 ",
@@ -232,6 +249,7 @@ Array [
 ",
     },
     "noteType": "Basic",
+    "startIndex": 0,
   },
 ]
 `;
@@ -247,6 +265,7 @@ exports[`note parsing should parse one note: Input text:
 --- 1`] = `
 Array [
   Object {
+    "endIndex": 52,
     "fields": Object {
       "Back": "1 + 1 = 2
 ",
@@ -254,6 +273,7 @@ Array [
 ",
     },
     "noteType": "Basic",
+    "startIndex": 0,
   },
 ]
 `;

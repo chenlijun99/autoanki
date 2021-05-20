@@ -33,9 +33,26 @@ export interface NoteParseConfig {
 }
 
 export interface Note {
+  /**
+   * Anki note id
+   */
   id?: NoteTypes.NoteId;
+  /**
+   * Parsed Anki note type
+   */
   noteType: string;
+  /**
+   * Parsed Anki note fields
+   */
   fields: Record<string, string>;
+  /**
+   * Index at which the Anki note starts in the text string
+   */
+  startIndex: number;
+  /**
+   * Index at which the Anki note ends in the text string
+   */
+  endIndex: number;
 }
 
 enum DelimiterType {
@@ -57,7 +74,7 @@ function matchAllDelimiters(text: string, regex: string, type: DelimiterType) {
 const newLineRegex = String.raw`(\r\n|\r|\n|$)`;
 
 /**
- * Use a serious parser
+ * TODO Use a serious parser
  */
 export async function parse(
   text: string,
@@ -100,6 +117,8 @@ export async function parse(
     const note: Note = {
       noteType: '',
       fields: {},
+      startIndex: delimiters[i].match.index!,
+      endIndex: 0,
     };
     note.noteType = delimiters[i].match[1];
     let j = i + 1;
@@ -133,6 +152,9 @@ export async function parse(
       throw new Error('Empty note');
     }
     i = j + 1;
+    const endDelimiter = delimiters[j];
+    note.endIndex =
+      endDelimiter.match.index! + endDelimiter.match[0].length - 1;
     notes.push(note);
   }
 
