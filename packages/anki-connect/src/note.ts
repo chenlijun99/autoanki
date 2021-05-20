@@ -200,24 +200,24 @@ export interface Note {
      * A value of "deckName" will only check for duplicates in the target
      * d eck; any other value will check the entire collection
      */
-    duplicateScope: string;
+    duplicateScope?: 'deckName' | unknown;
     /**
      * The duplicateScopeOptions object can be used to specify some
      * additional settings.
      */
-    duplicateScopeOptions: {
+    duplicateScopeOptions?: {
       /**
        * duplicateScopeOptions.deckName will specify
        * which deck to use for checking duplicates in. If undefined or null,
        * the target deck will be used.
        */
-      deckName: string;
+      deckName?: string | null;
       /**
        * duplicateScopeOptions.checkChildren
        * will change whether or not duplicate cards are checked in child
        * decks; the default value is false.
        */
-      checkChildren: boolean;
+      checkChildren?: boolean;
     };
   };
   tags: Array<string>;
