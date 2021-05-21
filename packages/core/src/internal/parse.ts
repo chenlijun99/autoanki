@@ -165,7 +165,15 @@ export async function parse(
   return notes;
 }
 
-export async function checkSemanticErrors(
+/**
+ * Check the consistency of the given notes
+ *
+ * @async
+ * @param {AnkiConnectService} service
+ * @param {Note[]} notes the notes to be checked
+ * @return {Promise<Error[] | undefined>}
+ */
+export async function checkConsistency(
   service: AnkiConnectService,
   notes: Note[]
 ): Promise<Error[] | undefined> {

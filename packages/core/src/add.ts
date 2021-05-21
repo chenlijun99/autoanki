@@ -1,7 +1,7 @@
 import { AnkiConnectService, NoteTypes } from '@autoanki/anki-connect';
 
 import { AutoAnkiConfiguration } from './config';
-import { parse, Note, checkSemanticErrors } from './internal/parse';
+import { parse, Note, checkConsistency } from './internal/parse';
 import { createDeckIfNotExisisting } from './internal/utils';
 
 interface AddAction {
@@ -57,7 +57,7 @@ export async function add(
 ): Promise<AddOperation> {
   createDeckIfNotExisisting(service, deck);
   const notes = await parse(text, config);
-  const errors = await checkSemanticErrors(service, notes);
+  const errors = await checkConsistency(service, notes);
   if (errors) {
     throw new Error();
   }
