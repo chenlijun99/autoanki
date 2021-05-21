@@ -16,7 +16,7 @@ module.exports = {
     'prettier/@typescript-eslint',
   ],
   parserOptions: {
-    project: ['./packages/**/tsconfig.json'],
+    project: ['./packages/**/tsconfig.json', './scripts/tsconfig.json'],
     tsconfigRootDir: __dirname,
   },
   settings: {
@@ -66,5 +66,6 @@ module.exports = {
     ],
     'class-methods-use-this': 'off',
     'prefer-destructuring': 'off',
+    'import/extensions': 'off',
   },
 };

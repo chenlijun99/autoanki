@@ -24,8 +24,9 @@
     "dev": "microbundle watch",
     "prepack": "npm run build",
     "test": "jest",
-    "test-update": "jest --updateSnapshot",
-    "test-debug": "node --inspect-brk ../../node_modules/.bin/jest --runInBand --watch"
+    "test:coverage": "jest --coverage",
+    "test:update": "jest --updateSnapshot",
+    "test:debug": "node --inspect-brk ../../node_modules/.bin/jest --runInBand --watch"
   },
   "repository": {
     "type": "git",
