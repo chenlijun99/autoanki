@@ -12,27 +12,41 @@ interface NoteParseTestConfig extends NoteParseConfig {
 
 const parserTestConfigs: NoteParseTestConfig[] = [
   {
-    fieldStartDelimiter: '~~(.+)',
-    fieldEndDelimiter: '~~',
-    noteStartDelimiter: '---(.+)',
-    noteEndDelimiter: '---',
+    noteDelimiter: {
+      start: '---(.+)',
+      end: '---',
+    },
+    fieldDelimiter: {
+      start: '~~(.+)',
+      end: '~~',
+    },
+    metadataDelimiter: {
+      start: '<',
+      end: '>',
+    },
     fieldStartDelimiterBuilder: (field) => `~~${field}`,
     fieldEndDelimiterBuilder: () => `~~`,
     noteStartDelimiterBuilder: (noteType) => `---${noteType}`,
     noteEndDelimiterBuilder: () => `---`,
-    metadataDelimiter: ['<', '>'],
     metadataBuilder: (metadata) => `<${JSON.stringify(metadata)}>`,
   },
   {
-    fieldStartDelimiter: '<field name="(.+)">',
-    fieldEndDelimiter: '</field>',
-    noteStartDelimiter: '<note type="(.+)">',
-    noteEndDelimiter: '</note>',
+    noteDelimiter: {
+      start: '<note type="(.+)">',
+      end: '</note>',
+    },
+    fieldDelimiter: {
+      start: '<field name="(.+)">',
+      end: '</field>',
+    },
+    metadataDelimiter: {
+      start: '<!--',
+      end: '-->',
+    },
     fieldStartDelimiterBuilder: (field) => `<field name="${field}">`,
     fieldEndDelimiterBuilder: () => `</field>`,
     noteStartDelimiterBuilder: (noteType) => `<note type="${noteType}">`,
     noteEndDelimiterBuilder: () => `</note>`,
-    metadataDelimiter: ['<!--', '-->'],
     metadataBuilder: (metadata) => `<!--${JSON.stringify(metadata)}-->`,
   },
 ];

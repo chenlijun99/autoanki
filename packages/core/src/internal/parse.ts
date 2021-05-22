@@ -5,37 +5,37 @@ import {
   ModelTypes,
 } from '@autoanki/anki-connect';
 
+interface Delimiter {
+  /**
+   * Start delimiter
+   */
+  start: string;
+  /**
+   * End delimiter
+   *
+   * Why is it required? E.g. can't notes be separated just by the start delimiter?
+   * Because we don't assume that all the content of the text file needs to
+   * become Anki notes.
+   */
+  end: string;
+}
+
 /**
  * Note parsing configuration
  */
 export interface NoteParseConfig {
   /**
-   * Start delimiter of an Anki note in a text file
-   *
-   * The capture group
+   * Note delimiters
    */
-  noteStartDelimiter: string;
+  noteDelimiter: Delimiter;
   /**
-   * End delimiter of an Anki note in a text file.
-   *
-   * Why is it required? Because we don't assume that all the content of the
-   * text file needs to become Anki notes.
+   * Note field delimiters
    */
-  noteEndDelimiter: string;
+  fieldDelimiter: Delimiter;
   /**
-   * Field start delimiter
-   *
-   * The capture group
+   * Note-specific inline metadata section delimiters
    */
-  fieldStartDelimiter: string;
-  /**
-   * Field end delimiter
-   *
-   * Why is it required? Because we don't assume that all the content of the
-   * note in the given text file needs to be an note field in Anki.
-   */
-  fieldEndDelimiter: string;
-  metadataDelimiter: [string, string];
+  metadataDelimiter: Delimiter;
 }
 
 export interface NoteMetadata {
@@ -137,31 +137,34 @@ export async function parse(
   const delimiters = [
     ...matchAllDelimiters(
       text,
-      getDelimiterRegexStr(config.noteStartDelimiter, DelimiterType.NOTE_START),
+      getDelimiterRegexStr(
+        config.noteDelimiter.start,
+        DelimiterType.NOTE_START
+      ),
       DelimiterType.NOTE_START
     ),
     ...matchAllDelimiters(
       text,
-      getDelimiterRegexStr(config.noteEndDelimiter, DelimiterType.NOTE_END),
+      getDelimiterRegexStr(config.noteDelimiter.end, DelimiterType.NOTE_END),
       DelimiterType.NOTE_END
     ),
     ...matchAllDelimiters(
       text,
       getDelimiterRegexStr(
-        config.fieldStartDelimiter,
+        config.fieldDelimiter.start,
         DelimiterType.FIELD_START
       ),
       DelimiterType.FIELD_START
     ),
     ...matchAllDelimiters(
       text,
-      getDelimiterRegexStr(config.fieldEndDelimiter, DelimiterType.FIELD_END),
+      getDelimiterRegexStr(config.fieldDelimiter.end, DelimiterType.FIELD_END),
       DelimiterType.FIELD_END
     ),
     ...matchAllDelimiters(
       text,
       getDelimiterRegexStr(
-        escapeRegExp(config.metadataDelimiter[0]),
+        escapeRegExp(config.metadataDelimiter.start),
         DelimiterType.METADATA_START
       ),
       DelimiterType.METADATA_START
@@ -169,7 +172,7 @@ export async function parse(
     ...matchAllDelimiters(
       text,
       getDelimiterRegexStr(
-        escapeRegExp(config.metadataDelimiter[1]),
+        escapeRegExp(config.metadataDelimiter.end),
         DelimiterType.METADATA_END
       ),
       DelimiterType.METADATA_END
@@ -339,10 +342,10 @@ export async function writeMetadata(
       updatedNoteText = noteText.replace(
         new RegExp(
           `(${getDelimiterRegexStr(
-            note.internalParsingMetadata.parsingConfig.metadataDelimiter[0],
+            note.internalParsingMetadata.parsingConfig.metadataDelimiter.start,
             DelimiterType.METADATA_START
           )}).*?(${getDelimiterRegexStr(
-            note.internalParsingMetadata.parsingConfig.metadataDelimiter[1],
+            note.internalParsingMetadata.parsingConfig.metadataDelimiter.end,
             DelimiterType.METADATA_END
           )})`
         ),
@@ -359,9 +362,9 @@ export async function writeMetadata(
           note.internalParsingMetadata.noteStartDelimiterIndexes[1]
         ) +
         `${
-          note.internalParsingMetadata.parsingConfig.metadataDelimiter[0]
+          note.internalParsingMetadata.parsingConfig.metadataDelimiter.start
         }${JSON.stringify(note.metadata)}${
-          note.internalParsingMetadata.parsingConfig.metadataDelimiter[1]
+          note.internalParsingMetadata.parsingConfig.metadataDelimiter.end
         }\n` +
         text.slice(
           note.internalParsingMetadata.noteStartDelimiterIndexes[1],
