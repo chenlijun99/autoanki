@@ -24,18 +24,20 @@ interface Delimiter {
  * Note parsing configuration
  */
 export interface NoteParseConfig {
-  /**
-   * Note delimiters
-   */
-  noteDelimiter: Delimiter;
-  /**
-   * Note field delimiters
-   */
-  fieldDelimiter: Delimiter;
-  /**
-   * Note-specific inline metadata section delimiters
-   */
-  metadataDelimiter: Delimiter;
+  lexemes: {
+    /**
+     * Note delimiters
+     */
+    noteDelimiter: Delimiter;
+    /**
+     * Note field delimiters
+     */
+    fieldDelimiter: Delimiter;
+    /**
+     * Note-specific inline metadata section delimiters
+     */
+    metadataDelimiter: Delimiter;
+  };
 }
 
 export interface NoteMetadata {
@@ -138,33 +140,39 @@ export async function parse(
     ...matchAllDelimiters(
       text,
       getDelimiterRegexStr(
-        config.noteDelimiter.start,
+        config.lexemes.noteDelimiter.start,
         DelimiterType.NOTE_START
       ),
       DelimiterType.NOTE_START
     ),
     ...matchAllDelimiters(
       text,
-      getDelimiterRegexStr(config.noteDelimiter.end, DelimiterType.NOTE_END),
+      getDelimiterRegexStr(
+        config.lexemes.noteDelimiter.end,
+        DelimiterType.NOTE_END
+      ),
       DelimiterType.NOTE_END
     ),
     ...matchAllDelimiters(
       text,
       getDelimiterRegexStr(
-        config.fieldDelimiter.start,
+        config.lexemes.fieldDelimiter.start,
         DelimiterType.FIELD_START
       ),
       DelimiterType.FIELD_START
     ),
     ...matchAllDelimiters(
       text,
-      getDelimiterRegexStr(config.fieldDelimiter.end, DelimiterType.FIELD_END),
+      getDelimiterRegexStr(
+        config.lexemes.fieldDelimiter.end,
+        DelimiterType.FIELD_END
+      ),
       DelimiterType.FIELD_END
     ),
     ...matchAllDelimiters(
       text,
       getDelimiterRegexStr(
-        escapeRegExp(config.metadataDelimiter.start),
+        escapeRegExp(config.lexemes.metadataDelimiter.start),
         DelimiterType.METADATA_START
       ),
       DelimiterType.METADATA_START
@@ -172,7 +180,7 @@ export async function parse(
     ...matchAllDelimiters(
       text,
       getDelimiterRegexStr(
-        escapeRegExp(config.metadataDelimiter.end),
+        escapeRegExp(config.lexemes.metadataDelimiter.end),
         DelimiterType.METADATA_END
       ),
       DelimiterType.METADATA_END
@@ -342,10 +350,12 @@ export async function writeMetadata(
       updatedNoteText = noteText.replace(
         new RegExp(
           `(${getDelimiterRegexStr(
-            note.internalParsingMetadata.parsingConfig.metadataDelimiter.start,
+            note.internalParsingMetadata.parsingConfig.lexemes.metadataDelimiter
+              .start,
             DelimiterType.METADATA_START
           )}).*?(${getDelimiterRegexStr(
-            note.internalParsingMetadata.parsingConfig.metadataDelimiter.end,
+            note.internalParsingMetadata.parsingConfig.lexemes.metadataDelimiter
+              .end,
             DelimiterType.METADATA_END
           )})`
         ),
@@ -362,9 +372,11 @@ export async function writeMetadata(
           note.internalParsingMetadata.noteStartDelimiterIndexes[1]
         ) +
         `${
-          note.internalParsingMetadata.parsingConfig.metadataDelimiter.start
+          note.internalParsingMetadata.parsingConfig.lexemes.metadataDelimiter
+            .start
         }${JSON.stringify(note.metadata)}${
-          note.internalParsingMetadata.parsingConfig.metadataDelimiter.end
+          note.internalParsingMetadata.parsingConfig.lexemes.metadataDelimiter
+            .end
         }\n` +
         text.slice(
           note.internalParsingMetadata.noteStartDelimiterIndexes[1],
