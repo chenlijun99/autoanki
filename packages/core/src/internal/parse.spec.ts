@@ -1,6 +1,12 @@
 import outdent from 'outdent';
 
-import { parse, writeMetadata, NoteParseConfig, NoteMetadata } from './parse';
+import {
+  parse,
+  writeMetadata,
+  NoteParseConfig,
+  NoteMetadata,
+  COMMON_PLACEHOLDERS,
+} from './parse';
 
 interface NoteParseTestConfig extends NoteParseConfig {
   noteStartDelimiterBuilder: (noteType: string) => string;
@@ -14,12 +20,12 @@ const parserTestConfigs: NoteParseTestConfig[] = [
   {
     lexemes: {
       noteDelimiter: {
-        start: '---(.+)',
-        end: '---',
+        start: `${COMMON_PLACEHOLDERS.startOfLine}---${COMMON_PLACEHOLDERS.noteType}${COMMON_PLACEHOLDERS.newline}`,
+        end: `${COMMON_PLACEHOLDERS.startOfLine}---${COMMON_PLACEHOLDERS.newline}`,
       },
       fieldDelimiter: {
-        start: '~~(.+)',
-        end: '~~',
+        start: `${COMMON_PLACEHOLDERS.startOfLine}~~${COMMON_PLACEHOLDERS.fieldName}${COMMON_PLACEHOLDERS.newline}`,
+        end: `${COMMON_PLACEHOLDERS.startOfLine}~~${COMMON_PLACEHOLDERS.newline}`,
       },
       metadataDelimiter: {
         start: '<',
@@ -35,12 +41,12 @@ const parserTestConfigs: NoteParseTestConfig[] = [
   {
     lexemes: {
       noteDelimiter: {
-        start: '<note type="(.+)">',
-        end: '</note>',
+        start: `${COMMON_PLACEHOLDERS.startOfLine}<note type="${COMMON_PLACEHOLDERS.noteType}">${COMMON_PLACEHOLDERS.newline}`,
+        end: `${COMMON_PLACEHOLDERS.startOfLine}</note>${COMMON_PLACEHOLDERS.newline}`,
       },
       fieldDelimiter: {
-        start: '<field name="(.+)">',
-        end: '</field>',
+        start: `${COMMON_PLACEHOLDERS.startOfLine}<field name="${COMMON_PLACEHOLDERS.fieldName}">${COMMON_PLACEHOLDERS.newline}`,
+        end: `${COMMON_PLACEHOLDERS.startOfLine}</field>${COMMON_PLACEHOLDERS.newline}`,
       },
       metadataDelimiter: {
         start: '<!--',

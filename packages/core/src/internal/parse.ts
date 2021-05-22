@@ -5,6 +5,13 @@ import {
   ModelTypes,
 } from '@autoanki/anki-connect';
 
+class ParserError extends Error {
+  constructor(...args: ConstructorParameters<typeof Error>) {
+    super(...args);
+    this.name = 'AutoankiCoreParserError';
+  }
+}
+
 interface Delimiter {
   /**
    * Start delimiter
@@ -39,6 +46,15 @@ export interface NoteParseConfig {
     metadataDelimiter: Delimiter;
   };
 }
+
+export const COMMON_PLACEHOLDERS = {
+  newline: '<newline>',
+  startOfLine: '<startOfLine>',
+  noteType: '<noteType>',
+  fieldName: '<fieldName>',
+} as const;
+type CommonPlaceholders = typeof COMMON_PLACEHOLDERS;
+type CommonPlaceholderValue = CommonPlaceholders[keyof CommonPlaceholders];
 
 export interface NoteMetadata {
   /**
@@ -100,23 +116,120 @@ function escapeRegExp(str: string) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-function matchAllDelimiters(text: string, regex: string, type: DelimiterType) {
-  return Array.from(text.matchAll(new RegExp(regex, 'g'))).map((match) => {
+interface PlaceholderAllowPolicy {
+  placeholder: CommonPlaceholderValue;
+  minOccurences: number;
+  maxOccurences: number;
+  customValidator?: () => ParserError | undefined;
+}
+
+type PlaceholderWhiltelist = Partial<
+  Record<DelimiterType, PlaceholderAllowPolicy[]>
+> & {
+  all: PlaceholderAllowPolicy[];
+};
+
+const PLACEHOLDER_WHITELST: PlaceholderWhiltelist = {
+  all: [
+    {
+      placeholder: COMMON_PLACEHOLDERS.newline,
+      minOccurences: -Infinity,
+      maxOccurences: +Infinity,
+    },
+    {
+      placeholder: COMMON_PLACEHOLDERS.startOfLine,
+      minOccurences: -Infinity,
+      maxOccurences: +Infinity,
+    },
+  ],
+  [DelimiterType.NOTE_START]: [
+    {
+      placeholder: COMMON_PLACEHOLDERS.noteType,
+      minOccurences: 1,
+      maxOccurences: 1,
+    },
+  ],
+  [DelimiterType.FIELD_START]: [
+    {
+      placeholder: COMMON_PLACEHOLDERS.fieldName,
+      minOccurences: 1,
+      maxOccurences: 1,
+    },
+  ],
+};
+
+function isPlaceholderUsageInLexemeCompliant(
+  lexeme: string,
+  entry: keyof PlaceholderWhiltelist,
+  placeholder: CommonPlaceholderValue
+): ParserError | undefined {
+  const matches = Array.from(lexeme.matchAll(new RegExp(placeholder, 'g')));
+  const whiteList = PLACEHOLDER_WHITELST[entry] ?? [];
+  const policy = whiteList.find(
+    (allowed) => allowed.placeholder === placeholder
+  );
+  if (policy) {
+    if (
+      !(
+        policy.minOccurences <= matches.length &&
+        matches.length <= policy.maxOccurences
+      )
+    ) {
+      return new ParserError(`Invalid usage of placeholder ${placeholder}`);
+    }
+  } else if (matches.length !== 0) {
+    return new ParserError(`Invalid usage of placeholder ${placeholder}`);
+  }
+  return undefined;
+}
+
+const newLineRegex = String.raw`(\r\n|\r|\n|$)`;
+/**
+ * Convert user defined delimiter to regex
+ *
+ * @param delimiter - user defined delimiter
+ * @param type - type of the delimiter
+ * @return regex that can be used to match the delimiter token
+ */
+function getDelimiterRegexStr(delimiter: string, type: DelimiterType): RegExp {
+  let regex = escapeRegExp(delimiter);
+
+  Object.values(COMMON_PLACEHOLDERS).forEach((placeholder) => {
+    let error = isPlaceholderUsageInLexemeCompliant(
+      delimiter,
+      type,
+      placeholder
+    );
+    if (error) {
+      error = isPlaceholderUsageInLexemeCompliant(
+        delimiter,
+        'all',
+        placeholder
+      );
+    }
+    if (error) {
+      throw error;
+    }
+  });
+
+  regex = regex.replace(COMMON_PLACEHOLDERS.newline, newLineRegex);
+  regex = regex.replace(COMMON_PLACEHOLDERS.startOfLine, '^');
+  if (type === DelimiterType.NOTE_START) {
+    regex = regex.replace(COMMON_PLACEHOLDERS.noteType, '(.+)');
+  }
+  if (type === DelimiterType.FIELD_START) {
+    regex = regex.replace(COMMON_PLACEHOLDERS.fieldName, '(.+)');
+  }
+  return new RegExp(regex, 'gm');
+}
+
+function matchAllDelimiters(text: string, regex: RegExp, type: DelimiterType) {
+  return Array.from(text.matchAll(regex)).map((match) => {
     return {
       type,
       match,
     };
   });
-}
-
-const newLineRegex = String.raw`(\r\n|\r|\n|$)`;
-function getDelimiterRegexStr(delimiter: string, type: DelimiterType): string {
-  switch (type) {
-    case DelimiterType.METADATA_START:
-      return delimiter;
-    default:
-      return `${delimiter}${newLineRegex}`;
-  }
 }
 
 /**
@@ -127,6 +240,13 @@ function getDelimiterRegexStr(delimiter: string, type: DelimiterType): string {
  */
 function getMatchIndexes(match: RegExpMatchArray): [number, number] {
   return [match.index!, match.index! + match[0].length];
+}
+
+/**
+ * Validate the parser configuration
+ */
+export function validateParserConfig(config: NoteParseConfig): ParserError[] {
+  return [];
 }
 
 /**
@@ -172,7 +292,7 @@ export async function parse(
     ...matchAllDelimiters(
       text,
       getDelimiterRegexStr(
-        escapeRegExp(config.lexemes.metadataDelimiter.start),
+        config.lexemes.metadataDelimiter.start,
         DelimiterType.METADATA_START
       ),
       DelimiterType.METADATA_START
@@ -180,7 +300,7 @@ export async function parse(
     ...matchAllDelimiters(
       text,
       getDelimiterRegexStr(
-        escapeRegExp(config.lexemes.metadataDelimiter.end),
+        config.lexemes.metadataDelimiter.end,
         DelimiterType.METADATA_END
       ),
       DelimiterType.METADATA_END
@@ -349,15 +469,19 @@ export async function writeMetadata(
        */
       updatedNoteText = noteText.replace(
         new RegExp(
-          `(${getDelimiterRegexStr(
-            note.internalParsingMetadata.parsingConfig.lexemes.metadataDelimiter
-              .start,
-            DelimiterType.METADATA_START
-          )}).*?(${getDelimiterRegexStr(
-            note.internalParsingMetadata.parsingConfig.lexemes.metadataDelimiter
-              .end,
-            DelimiterType.METADATA_END
-          )})`
+          `(${
+            getDelimiterRegexStr(
+              note.internalParsingMetadata.parsingConfig.lexemes
+                .metadataDelimiter.start,
+              DelimiterType.METADATA_START
+            ).source
+          }).*?(${
+            getDelimiterRegexStr(
+              note.internalParsingMetadata.parsingConfig.lexemes
+                .metadataDelimiter.end,
+              DelimiterType.METADATA_END
+            ).source
+          })`
         ),
         `$1${JSON.stringify(note.metadata)}$2`
       );
