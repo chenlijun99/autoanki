@@ -1,4 +1,5 @@
-import fs from 'fs';
+import fs from 'fs/promises';
+import winston from 'winston';
 
 import type { CommandModule } from 'yargs';
 import { getAutoankiService } from '../middlewares';
@@ -10,11 +11,20 @@ interface Args {
 }
 
 async function handler(argv: Args) {
-  const textFileContent = fs.readFileSync(argv.file).toString('utf8');
+  const textFileContent = (await fs.readFile(argv.file)).toString('utf8');
 
   const service = getAutoankiService();
-  const operation = await service.add(textFileContent, argv.deck);
-  return operation.execute();
+  const operation = await service.add(textFileContent, argv.deck, argv.tags);
+  if (operation.actions.length === 0) {
+    winston.warn('No operation was required');
+    return;
+  }
+  const { modifiedText, successes, errors } = await operation.execute();
+  winston.info(`${successes.length} notes added`);
+  if (errors.length > 0) {
+    winston.error(`Failed to add ${errors.length} notes`);
+  }
+  await fs.writeFile(argv.file, modifiedText);
 }
 
 const command: CommandModule<{}, Args> = {

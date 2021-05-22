@@ -19,12 +19,13 @@ export default class AutoAnkiService {
    * configuration and insert the parsed notes in Anki.
    *
    * @async
-   * @param {string} text - [TODO:description]
-   * @param {string} deck - [TODO:description]
-   * @return {Promise<string>} [TODO:description]
+   * @param text - [TODO:description]
+   * @param deck - [TODO:description]
+   * @param tags - [TODO:description]
+   * @return [TODO:description]
    */
-  async add(text: string, deck: string): Promise<AddOperation> {
-    return add(this.ankiConnect, this.config, text, deck);
+  async add(text: string, deck: string, tags: string[]): Promise<AddOperation> {
+    return add(this.ankiConnect, this.config, text, deck, tags);
   }
 
   /**

@@ -67,5 +67,6 @@ module.exports = {
     'class-methods-use-this': 'off',
     'prefer-destructuring': 'off',
     'import/extensions': 'off',
+    'no-underscore-dangle': 'off',
   },
 };

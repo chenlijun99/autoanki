@@ -23,10 +23,17 @@ export function initLog(verbose: boolean) {
 }
 
 let config: ConfigTypes.AutoAnkiConfiguration = {
-  noteStartDelimiter: '---(.+)',
-  noteEndDelimiter: '---',
-  fieldStartDelimiter: '~~(.+)',
-  fieldEndDelimiter: '~~',
+  lexemes: {
+    metadataDelimiter: { start: '<!--', end: '-->' },
+    noteDelimiter: {
+      start: '<startOfLine>:{<noteType><newline>',
+      end: '<startOfLine>:}<newline>',
+    },
+    fieldDelimiter: {
+      start: '<startOfLine>:[<fieldName><newline>',
+      end: '<startOfLine>:]<newline>',
+    },
+  },
 };
 export function getConfig(): ConfigTypes.AutoAnkiConfiguration {
   return config;
