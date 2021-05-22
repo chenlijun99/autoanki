@@ -20,23 +20,23 @@ const parserTestConfigs: NoteParseTestConfig[] = [
   {
     lexemes: {
       noteDelimiter: {
-        start: `${COMMON_PLACEHOLDERS.startOfLine}---${COMMON_PLACEHOLDERS.noteType}${COMMON_PLACEHOLDERS.newline}`,
-        end: `${COMMON_PLACEHOLDERS.startOfLine}---${COMMON_PLACEHOLDERS.newline}`,
+        start: `${COMMON_PLACEHOLDERS.startOfLine}***${COMMON_PLACEHOLDERS.noteType}${COMMON_PLACEHOLDERS.newline}`,
+        end: `${COMMON_PLACEHOLDERS.startOfLine}***${COMMON_PLACEHOLDERS.newline}`,
       },
       fieldDelimiter: {
-        start: `${COMMON_PLACEHOLDERS.startOfLine}~~${COMMON_PLACEHOLDERS.fieldName}${COMMON_PLACEHOLDERS.newline}`,
-        end: `${COMMON_PLACEHOLDERS.startOfLine}~~${COMMON_PLACEHOLDERS.newline}`,
+        start: `${COMMON_PLACEHOLDERS.startOfLine}++${COMMON_PLACEHOLDERS.fieldName}${COMMON_PLACEHOLDERS.newline}`,
+        end: `${COMMON_PLACEHOLDERS.startOfLine}++${COMMON_PLACEHOLDERS.newline}`,
       },
       metadataDelimiter: {
-        start: '<',
-        end: '>',
+        start: '[',
+        end: ']',
       },
     },
-    fieldStartDelimiterBuilder: (field) => `~~${field}`,
-    fieldEndDelimiterBuilder: () => `~~`,
-    noteStartDelimiterBuilder: (noteType) => `---${noteType}`,
-    noteEndDelimiterBuilder: () => `---`,
-    metadataBuilder: (metadata) => `<${JSON.stringify(metadata)}>`,
+    fieldStartDelimiterBuilder: (field) => `++${field}`,
+    fieldEndDelimiterBuilder: () => `++`,
+    noteStartDelimiterBuilder: (noteType) => `***${noteType}`,
+    noteEndDelimiterBuilder: () => `***`,
+    metadataBuilder: (metadata) => `[${JSON.stringify(metadata)}]`,
   },
   {
     lexemes: {

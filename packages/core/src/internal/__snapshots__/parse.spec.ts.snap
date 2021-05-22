@@ -2,6 +2,46 @@
 
 exports[`metadata insertion should insert the metadata right after the note start delimiter: Test case: multiple notes with no note metadata
 Input text:
+***Basic
+++Front
+1 + 1 = ?
+++
+++Back
+1 + 1 = 2
+++
+***
+
+***Basic
+++Front
+1 + 1 = ?
+++
+++Back
+1 + 1 = 2
+++
+*** 1`] = `
+"***Basic
+[{\\"id\\":0,\\"dontAdd\\":true}]
+++Front
+1 + 1 = ?
+++
+++Back
+1 + 1 = 2
+++
+***
+
+***Basic
+[{\\"id\\":1,\\"dontAdd\\":true}]
+++Front
+1 + 1 = ?
+++
+++Back
+1 + 1 = 2
+++
+***"
+`;
+
+exports[`metadata insertion should insert the metadata right after the note start delimiter: Test case: multiple notes with no note metadata
+Input text:
 <note type="Basic">
 <field name="Front">
 1 + 1 = ?
@@ -40,44 +80,65 @@ Input text:
 </note>"
 `;
 
-exports[`metadata insertion should insert the metadata right after the note start delimiter: Test case: multiple notes with no note metadata
+exports[`metadata insertion should insert the metadata right after the note start delimiter: Test case: multiple notes, some with existing metadata, some with no metadata
 Input text:
----Basic
-~~Front
+***Basic
+[{"id":0}]
+++Front
 1 + 1 = ?
-~~
-~~Back
+++
+++Back
 1 + 1 = 2
-~~
----
+++
+***
 
----Basic
-~~Front
+***Basic
+++Front
 1 + 1 = ?
-~~
-~~Back
+++
+++Back
 1 + 1 = 2
-~~
---- 1`] = `
-"---Basic
-<{\\"id\\":0,\\"dontAdd\\":true}>
-~~Front
-1 + 1 = ?
-~~
-~~Back
-1 + 1 = 2
-~~
----
+++
+***
 
----Basic
-<{\\"id\\":1,\\"dontAdd\\":true}>
-~~Front
+***Basic
+[{"id":1}]
+++Front
 1 + 1 = ?
-~~
-~~Back
+++
+++Back
 1 + 1 = 2
-~~
----"
+++
+*** 1`] = `
+"***Basic
+[{\\"id\\":0}]
+++Front
+1 + 1 = ?
+++
+++Back
+1 + 1 = 2
+++
+***
+
+***Basic
+[{\\"id\\":1,\\"dontAdd\\":true}]
+++Front
+1 + 1 = ?
+++
+++Back
+1 + 1 = 2
+++
+***
+
+***Basic
+[{\\"id\\":1}]
+++Front
+1 + 1 = ?
+++
+++Back
+1 + 1 = 2
+++
+***"
 `;
 
 exports[`metadata insertion should insert the metadata right after the note start delimiter: Test case: multiple notes, some with existing metadata, some with no metadata
@@ -141,65 +202,25 @@ Input text:
 </note>"
 `;
 
-exports[`metadata insertion should insert the metadata right after the note start delimiter: Test case: multiple notes, some with existing metadata, some with no metadata
+exports[`metadata insertion should insert the metadata right after the note start delimiter: Test case: single note with no note metadata
 Input text:
----Basic
-<{"id":0}>
-~~Front
+***Basic
+++Front
 1 + 1 = ?
-~~
-~~Back
+++
+++Back
 1 + 1 = 2
-~~
----
-
----Basic
-~~Front
+++
+*** 1`] = `
+"***Basic
+[{\\"id\\":0,\\"dontAdd\\":true}]
+++Front
 1 + 1 = ?
-~~
-~~Back
+++
+++Back
 1 + 1 = 2
-~~
----
-
----Basic
-<{"id":1}>
-~~Front
-1 + 1 = ?
-~~
-~~Back
-1 + 1 = 2
-~~
---- 1`] = `
-"---Basic
-<{\\"id\\":0}>
-~~Front
-1 + 1 = ?
-~~
-~~Back
-1 + 1 = 2
-~~
----
-
----Basic
-<{\\"id\\":1,\\"dontAdd\\":true}>
-~~Front
-1 + 1 = ?
-~~
-~~Back
-1 + 1 = 2
-~~
----
-
----Basic
-<{\\"id\\":1}>
-~~Front
-1 + 1 = ?
-~~
-~~Back
-1 + 1 = 2
-~~
----"
+++
+***"
 `;
 
 exports[`metadata insertion should insert the metadata right after the note start delimiter: Test case: single note with no note metadata
@@ -223,25 +244,56 @@ Input text:
 </note>"
 `;
 
-exports[`metadata insertion should insert the metadata right after the note start delimiter: Test case: single note with no note metadata
+exports[`metadata insertion should insert the metadata right after the note start delimiter: Test case: test multiple notes with non-note text content between notes
 Input text:
----Basic
-~~Front
+This text doesn't belong any note
+
+***Basic
+++Front
 1 + 1 = ?
-~~
-~~Back
+++
+++Back
 1 + 1 = 2
-~~
---- 1`] = `
-"---Basic
-<{\\"id\\":0,\\"dontAdd\\":true}>
-~~Front
+++
+***
+
+This text doesn't belong any note
+
+***Basic
+++Front
 1 + 1 = ?
-~~
-~~Back
+++
+++Back
 1 + 1 = 2
-~~
----"
+++
+***
+
+This text doesn't belong any note 1`] = `
+"This text doesn't belong any note
+
+***Basic
+[{\\"id\\":0,\\"dontAdd\\":true}]
+++Front
+1 + 1 = ?
+++
+++Back
+1 + 1 = 2
+++
+***
+
+This text doesn't belong any note
+
+***Basic
+[{\\"id\\":1,\\"dontAdd\\":true}]
+++Front
+1 + 1 = ?
+++
+++Back
+1 + 1 = 2
+++
+***
+
+This text doesn't belong any note"
 `;
 
 exports[`metadata insertion should insert the metadata right after the note start delimiter: Test case: test multiple notes with non-note text content between notes
@@ -296,56 +348,65 @@ This text doesn't belong any note
 This text doesn't belong any note"
 `;
 
-exports[`metadata insertion should insert the metadata right after the note start delimiter: Test case: test multiple notes with non-note text content between notes
+exports[`metadata insertion should update the metadata, wherever it is inside the note block: Test case: multiple notes, some with existing metadata, some with no metadata
 Input text:
-This text doesn't belong any note
-
----Basic
-~~Front
+***Basic
+[{"id":0}]
+++Front
 1 + 1 = ?
-~~
-~~Back
+++
+++Back
 1 + 1 = 2
-~~
----
+++
+***
 
-This text doesn't belong any note
-
----Basic
-~~Front
+***Basic
+++Front
 1 + 1 = ?
-~~
-~~Back
+++
+++Back
 1 + 1 = 2
-~~
----
+++
+***
 
-This text doesn't belong any note 1`] = `
-"This text doesn't belong any note
-
----Basic
-<{\\"id\\":0,\\"dontAdd\\":true}>
-~~Front
+***Basic
+[{"id":1}]
+++Front
 1 + 1 = ?
-~~
-~~Back
+++
+++Back
 1 + 1 = 2
-~~
----
-
-This text doesn't belong any note
-
----Basic
-<{\\"id\\":1,\\"dontAdd\\":true}>
-~~Front
+++
+*** 1`] = `
+"***Basic
+[{\\"id\\":0,\\"dontAdd\\":true}]
+++Front
 1 + 1 = ?
-~~
-~~Back
+++
+++Back
 1 + 1 = 2
-~~
----
+++
+***
 
-This text doesn't belong any note"
+***Basic
+[{\\"id\\":1,\\"dontAdd\\":true}]
+++Front
+1 + 1 = ?
+++
+++Back
+1 + 1 = 2
+++
+***
+
+***Basic
+[{\\"id\\":2,\\"dontAdd\\":true}]
+++Front
+1 + 1 = ?
+++
+++Back
+1 + 1 = 2
+++
+***"
 `;
 
 exports[`metadata insertion should update the metadata, wherever it is inside the note block: Test case: multiple notes, some with existing metadata, some with no metadata
@@ -409,65 +470,26 @@ Input text:
 </note>"
 `;
 
-exports[`metadata insertion should update the metadata, wherever it is inside the note block: Test case: multiple notes, some with existing metadata, some with no metadata
+exports[`metadata insertion should update the metadata, wherever it is inside the note block: Test case: single note
 Input text:
----Basic
-<{"id":0}>
-~~Front
+***Basic
+[{"id":0}]
+++Front
 1 + 1 = ?
-~~
-~~Back
+++
+++Back
 1 + 1 = 2
-~~
----
-
----Basic
-~~Front
+++
+*** 1`] = `
+"***Basic
+[{\\"id\\":0,\\"dontAdd\\":true}]
+++Front
 1 + 1 = ?
-~~
-~~Back
+++
+++Back
 1 + 1 = 2
-~~
----
-
----Basic
-<{"id":1}>
-~~Front
-1 + 1 = ?
-~~
-~~Back
-1 + 1 = 2
-~~
---- 1`] = `
-"---Basic
-<{\\"id\\":0,\\"dontAdd\\":true}>
-~~Front
-1 + 1 = ?
-~~
-~~Back
-1 + 1 = 2
-~~
----
-
----Basic
-<{\\"id\\":1,\\"dontAdd\\":true}>
-~~Front
-1 + 1 = ?
-~~
-~~Back
-1 + 1 = 2
-~~
----
-
----Basic
-<{\\"id\\":2,\\"dontAdd\\":true}>
-~~Front
-1 + 1 = ?
-~~
-~~Back
-1 + 1 = 2
-~~
----"
+++
+***"
 `;
 
 exports[`metadata insertion should update the metadata, wherever it is inside the note block: Test case: single note
@@ -492,27 +514,14 @@ Input text:
 </note>"
 `;
 
-exports[`metadata insertion should update the metadata, wherever it is inside the note block: Test case: single note
+exports[`note parsing errors should throw on invalid text: Test case: 
 Input text:
----Basic
-<{"id":0}>
-~~Front
-1 + 1 = ?
-~~
-~~Back
-1 + 1 = 2
-~~
---- 1`] = `
-"---Basic
-<{\\"id\\":0,\\"dontAdd\\":true}>
-~~Front
-1 + 1 = ?
-~~
-~~Back
-1 + 1 = 2
-~~
----"
-`;
+***Basic
+++Front
+++
+++Front
+++
+*** 1`] = `"Duplicate field: Front"`;
 
 exports[`note parsing errors should throw on invalid text: Test case: 
 Input text:
@@ -523,42 +532,59 @@ Input text:
 </field>
 </note> 1`] = `"Duplicate field: Front"`;
 
-exports[`note parsing errors should throw on invalid text: Test case: 
+exports[`note parsing errors should throw on invalid text: Test case: empty note
 Input text:
----Basic
-~~Front
-~~
-~~Front
-~~
---- 1`] = `"Duplicate field: Front"`;
+***Basic
+*** 1`] = `"Empty note"`;
 
 exports[`note parsing errors should throw on invalid text: Test case: empty note
 Input text:
 <note type="Basic">
 </note> 1`] = `"Empty note"`;
 
-exports[`note parsing errors should throw on invalid text: Test case: empty note
+exports[`note parsing errors should throw on invalid text: Test case: unexpected end delimiter - missing start delimiter
 Input text:
----Basic
---- 1`] = `"Empty note"`;
+*** 1`] = `"Expected note start delimiter"`;
 
 exports[`note parsing errors should throw on invalid text: Test case: unexpected end delimiter - missing start delimiter
 Input text:
 </note> 1`] = `"Expected note start delimiter"`;
 
-exports[`note parsing errors should throw on invalid text: Test case: unexpected end delimiter - missing start delimiter
+exports[`note parsing errors should throw on invalid text: Test case: unexpected start delimiter - missing end delimiter
 Input text:
---- 1`] = `"Expected note start delimiter"`;
+***Basic
+***Basic 1`] = `"Unexpected note start delimiter"`;
 
 exports[`note parsing errors should throw on invalid text: Test case: unexpected start delimiter - missing end delimiter
 Input text:
 <note type="Basic">
 <note type="Basic"> 1`] = `"Unexpected note start delimiter"`;
 
-exports[`note parsing errors should throw on invalid text: Test case: unexpected start delimiter - missing end delimiter
+exports[`note parsing should parse notes: Test case: 
 Input text:
----Basic
----Basic 1`] = `"Unexpected note start delimiter"`;
+***Basic
+++Front
+1 + 1 = ?
+++
+++Back
+1 + 1 = 2
+++
+*** 1`] = `
+Array [
+  Object {
+    "endIndex": 52,
+    "fields": Object {
+      "Back": "1 + 1 = 2
+",
+      "Front": "1 + 1 = ?
+",
+    },
+    "metadata": Object {},
+    "noteType": "Basic",
+    "startIndex": 0,
+  },
+]
+`;
 
 exports[`note parsing should parse notes: Test case: 
 Input text:
@@ -586,28 +612,73 @@ Array [
 ]
 `;
 
-exports[`note parsing should parse notes: Test case: 
+exports[`note parsing should parse notes: Test case: multiple notes
 Input text:
----Basic
-~~Front
+***Basic
+
+[{"id":123,"dontAdd":true,"deleted":true}]
+
+++Front
+
 1 + 1 = ?
-~~
-~~Back
+
+++
+
+++Back
 1 + 1 = 2
-~~
---- 1`] = `
+
+++
+
+***
+
+***Basic and reversed
+
+++Front
+
+1 + 1 = ?
+
+++
+
+++Back
+1 + 1 = 2
+
+++
+
+*** 1`] = `
 Array [
   Object {
-    "endIndex": 52,
+    "endIndex": 103,
     "fields": Object {
       "Back": "1 + 1 = 2
+
 ",
-      "Front": "1 + 1 = ?
+      "Front": "
+1 + 1 = ?
+
+",
+    },
+    "metadata": Object {
+      "deleted": true,
+      "dontAdd": true,
+      "id": 123,
+    },
+    "noteType": "Basic",
+    "startIndex": 0,
+  },
+  Object {
+    "endIndex": 176,
+    "fields": Object {
+      "Back": "1 + 1 = 2
+
+",
+      "Front": "
+1 + 1 = ?
+
 ",
     },
     "metadata": Object {},
-    "noteType": "Basic",
-    "startIndex": 0,
+    "noteType": "Basic and reversed",
+    "startIndex": 105,
   },
 ]
 `;
@@ -683,42 +754,27 @@ Array [
 ]
 `;
 
-exports[`note parsing should parse notes: Test case: multiple notes
+exports[`note parsing should parse notes: Test case: note with metadata
 Input text:
----Basic
+***Basic
 
-<{"id":123,"dontAdd":true,"deleted":true}>
+[{"id":123,"dontAdd":true,"deleted":true}]
 
-~~Front
-
-1 + 1 = ?
-
-~~
-
-~~Back
-1 + 1 = 2
-
-~~
-
----
-
----Basic and reversed
-
-~~Front
+++Front
 
 1 + 1 = ?
 
-~~
+++
 
-~~Back
+++Back
 1 + 1 = 2
 
-~~
+++
 
---- 1`] = `
+*** 1`] = `
 Array [
   Object {
-    "endIndex": 103,
+    "endIndex": 102,
     "fields": Object {
       "Back": "1 + 1 = 2
 
@@ -735,21 +791,6 @@ Array [
     },
     "noteType": "Basic",
     "startIndex": 0,
-  },
-  Object {
-    "endIndex": 176,
-    "fields": Object {
-      "Back": "1 + 1 = 2
-
-",
-      "Front": "
-1 + 1 = ?
-
-",
-    },
-    "metadata": Object {},
-    "noteType": "Basic and reversed",
-    "startIndex": 105,
   },
 ]
 `;
@@ -795,27 +836,25 @@ Array [
 ]
 `;
 
-exports[`note parsing should parse notes: Test case: note with metadata
+exports[`note parsing should parse notes: Test case: test with some random new lines
 Input text:
----Basic
+***Basic
 
-<{"id":123,"dontAdd":true,"deleted":true}>
-
-~~Front
+++Front
 
 1 + 1 = ?
 
-~~
+++
 
-~~Back
+++Back
 1 + 1 = 2
 
-~~
+++
 
---- 1`] = `
+*** 1`] = `
 Array [
   Object {
-    "endIndex": 102,
+    "endIndex": 58,
     "fields": Object {
       "Back": "1 + 1 = 2
 
@@ -825,11 +864,7 @@ Array [
 
 ",
     },
-    "metadata": Object {
-      "deleted": true,
-      "dontAdd": true,
-      "id": 123,
-    },
+    "metadata": Object {},
     "noteType": "Basic",
     "startIndex": 0,
   },
@@ -855,41 +890,6 @@ Input text:
 Array [
   Object {
     "endIndex": 111,
-    "fields": Object {
-      "Back": "1 + 1 = 2
-
-",
-      "Front": "
-1 + 1 = ?
-
-",
-    },
-    "metadata": Object {},
-    "noteType": "Basic",
-    "startIndex": 0,
-  },
-]
-`;
-
-exports[`note parsing should parse notes: Test case: test with some random new lines
-Input text:
----Basic
-
-~~Front
-
-1 + 1 = ?
-
-~~
-
-~~Back
-1 + 1 = 2
-
-~~
-
---- 1`] = `
-Array [
-  Object {
-    "endIndex": 58,
     "fields": Object {
       "Back": "1 + 1 = 2
 

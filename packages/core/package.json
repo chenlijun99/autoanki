@@ -26,6 +26,7 @@
     "test": "jest",
     "test:coverage": "jest --coverage",
     "test:update": "jest --updateSnapshot",
+    "test:watch": "jest --watch",
     "test:debug": "node --inspect-brk ../../node_modules/.bin/jest --runInBand --watch"
   },
   "repository": {
