@@ -41,10 +41,10 @@ function getPackage(packageDir: string): Package {
 }
 
 function isInPackageDir(filePath: string): boolean {
-  return !!filePath.match('packages/.+/');
+  return !!filePath.match('packages/.+?/');
 }
 function getPackageDir(filePath: string): string {
-  return filePath.match('packages/.+/')![0];
+  return filePath.match('packages/.+?/')![0];
 }
 
 function isInRootWorkspaceDir(filePath: string): boolean {
