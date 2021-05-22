@@ -1,3 +1,4 @@
+/* eslint-disable prefer-template */
 import {
   AnkiConnectService,
   NoteTypes,
@@ -34,13 +35,19 @@ export interface NoteParseConfig {
    * note in the given text file needs to be an note field in Anki.
    */
   fieldEndDelimiter: string;
+  metadataDelimiter: [string, string];
 }
 
-export interface Note {
+export interface NoteMetadata {
   /**
    * Anki note id
    */
   id?: NoteTypes.NoteId;
+  dontAdd?: boolean;
+  deleted?: boolean;
+}
+
+export interface Note {
   /**
    * Parsed Anki note type
    */
@@ -50,13 +57,29 @@ export interface Note {
    */
   fields: Record<string, string>;
   /**
+   * Parsed note metadata
+   */
+  metadata: NoteMetadata;
+  /**
    * Index at which the Anki note starts in the text string
    */
   startIndex: number;
   /**
-   * Index at which the Anki note ends in the text string
+   * Index at which the Anki note ends in the text string (inclusive)
    */
   endIndex: number;
+  /**
+   * Internal use only
+   */
+  internalParsingMetadata: {
+    /**
+     * The parsing config with which the note was parsed
+     */
+    parsingConfig: NoteParseConfig;
+    noteStartDelimiterIndexes: [number, number];
+    noteEndDelimiterIndexes: [number, number];
+    metadataDelimiterIndexes: [[number, number], [number, number]];
+  };
 }
 
 enum DelimiterType {
@@ -64,6 +87,15 @@ enum DelimiterType {
   NOTE_END,
   FIELD_START,
   FIELD_END,
+  METADATA_START,
+  METADATA_END,
+}
+
+/**
+ * See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#escaping
+ */
+function escapeRegExp(str: string) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 function matchAllDelimiters(text: string, regex: string, type: DelimiterType) {
@@ -76,6 +108,24 @@ function matchAllDelimiters(text: string, regex: string, type: DelimiterType) {
 }
 
 const newLineRegex = String.raw`(\r\n|\r|\n|$)`;
+function getDelimiterRegexStr(delimiter: string, type: DelimiterType): string {
+  switch (type) {
+    case DelimiterType.METADATA_START:
+      return delimiter;
+    default:
+      return `${delimiter}${newLineRegex}`;
+  }
+}
+
+/**
+ * Given a regex match, return the index range of the matched text
+ *
+ * @param {RegExpMatchArray} match - regex match
+ * @return {[number ,number]} index range. Type: "[)".
+ */
+function getMatchIndexes(match: RegExpMatchArray): [number, number] {
+  return [match.index!, match.index! + match[0].length];
+}
 
 /**
  * TODO Use a serious parser
@@ -87,23 +137,42 @@ export async function parse(
   const delimiters = [
     ...matchAllDelimiters(
       text,
-      `${config.noteStartDelimiter}${newLineRegex}`,
+      getDelimiterRegexStr(config.noteStartDelimiter, DelimiterType.NOTE_START),
       DelimiterType.NOTE_START
     ),
     ...matchAllDelimiters(
       text,
-      `${config.noteEndDelimiter}${newLineRegex}`,
+      getDelimiterRegexStr(config.noteEndDelimiter, DelimiterType.NOTE_END),
       DelimiterType.NOTE_END
     ),
     ...matchAllDelimiters(
       text,
-      `${config.fieldStartDelimiter}${newLineRegex}`,
+      getDelimiterRegexStr(
+        config.fieldStartDelimiter,
+        DelimiterType.FIELD_START
+      ),
       DelimiterType.FIELD_START
     ),
     ...matchAllDelimiters(
       text,
-      `${config.fieldEndDelimiter}${newLineRegex}`,
+      getDelimiterRegexStr(config.fieldEndDelimiter, DelimiterType.FIELD_END),
       DelimiterType.FIELD_END
+    ),
+    ...matchAllDelimiters(
+      text,
+      getDelimiterRegexStr(
+        escapeRegExp(config.metadataDelimiter[0]),
+        DelimiterType.METADATA_START
+      ),
+      DelimiterType.METADATA_START
+    ),
+    ...matchAllDelimiters(
+      text,
+      getDelimiterRegexStr(
+        escapeRegExp(config.metadataDelimiter[1]),
+        DelimiterType.METADATA_END
+      ),
+      DelimiterType.METADATA_END
     ),
   ];
 
@@ -120,9 +189,19 @@ export async function parse(
     }
     const note: Note = {
       noteType: '',
+      metadata: {},
       fields: {},
       startIndex: delimiters[i].match.index!,
       endIndex: 0,
+      internalParsingMetadata: {
+        parsingConfig: config,
+        noteStartDelimiterIndexes: getMatchIndexes(delimiters[i].match),
+        noteEndDelimiterIndexes: [-1, -1],
+        metadataDelimiterIndexes: [
+          [-1, -1],
+          [-1, -1],
+        ],
+      },
     };
     note.noteType = delimiters[i].match[1];
     let j = i + 1;
@@ -130,8 +209,32 @@ export async function parse(
       if (delimiters[j].type === DelimiterType.NOTE_START) {
         throw new Error('Unexpected note start delimiter');
       }
+      if (delimiters[j].type === DelimiterType.FIELD_END) {
+        throw new Error('Unexpected field end delimiter');
+      }
+      if (delimiters[j].type === DelimiterType.METADATA_END) {
+        throw new Error('Unexpected metadata end delimiter');
+      }
       if (delimiters[j].type === DelimiterType.NOTE_END) {
+        note.internalParsingMetadata.noteEndDelimiterIndexes = getMatchIndexes(
+          delimiters[j].match
+        );
         break;
+      }
+
+      if (delimiters[j].type === DelimiterType.METADATA_START) {
+        if (delimiters[j + 1].type !== DelimiterType.METADATA_END) {
+          throw new Error('Expected metadata end delimiter');
+        }
+        note.internalParsingMetadata.metadataDelimiterIndexes = [
+          getMatchIndexes(delimiters[j].match),
+          getMatchIndexes(delimiters[j + 1].match),
+        ];
+        const metadataStart =
+          delimiters[j].match.index! + delimiters[j].match[0].length;
+        const metadataEnd = delimiters[j + 1].match.index!;
+        note.metadata = JSON.parse(text.slice(metadataStart, metadataEnd));
+        j += 1;
       }
 
       if (delimiters[j].type === DelimiterType.FIELD_START) {
@@ -204,4 +307,79 @@ export async function checkConsistency(
   });
 
   return errors.length === 0 ? undefined : errors;
+}
+
+/**
+ * Write/Update the metadata of the notes in the given text
+ *
+ * @async
+ * @param {string} text the original text
+ * @param {Note[]} notesWithMetadata notes parsed from text with the
+ * new metadata
+ * @return {Promise<string>} a promise of the modified text
+ */
+export async function writeMetadata(
+  text: string,
+  notesWithMetadata: Note[]
+): Promise<string> {
+  if (notesWithMetadata.length === 0) {
+    throw new Error('At least one note is expected');
+  }
+  let finalText = text.slice(0, notesWithMetadata[0].startIndex);
+
+  notesWithMetadata.forEach((note, index, notes) => {
+    const noteText = text.slice(note.startIndex, note.endIndex + 1);
+
+    let updatedNoteText = '';
+
+    if (note.internalParsingMetadata.metadataDelimiterIndexes[0][0] !== -1) {
+      /*
+       * if the metadata block already exists in the original text, simply replace it
+       */
+      updatedNoteText = noteText.replace(
+        new RegExp(
+          `(${getDelimiterRegexStr(
+            note.internalParsingMetadata.parsingConfig.metadataDelimiter[0],
+            DelimiterType.METADATA_START
+          )}).*?(${getDelimiterRegexStr(
+            note.internalParsingMetadata.parsingConfig.metadataDelimiter[1],
+            DelimiterType.METADATA_END
+          )})`
+        ),
+        `$1${JSON.stringify(note.metadata)}$2`
+      );
+    } else {
+      /*
+       * if the metadata block doesn't exist in the original text,
+       * append it after the note start delimiter
+       */
+      updatedNoteText =
+        text.slice(
+          note.startIndex,
+          note.internalParsingMetadata.noteStartDelimiterIndexes[1]
+        ) +
+        `${
+          note.internalParsingMetadata.parsingConfig.metadataDelimiter[0]
+        }${JSON.stringify(note.metadata)}${
+          note.internalParsingMetadata.parsingConfig.metadataDelimiter[1]
+        }\n` +
+        text.slice(
+          note.internalParsingMetadata.noteStartDelimiterIndexes[1],
+          note.endIndex + 1
+        );
+    }
+
+    finalText += updatedNoteText;
+
+    /*
+     * include potential text between this note and the next note
+     */
+    if (index !== notes.length - 1) {
+      finalText += text.slice(note.endIndex + 1, notes[index + 1].startIndex);
+    } else {
+      finalText += text.slice(note.endIndex + 1, text.length);
+    }
+  });
+
+  return finalText;
 }
