@@ -102,9 +102,19 @@ export async function runNpmScriptOnChangedPackages(
       }
     });
     if (scopes !== '') {
-      await spawn('yarn', `lerna run ${scopes} ${scriptName}`.split(/\s+/), {
+      const command = `yarn lerna run ${scopes} ${scriptName}`.replace(
+        /\s+/g,
+        ' '
+      );
+      const argv = command.split(' ');
+      const exitCode = await spawn(argv[0], argv.slice(1), {
         stdio: 'inherit',
       });
+      if (exitCode !== 0) {
+        throw new Error(
+          `Command "${command}" failed with exit code ${exitCode}`
+        );
+      }
     }
   }
   return runPackages;
