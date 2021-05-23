@@ -59,15 +59,3 @@ package.json
 .eslintrc.js
 
 ### Project specific ###
-
-# @medsense/web
-packages/web/next.config.js
-packages/web/out/
-packages/web/_next/
-
-# @medsense/desktop
-packages/desktop/static/@medsense-web/_next/
-
-# @medsense/mobile
-# React-native styles are quite special... For now, just ignore them.
-packages/mobile/**

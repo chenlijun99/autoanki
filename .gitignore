@@ -648,13 +648,3 @@ tags
 # End of https://www.toptal.com/developers/gitignore/api/c,git,vim,code,node,cmake,python,latex
 
 ### Project custom ignores ###
-
-# cmake build directory
-build/
-
-# typescript interfaces generated from json schema
-report/html/types/
-
-# cppcheck dumps
-src/**/*.dump
-test/**/*.dump
