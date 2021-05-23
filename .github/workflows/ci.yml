@@ -50,6 +50,8 @@ jobs:
           key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
       - name: Lint scripts
         run: yarn run lint
+      - name: Lint styles
+        run: yarn run lint-styles
       - name: Check code formatting
         run: yarn run prettier
 
