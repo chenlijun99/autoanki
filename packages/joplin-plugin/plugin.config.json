@@ -1,3 +1,3 @@
 {
-  "extraScripts": ["app/index.tsx"]
+  "webviewScripts": ["app/index.tsx"]
 }

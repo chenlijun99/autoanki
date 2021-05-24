@@ -196,6 +196,28 @@ function resolveExtraScriptPath(name) {
 		output: {
 			filename: `${nameNoExt}.js`,
 			path: distDir,
+			library: 'default',
+			libraryTarget: 'commonjs',
+			libraryExport: 'default',
+		},
+	};
+}
+
+function resolveWebviewScriptPath(name) {
+	const relativePath = `./src/${name}`;
+
+	const fullPath = path.resolve(`${rootDir}/${relativePath}`);
+	if (!fs.pathExistsSync(fullPath)) throw new Error(`Could not find extra script: "${name}" at "${fullPath}"`);
+
+	const s = name.split('.');
+	s.pop();
+	const nameNoExt = s.join('.');
+
+	return {
+		entry: relativePath,
+		output: {
+			filename: `${nameNoExt}.js`,
+			path: distDir,
 		},
 	};
 }
@@ -207,6 +229,22 @@ function buildExtraScriptConfigs(userConfig) {
 
 	for (const scriptName of userConfig.extraScripts) {
 		const scriptPaths = resolveExtraScriptPath(scriptName);
+		output.push(Object.assign({}, extraScriptConfig, {
+			entry: scriptPaths.entry,
+			output: scriptPaths.output,
+		}));
+	}
+
+	return output;
+}
+
+function buildWebviewScriptConfigs(userConfig) {
+	if (!userConfig.extraScripts.length) return [];
+
+	const output = [];
+
+	for (const scriptName of userConfig.webviewScripts) {
+		const scriptPaths = resolveWebviewScriptPath(scriptName);
 		output.push(Object.assign({}, extraScriptConfig, {
 			entry: scriptPaths.entry,
 			output: scriptPaths.output,
@@ -238,6 +276,13 @@ function main(processArgv) {
 		// result is that JS files that don't need compilation, are simply
 		// copied to /dist, while those that do need it are correctly compiled.
 		buildExtraScripts: buildExtraScriptConfigs(userConfig),
+
+		// Builds the extra scripts as defined in plugin.config.json. When doing
+		// so, some JavaScript files that were copied in the previous might be
+		// overwritten here by the compiled version. This is by design. The
+		// result is that JS files that don't need compilation, are simply
+		// copied to /dist, while those that do need it are correctly compiled.
+		buildWebviewScripts: buildWebviewScriptConfigs(userConfig),
 
 		// Ths config is for creating the .jpl, which is done via the plugin, so
 		// it doesn't actually need an entry and output, however webpack won't
