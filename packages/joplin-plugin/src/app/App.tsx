@@ -1,5 +1,13 @@
-import * as React from 'react';
+import { CssBaseline, Button } from '@material-ui/core';
+import React from 'react';
 
 export const App: React.FC<{}> = () => {
-  return <p>Hello World!</p>;
+  return (
+    <>
+      <CssBaseline />
+      <Button variant="contained" color="primary">
+        Hello World
+      </Button>
+    </>
+  );
 };

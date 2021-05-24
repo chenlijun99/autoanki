@@ -1,20 +1,21 @@
 import joplin from 'api';
 import { MenuItemLocation, ToolbarButtonLocation } from 'api/types';
 
-import { SyncCommandFactory } from './sync';
+import { MarkdownHandler } from './markdown';
+import { SyncHandler, SyncStatusPanel } from './sync';
 
 joplin.plugins.register({
   onStart: async () => {
-    const panels = joplin.views.panels;
-    const view = await panels.create('panel_1');
-    await panels.setHtml(view, `<div id="root"></div>`);
-    await panels.addScript(view, './app/index.js');
+    await new MarkdownHandler().setup();
 
-    const syncCommandFactory = new SyncCommandFactory();
-    const toolbarSyncCommand = syncCommandFactory.getSyncCommand(
+    const syncHandler = new SyncHandler();
+    const syncPanel = new SyncStatusPanel(syncHandler);
+    await syncPanel.setup();
+
+    const toolbarSyncCommand = syncHandler.getSyncCommand(
       ToolbarButtonLocation.NoteToolbar
     );
-    const folderSyncCommand = syncCommandFactory.getSyncCommand(
+    const folderSyncCommand = syncHandler.getSyncCommand(
       MenuItemLocation.FolderContextMenu
     );
     await joplin.commands.register(toolbarSyncCommand);

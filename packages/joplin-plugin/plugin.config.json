@@ -1,3 +1,6 @@
 {
+  "extraScripts": [
+    "markdown/markdownIt/index.ts"
+  ],
   "webviewScripts": ["app/index.tsx"]
 }
