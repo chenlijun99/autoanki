@@ -6,7 +6,8 @@
     "prepare": "npm run dist",
     "update": "npm install -g generator-joplin && yo joplin --update",
     "version": "node scripts/update-manifest.js",
-    "build": "yarn run dist"
+    "build": "yarn run dist",
+    "dev": "concurrently --raw -n main,extra \"webpack --joplin-plugin-config buildMain --progress --watch\" \"webpack --joplin-plugin-config buildExtraScripts --progress --watch\""
   },
   "license": "MIT",
   "keywords": [
@@ -33,6 +34,7 @@
   },
   "dependencies": {
     "react": "^17.0.2",
-    "react-dom": "^17.0.2"
+    "react-dom": "^17.0.2",
+    "rxjs": "^7.1.0"
   }
 }

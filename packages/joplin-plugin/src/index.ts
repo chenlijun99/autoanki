@@ -1,22 +1,34 @@
 import joplin from 'api';
-import { ToolbarButtonLocation } from 'api/types';
+import { MenuItemLocation, ToolbarButtonLocation } from 'api/types';
 
-import { syncCommand } from './sync';
+import { SyncCommandFactory } from './sync';
 
 joplin.plugins.register({
   onStart: async () => {
-    console.info('Autuanki joplin plugin started!');
-
     const panels = joplin.views.panels;
     const view = await panels.create('panel_1');
     await panels.setHtml(view, `<div id="root"></div>`);
     await panels.addScript(view, './app/index.js');
 
-    await joplin.commands.register(syncCommand);
-    await joplin.views.toolbarButtons.create(
-      syncCommand.name,
-      syncCommand.name,
+    const syncCommandFactory = new SyncCommandFactory();
+    const toolbarSyncCommand = syncCommandFactory.getSyncCommand(
       ToolbarButtonLocation.NoteToolbar
+    );
+    const folderSyncCommand = syncCommandFactory.getSyncCommand(
+      MenuItemLocation.FolderContextMenu
+    );
+    await joplin.commands.register(toolbarSyncCommand);
+    await joplin.commands.register(folderSyncCommand);
+
+    await joplin.views.toolbarButtons.create(
+      toolbarSyncCommand.name,
+      toolbarSyncCommand.name,
+      ToolbarButtonLocation.NoteToolbar
+    );
+    await joplin.views.menuItems.create(
+      folderSyncCommand.name,
+      folderSyncCommand.name,
+      MenuItemLocation.FolderContextMenu
     );
   },
 });
