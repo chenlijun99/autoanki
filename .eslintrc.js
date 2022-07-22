@@ -12,8 +12,6 @@ module.exports = {
      * Let prettier do its job!
      */
     'prettier',
-    'prettier/react',
-    'prettier/@typescript-eslint',
   ],
   parserOptions: {
     project: ['./packages/**/tsconfig.json', './scripts/tsconfig.json'],
@@ -68,5 +66,14 @@ module.exports = {
     'prefer-destructuring': 'off',
     'import/extensions': 'off',
     'no-underscore-dangle': 'off',
+    /*
+     * Doesn't work so well with monorepo.
+     * I would need to create a eslint config for each package, in which
+     * I specify to consider also the root package.json. Quite repetitive and
+     * error-prone TBH.
+     * I can't see how useful this can be. CI/CD should catch most of the
+     * problems.
+     */
+    'import/no-extraneous-dependencies': 'off',
   },
 };

@@ -1,7 +1,6 @@
 import { promisify } from 'util';
 import fs from 'fs';
 import child_process from 'child_process';
-/* eslint-disable import/no-extraneous-dependencies */
 import glob from 'glob';
 import path from 'path';
 
