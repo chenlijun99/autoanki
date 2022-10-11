@@ -1,9 +1,9 @@
 {
   "version": "independent",
-  "npmClient": "yarn",
+  "npmClient": "pnpm",
   "useWorkspaces": true,
+  "useNx": true,
   "registry": "https://registry.npmjs.org/",
-  "packages": ["packages/*"],
   "command": {
     "publish": {
       "allowBranch": "release/*",

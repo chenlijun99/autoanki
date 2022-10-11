@@ -8,98 +8,30 @@ on:
     branches: [main, dev]
 
 jobs:
-  install-dependencies:
+  build:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         node-version: [16.x]
     steps:
       - uses: actions/checkout@v2
+      - uses: pnpm/action-setup@v2.2.2
+        with:
+          version: 7
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node-version }}
-      - name: restore cached dependencies
-        uses: actions/cache@v2
-        with:
-          path: |
-            node_modules
-            */*/node_modules
-          key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
+          cache: 'pnpm'
       - name: install dependencies
-        run: yarn --frozen-lockfile
-
-  quality-check:
-    needs: [install-dependencies]
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [14.x]
-    steps:
-      - uses: actions/checkout@v2
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
-        with:
-          node-version: ${{ matrix.node-version }}
-      - name: restore cached dependencies
-        uses: actions/cache@v2
-        with:
-          path: |
-            node_modules
-            */*/node_modules
-          key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
-      - name: Lint scripts
-        run: yarn run lint
-      - name: Lint styles
-        run: yarn run lint-styles
+        run: pnpm install
       - name: Check code formatting
-        run: yarn run prettier
-
-  build:
-    needs: [install-dependencies]
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [14.x]
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 2
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
-        with:
-          node-version: ${{ matrix.node-version }}
-      - name: restore cached dependencies
-        uses: actions/cache@v2
-        with:
-          path: |
-            node_modules
-            */*/node_modules
-          key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
-      - name: Build
-        run: yarn ts-node-script scripts/build_changed_packages.ts
-
-  test:
-    needs: [install-dependencies]
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [14.x]
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 2
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
-        with:
-          node-version: ${{ matrix.node-version }}
-      - name: restore cached dependencies
-        uses: actions/cache@v2
-        with:
-          path: |
-            node_modules
-            */*/node_modules
-          key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
-      - name: Run tests
-        run: |
-          yarn ts-node-script scripts/test_changed_packages.ts
+        run: pnpm run prettier
+      - name: Lint scripts
+        run: pnpm run lint
+      - name: Lint styles
+        run: pnpm run lint-styles
+      - name: Building packages
+        run: pnpm lerna run build
+      - name: Testing packages
+        run: pnpm lerna run test:coverage

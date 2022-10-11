@@ -28,7 +28,7 @@
     "@types/yargs": "^17.0.10"
   },
   "dependencies": {
-    "@autoanki/core": "^0.0.2-next.1",
+    "@autoanki/core": "workspace:^0.0.2-next.1",
     "cosmiconfig": "^7.0.1",
     "tslib": "^2.4.0",
     "winston": "^3.8.1",

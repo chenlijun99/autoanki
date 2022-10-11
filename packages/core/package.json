@@ -35,7 +35,7 @@
   },
   "license": "ISC",
   "dependencies": {
-    "@autoanki/anki-connect": "^0.0.2-next.1"
+    "@autoanki/anki-connect": "workspace:^0.0.2-next.1"
   },
   "devDependencies": {
     "@types/jest": "^28.1.6",

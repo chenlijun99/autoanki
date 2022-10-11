@@ -11,7 +11,7 @@
     "prettier": "prettier --check  .",
     "prettier-fix": "prettier --write .",
     "prepare": "husky install",
-    "publish": "echo \"Use 'yarn publish-next' or 'yarn publish-release' instead of 'yarn run publish'\"",
+    "publish": "echo \"Use 'pnpm run publish-next' or 'pnpm run publish-release' instead of 'pnpm run publish'\"",
     "publish-canary": "lerna publish --canary --yes",
     "publish-next": "lerna publish prerelease --pre-dist-tag=next --preid=next --allow-branch=main --message=\"chore(release): publish next\"",
     "publish-preminor": "lerna publish preminor --pre-dist-tag=next --preid=next --force-publish --allow-branch=main --message=\"chore(release): publish next pre-minor\"",
@@ -22,15 +22,11 @@
     "type": "git",
     "url": ""
   },
-  "workspaces": {
-    "packages": [
-      "packages/*"
-    ]
-  },
   "license": "ISC",
   "devDependencies": {
     "@commitlint/cli": "^17.0.3",
     "@commitlint/config-conventional": "^17.0.3",
+    "@types/node": "^18.0.6",
     "@typescript-eslint/eslint-plugin": "^5.30.7",
     "@typescript-eslint/parser": "^5.30.7",
     "cross-env": "^7.0.3",
@@ -46,9 +42,10 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "glob": "^8.0.3",
     "husky": "^8.0.1",
-    "lerna": "^5.1.8",
+    "lerna": "^5.6.2",
     "lint-staged": "^13.0.3",
     "microbundle": "https://github.com/developit/microbundle.git",
+    "nx": "^14.8.4",
     "prettier": "^2.7.1",
     "rimraf": "^3.0.2",
     "stylelint": "^14.9.1",
