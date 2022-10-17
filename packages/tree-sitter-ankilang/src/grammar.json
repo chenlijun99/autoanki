@@ -1,0 +1,169 @@
+{
+  "name": "ankilang",
+  "word": "name",
+  "rules": {
+    "source": {
+      "type": "REPEAT",
+      "content": {
+        "type": "SYMBOL",
+        "name": "_text_or_anki_block"
+      }
+    },
+    "_text_or_anki_block": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "text"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "anki_block"
+        }
+      ]
+    },
+    "anki_block": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "anki_start_tag"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "anki_block_body"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "anki_end_tag"
+        }
+      ]
+    },
+    "anki_start_tag": {
+      "type": "PATTERN",
+      "value": "\\?anki"
+    },
+    "anki_end_tag": {
+      "type": "PATTERN",
+      "value": "\\?endanki"
+    },
+    "_seperator": {
+      "type": "STRING",
+      "value": "?"
+    },
+    "anki_block_body": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "FIELD",
+          "name": "metadata",
+          "content": {
+            "type": "SYMBOL",
+            "name": "anki_block_metadata"
+          }
+        },
+        {
+          "type": "REPEAT1",
+          "content": {
+            "type": "SEQ",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "_seperator"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "anki_block_note_field"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "anki_block_metadata": {
+      "type": "SYMBOL",
+      "name": "text"
+    },
+    "note_field_name": {
+      "type": "STRING",
+      "value": "Front"
+    },
+    "_note_field_name_separator": {
+      "type": "STRING",
+      "value": ":"
+    },
+    "anki_block_note_field": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "SEQ",
+          "members": [
+            {
+              "type": "FIELD",
+              "name": "note_field_name",
+              "content": {
+                "type": "SYMBOL",
+                "name": "note_field_name"
+              }
+            },
+            {
+              "type": "SYMBOL",
+              "name": "_note_field_name_separator"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "text"
+            }
+          ]
+        },
+        {
+          "type": "SYMBOL",
+          "name": "text"
+        }
+      ]
+    },
+    "text": {
+      "type": "REPEAT1",
+      "content": {
+        "type": "CHOICE",
+        "members": [
+          {
+            "type": "TOKEN",
+            "content": {
+              "type": "PREC",
+              "value": -1,
+              "content": {
+                "type": "PATTERN",
+                "value": "\\?"
+              }
+            }
+          },
+          {
+            "type": "PATTERN",
+            "value": "[^\\s\\?][^\\?]*"
+          }
+        ]
+      }
+    },
+    "name": {
+      "type": "PATTERN",
+      "value": "[_a-zA-Z\\u00A1-\\u00ff][_a-zA-Z\\u00A1-\\u00ff\\d]*"
+    }
+  },
+  "extras": [
+    {
+      "type": "PATTERN",
+      "value": "\\s"
+    }
+  ],
+  "conflicts": [
+    [
+      "text"
+    ]
+  ],
+  "precedences": [],
+  "externals": [],
+  "inline": [],
+  "supertypes": []
+}
+

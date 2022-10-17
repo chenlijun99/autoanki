@@ -1,0 +1,128 @@
+[
+  {
+    "type": "anki_block",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "anki_block_body",
+          "named": true
+        },
+        {
+          "type": "anki_end_tag",
+          "named": true
+        },
+        {
+          "type": "anki_start_tag",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "anki_block_body",
+    "named": true,
+    "fields": {
+      "metadata": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "anki_block_metadata",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "anki_block_note_field",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "anki_block_metadata",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "text",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "anki_block_note_field",
+    "named": true,
+    "fields": {
+      "note_field_name": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "note_field_name",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "text",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "source",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "anki_block",
+          "named": true
+        },
+        {
+          "type": "text",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "text",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "anki_end_tag",
+    "named": true
+  },
+  {
+    "type": "anki_start_tag",
+    "named": true
+  },
+  {
+    "type": "note_field_name",
+    "named": true
+  }
+]
