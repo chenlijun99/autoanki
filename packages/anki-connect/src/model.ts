@@ -1,3 +1,8 @@
+/**
+ * Anki-connect: model related types.
+ *
+ * NOTE: models are also called "note types" in Anki.
+ */
 export type ModelId = number;
 export type ModelName = string;
 export type FieldName = string;

@@ -1,0 +1,65 @@
+{
+  // Shared tsconfig for all the library-like packages in this monorepo
+  //
+  // We don't use TSC to emit JS, but tsconfig.json is still required in any
+  // TS project. Purpose of this `tsconfig.json`:
+  //
+  // * IDE features
+  // * As base `tsconfig.json` for emission of type declarations
+  // * ts-node
+  "exclude": ["**/node_modules"],
+  "compilerOptions": {
+    // Stop loading whatever is in node_modules/@types.
+    "types": [],
+
+    // Strict hurray. Better safe than sorry.
+    "strict": true,
+
+    // Faster
+    "skipDefaultLibCheck": true,
+    "skipLibCheck": true,
+
+    // From https://github.com/microsoft/TypeScript/wiki/Node-Target-Mapping
+    // Since we support Node.js >=14. ES2020 is supported.
+    // This also means that our code doens't need any polyfill to run on suported
+    // Node.js versions.
+    "target": "ES2020",
+    // Even though we don't use DOM APIs, there are still some APIs
+    // such as `TextEncoder` which are provided in "dom".
+    "lib": ["ES2020", "dom"],
+
+    // module is not so useful because we don't use `tsc` to emit JS.
+    "module": "ES2020",
+    // mimic Node.js's ECMAScript module resolution
+    // (which follows "exports" in package.json)
+    "moduleResolution": "node16",
+    // Check https://www.typescriptlang.org/tsconfig#allowSyntheticDefaultImports
+    "allowSyntheticDefaultImports": true,
+    // Check https://www.typescriptlang.org/tsconfig#esModuleInterop
+    "esModuleInterop": true,
+
+    // Babel, esbuild, etc. transpile TS files single file at a time.
+    // We use esbuild.
+    // By enabling this TypeScript will warn us when the assumption of these
+    // transpilers break.
+    "isolatedModules": true,
+
+    "importHelpers": false,
+
+    // We use tsc to emit declaration files, for which we want to preserve comments
+    "removeComments": false,
+
+    "pretty": true,
+    "incremental": true
+  },
+  // We use ts-node to run our Esbuild scripts, which are written in TypeScript
+  "ts-node": {
+    // Enable this so that ts-node allows us to import a TS module using
+    // .js extension. E.g. `import { foo } from './bar.js'`, where the actual
+    // file is `bar.ts`.
+    "experimentalResolver": true,
+    // Use ES6 modules loader instead of CommonJS
+    "esm": true
+  }
+}
+

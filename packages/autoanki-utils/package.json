@@ -1,0 +1,45 @@
+{
+  "name": "@autoanki/utils",
+  "version": "0.0.1",
+  "description": "Autoanki utils",
+  "keywords": [
+    "anki",
+    "autoanki"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/chenlijun99/autoanki.git",
+    "directory": "packages/autoanki-utils"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.16.0"
+  },
+  "type": "module",
+  "exports": {
+    "./webcrypto.js": {
+      "types": "./dist/webcrypto.browser.d.ts",
+      "node": "./dist/webcrypto.node.js",
+      "browser": "./dist/webcrypto.browser.js",
+      "default": "./dist/webcrypto.browser.js"
+    },
+    "./*.js": {
+      "types": "./dist/*.d.ts",
+      "default": "./dist/*.js"
+    }
+  },
+  "files": [
+    "./dist/*",
+    "./src/*"
+  ],
+  "scripts": {
+    "update-config": "node config.mjs",
+    "typegen": "tsc --project tsconfig.build.json --emitDeclarationOnly --declaration --declarationDir dist/ --declarationMap",
+    "prepare": "pnpm run build:prod",
+    "clean": "rimraf ./dist/ ./tsconfig.build.tsbuildinfo",
+    "build:dev": "swc --config-file ../swcrc ./src -d dist/ --source-maps",
+    "prebuild:dev": "pnpm run clean",
+    "prebuild:prod": "pnpm run clean && pnpm run typegen",
+    "build:prod": "swc --config-file ../swcrc ./src -d dist/ --source-maps"
+  }
+}

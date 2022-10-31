@@ -12,6 +12,11 @@ module.exports = {
      * Let prettier do its job!
      */
     'prettier',
+    'plugin:unicorn/recommended',
+    /*
+     * Rules concerning best-practices for module import
+     */
+    'plugin:import/recommended',
   ],
   parserOptions: {
     project: ['./packages/**/tsconfig.json', './scripts/tsconfig.json'],
@@ -64,8 +69,19 @@ module.exports = {
     ],
     'class-methods-use-this': 'off',
     'prefer-destructuring': 'off',
-    'import/extensions': 'off',
     'no-underscore-dangle': 'off',
+    /*
+     * Ensure that the extension is specified when importing non-package modules.
+     * This is especially important when working with Node.js and ESM modules.
+     */
+    'import/extensions': ['error', 'ignorePackages'],
+    /*
+     * Doesn't work well when `import/extensions` is enable. Probably would
+     * need to configure additional resolvers, but it's not worth it.
+     * These errors are easily spotted when building the project.
+     * See https://stackoverflow.com/a/72005986
+     */
+    'import/no-unresolved': 'off',
     /*
      * Doesn't work so well with monorepo.
      * I would need to create a eslint config for each package, in which
@@ -75,5 +91,16 @@ module.exports = {
      * problems.
      */
     'import/no-extraneous-dependencies': 'off',
+    /*
+     * Too invasive. Many abbreviations are arguably known to every programmer
+     * (e.g. params, args, etc.).
+     */
+    'unicorn/prevent-abbreviations': 'off',
+    /**
+     * Hey, I like `reduce`!
+     */
+    'unicorn/no-array-reduce': 'off',
+    'unicorn/no-await-expression-member': 'off',
+    'unicorn/prefer-ternary': ['warn', 'only-single-line'],
   },
 };
