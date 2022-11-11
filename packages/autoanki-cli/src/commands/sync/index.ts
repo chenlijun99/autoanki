@@ -3,7 +3,7 @@ import { writeFile } from 'node:fs/promises';
 import type { CommandModule } from 'yargs';
 
 import { groupAutoankiNotesBySourcePluginAndInput } from '@autoanki/core';
-import {
+import syncPlugin, {
   AutomaticSyncAction,
   SyncAction,
   SyncActionCreateNotesInAnki,
@@ -13,6 +13,8 @@ import {
   SyncActionRemoveNotesFromSource,
   SyncActionRemoveNotesFromAnki,
   SyncActionUpdateNotesInSource,
+  SyncActionUpdateInjectedScriptsInModelTemplates,
+  SyncActionCreateDecks,
 } from '@autoanki/sync';
 
 import { extractAnkiNotesFromFiles } from '../../utils/index.js';
@@ -97,6 +99,14 @@ function syncActionToString(action: SyncAction) {
     }
   } else if (action instanceof SyncActionHandleNotesUpdateConflict) {
     str += 'Conflictual updates\n';
+  } else if (
+    action instanceof SyncActionUpdateInjectedScriptsInModelTemplates
+  ) {
+    str += `Update injected scripts in note templates: [${action.noteTypesThatRequireInstrumentation.join(
+      ', '
+    )}]`;
+  } else if (action instanceof SyncActionCreateDecks) {
+    str += `Create decks: [${action.decks.join(', ')}]`;
   } else {
     throw new TypeError(`Unhandled action ${action.constructor.name}`);
   }
@@ -104,8 +114,12 @@ function syncActionToString(action: SyncAction) {
 }
 
 async function handler(argv: Args) {
-  const notes = await extractAnkiNotesFromFiles(argv.inputs);
-  const sync = new SyncProcedure(notes, argv.port);
+  const notes = await extractAnkiNotesFromFiles(argv.inputs, [
+    [syncPlugin, undefined],
+  ]);
+  const sync = new SyncProcedure(notes, {
+    origin: argv.port,
+  });
 
   await sync.start();
 

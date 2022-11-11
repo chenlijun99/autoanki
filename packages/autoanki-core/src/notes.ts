@@ -98,44 +98,75 @@ type NewNoteSchemaMatchesInterface = AssertTrue<
   Equals<NoteTypes.NewNote, AnkiConnectNewNote>
 >;
 
-const parsedNoteSchema = ankiConnectNewNoteSchema.extend({
-  /*
-   * Note that, at the date of writing (2022-10-29), this id is different from
-   * `@autoanki/anki-connect`'s id. This id is an UUID (formatted as string),
-   * while the `id` field used in the Note data type in `@autoanki/anki-connect`
-   * actions is a number and is a id provided by the local Anki's database,
-   * which cannot be used to uniquely identify a note across different Anki
-   * profiles.
-   *
-   * But anyway, source plugin don't need to care about the exact semantic of
-   * the id. They just need to be able to parse and write back an id (of type
-   * string), no matter its semantics.
-   */
-  id: z.string().uuid().optional(),
-  deleted: z.boolean().optional(),
-  /*
-   * In @autoanki/core, make the `tags` field optional so that plugins
-   * can produce notes with no tags.
-   */
-  tags: z
-    .string()
-    .min(1)
-    .refine((tag) => !tag.includes(' '), {
-      message: 'Anki tags must not contain spaces',
-    })
-    .array()
-    .optional(),
-});
+const autoankiMediaFileSchema = z
+  .object({
+    filename: z.string(),
+    base64Content: z.string(),
+  })
+  .strict();
+export type AutoankiMediaFile = z.infer<typeof autoankiMediaFileSchema>;
+
+const parsedNoteSchema = ankiConnectNewNoteSchema
+  .omit({
+    audio: true,
+    picture: true,
+    video: true,
+  })
+  .extend({
+    mediaFiles: z.array(autoankiMediaFileSchema).optional(),
+    styleFiles: z.array(autoankiMediaFileSchema).optional(),
+    scriptFiles: z.array(autoankiMediaFileSchema).optional(),
+    /*
+     * Note that, at the date of writing (2022-10-29), this id is different from
+     * `@autoanki/anki-connect`'s id. This id is an UUID (formatted as string),
+     * while the `id` field used in the Note data type in `@autoanki/anki-connect`
+     * actions is a number and is a id provided by the local Anki's database,
+     * which cannot be used to uniquely identify a note across different Anki
+     * profiles.
+     *
+     * But anyway, source plugin don't need to care about the exact semantic of
+     * the id. They just need to be able to parse and write back an id (of type
+     * string), no matter its semantics.
+     */
+    id: z.string().uuid().optional(),
+    deleted: z.boolean().optional(),
+    /*
+     * In @autoanki/core, make the `tags` field optional so that plugins
+     * can produce notes with no tags.
+     */
+    tags: z
+      .string()
+      .min(1)
+      .refine((tag) => !tag.includes(' '), {
+        message: 'Anki tags must not contain spaces',
+      })
+      .array()
+      .optional(),
+  });
 
 /**
  * Type of a note parsed from an input
  */
 export type ParsedNote = z.infer<typeof parsedNoteSchema>;
 
+interface AutoankiMediaFileFromPlugin {
+  fromPlugin: SourcePlugin | TransformerPlugin;
+  /**
+   * Medias returned from plugins are immutable.
+   * As long as two media files are referentially equal, we consider
+   * them to have the same content.
+   */
+  media: Readonly<AutoankiMediaFile>;
+}
+
 /**
  * Core Anki note type used throughout the Autoanki system
  */
-export interface AutoankiNote extends Omit<AnkiConnectNewNote, 'id'> {
+export interface AutoankiNote
+  extends Omit<AnkiConnectNewNote, 'id' | 'audio' | 'video' | 'picture'> {
+  mediaFiles: Readonly<AutoankiMediaFileFromPlugin>[];
+  styleFiles: Readonly<AutoankiMediaFileFromPlugin>[];
+  scriptFiles: Readonly<AutoankiMediaFileFromPlugin>[];
   /**
    * All the data relevant to the Autoanki system are contained
    * in the `autoanki` property.
@@ -198,6 +229,16 @@ export interface AutoankiNote extends Omit<AnkiConnectNewNote, 'id'> {
  */
 export const AUTOANKI_NOTES_DEFAULT_TAG = 'autoanki' as const;
 
+function convertMedia(
+  media: AutoankiMediaFile,
+  plugin: AutoankiMediaFileFromPlugin['fromPlugin']
+): AutoankiMediaFileFromPlugin {
+  return Object.freeze({
+    fromPlugin: plugin,
+    media: Object.freeze(media),
+  });
+}
+
 function parsedNoteToAutoankiNote(
   note: ParsedNote,
   sourcePluginParsingMetadata: unknown,
@@ -205,13 +246,28 @@ function parsedNoteToAutoankiNote(
   transformerPlugins: TransformerPlugin[],
   input: NoteInput
 ): AutoankiNote {
+  const {
+    id,
+    deleted,
+    mediaFiles,
+    styleFiles,
+    scriptFiles,
+    ...presentAlsoInAutoankiNote
+  } = note;
+
   const tags = note.tags ? [...note.tags] : [];
   if (!tags.includes(AUTOANKI_NOTES_DEFAULT_TAG)) {
     tags.push(AUTOANKI_NOTES_DEFAULT_TAG);
   }
-  const { id, deleted, ...presentAlsoInAutoankiNote } = note;
+  const wrap = (media: AutoankiMediaFile) => {
+    return convertMedia(media, sourcePlugin);
+  };
+
   const coreAnkiNote: AutoankiNote = {
     ...presentAlsoInAutoankiNote,
+    mediaFiles: mediaFiles ? mediaFiles.map((media) => wrap(media)) : [],
+    styleFiles: styleFiles ? styleFiles.map((media) => wrap(media)) : [],
+    scriptFiles: scriptFiles ? scriptFiles.map((media) => wrap(media)) : [],
     tags,
     autoanki: {
       uuid: id,
@@ -251,10 +307,7 @@ function autoankiNoteToParsedNote(note: AutoankiNote): ParsedNote {
     modelName: note.modelName,
     deckName: note.deckName,
     fields: { ...note.autoanki.sourceContentFields },
-    picture: note.picture,
     options: note.options,
-    video: note.video,
-    audio: note.audio,
   };
 }
 
@@ -305,17 +358,32 @@ function isLazyNoteInputs(
  *
  * As long as the transformers are idempotent, this function is idempotent.
  */
-export async function transformAutoankiNote(note: AutoankiNote) {
+export async function transformAutoankiNote(
+  note: AutoankiNote
+): Promise<AutoankiNote> {
   note.fields = { ...note.autoanki.sourceContentFields };
+  note.mediaFiles = [];
+  note.styleFiles = [];
+  note.scriptFiles = [];
   let currentNote = note;
   for (const plugin of note.autoanki.metadata.transformerPlugins) {
-    const { transformedNote, metadata } = await plugin.transform(currentNote);
+    const { transformedNote, metadata, scriptFiles, styleFiles, mediaFiles } =
+      await plugin.transform(currentNote);
     currentNote = transformedNote;
     // add new metadata, but ensure that it is indeed readonly
     Object.defineProperty(currentNote.autoanki.pluginMetadata, plugin.name, {
       enumerable: true,
       value: metadata,
     });
+    for (const media of scriptFiles ?? []) {
+      currentNote.scriptFiles.push(convertMedia(media, plugin));
+    }
+    for (const media of styleFiles ?? []) {
+      currentNote.styleFiles.push(convertMedia(media, plugin));
+    }
+    for (const media of mediaFiles ?? []) {
+      currentNote.mediaFiles.push(convertMedia(media, plugin));
+    }
   }
   return currentNote;
 }

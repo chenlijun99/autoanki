@@ -96,7 +96,21 @@ export class YamlSourcePlugin implements SourcePlugin {
       cache.parsed[metadata.index] = parsedNoteToYamlAnkiNote(note.note);
     }
     return new TextEncoder().encode(
-      yaml.stringify(cache.originallyArray ? cache.parsed : cache.parsed[0])
+      yaml.stringify(cache.originallyArray ? cache.parsed : cache.parsed[0], {
+        /*
+         * Disable folded block string (which I don't like. I use literal block
+         * string).
+         * TODO: implement YAML stringfication with minimal changes.
+         * Using something like:
+         *
+         * * https://github.com/eemeli/yaml/issues/308
+         * * https://github.com/eemeli/yaml/pull/309
+         * * https://azimi.me/2015/10/16/yawn-yaml.html
+         * * https://github.com/yarnpkg/berry/issues/1463
+         *   * https://github.com/paul-soporan/enhanced-yaml
+         */
+        lineWidth: 0,
+      })
     );
   }
 

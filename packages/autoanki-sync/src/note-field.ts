@@ -17,27 +17,57 @@ import { z, ZodError } from 'zod';
 import { escape, unescape } from 'html-escaper';
 
 import type { AutoankiNote } from '@autoanki/core';
-import webcrypto from '@autoanki/utils/webcrypto.js';
 import assert from '@autoanki/utils/assert.js';
 
-const { subtle } = webcrypto;
+import { AutoankiNoteFromAnkiError, AUTOANKI_TAGS } from './common.js';
+import { hashContent } from './hash.js';
+import { computeMediaFileMetadataFromMediaFile } from './media.js';
 
-import { AutoankiNoteFromAnkiError } from './common.js';
-
-const AUTOANKI_TAGS = {
-  SOURCE_CONTENT: 'autoanki-source-content',
-  FINAL_CONTENT: 'autoanki-final-content',
-  METADATA: 'autoanki-metadata',
-} as const;
-
-export async function hashContent(content: string): Promise<string> {
-  const msgUint8 = new TextEncoder().encode(content);
-  const hashBuffer = await subtle.digest('SHA-1', msgUint8);
-  const hashArray = [...new Uint8Array(hashBuffer)];
-  const hashHex = hashArray
-    .map((b) => b.toString(16).padStart(2, '0'))
-    .join(''); // convert bytes to hex string
-  return hashHex;
+async function getMediaTags(note: AutoankiNote): Promise<string> {
+  const styleTags = Promise.all(
+    note.styleFiles.map(async (styleFile) => {
+      const metadata = await computeMediaFileMetadataFromMediaFile(
+        styleFile.fromPlugin.name,
+        styleFile.media
+      );
+      /*
+       * Create the object tag so that Anki finds the reference to the media file
+       *
+       * Create the style tag with the @import so that it is immediately
+       * available when the note renders.
+       * NOTE that <style>'s effect is global, no matter where the <style> is
+       * in the document.
+       * NOTE that the same <style> tag with the same imports is included
+       * for multiple note-fields, but AFAIK repeated inclusion of the same
+       * stylesheet should be OK. After all, CSS is declarative.
+       * NOTE also that (apparently, did check the spec, just verified
+       * empirically) the nice thing about this approach is that when
+       * the <style> is removed (because e.g. another note is rendered),
+       * also the `@import`ed stylesheet is removed. This way we don't risk
+       * style clash among notes.
+       * NOTE one final benefit of this approach is that the styles are visible
+       * also in the Anki-deskop note editor. Now, this is generally useless,
+       * because users should not use the note editor for Autoanki notes, but
+       * still something nice to have.
+       */
+      return `
+<object data="${metadata.storedFilename}" type="text/css" declare></object>
+<style>
+@import "${encodeURIComponent(metadata.storedFilename)}"
+</style>
+`;
+    })
+  );
+  const scriptTags = Promise.all(
+    note.scriptFiles.map(async (styleFile) => {
+      const metadata = await computeMediaFileMetadataFromMediaFile(
+        styleFile.fromPlugin.name,
+        styleFile.media
+      );
+      return `<object data="${metadata.storedFilename}" type="application/javascript" declare></object>`;
+    })
+  );
+  return [await styleTags, await scriptTags].flat().join('\n');
 }
 
 /**
@@ -55,10 +85,6 @@ export async function getAnkiNoteField(
 ${escape(sourceContent)}
 </${AUTOANKI_TAGS.SOURCE_CONTENT}>
 
-<${AUTOANKI_TAGS.FINAL_CONTENT}>
-${finalContent}
-</${AUTOANKI_TAGS.FINAL_CONTENT}>
-
 <${AUTOANKI_TAGS.METADATA}
  data-autoanki-uuid="${note.autoanki.uuid}"
  data-autoanki-note-type="${note.modelName}"
@@ -66,7 +92,12 @@ ${finalContent}
  data-autoanki-source-content-hash="${await hashContent(sourceContent)}"
  data-autoanki-final-content-hash="${await hashContent(finalContent)}"
  hidden>
-</${AUTOANKI_TAGS.METADATA}>`;
+ ${await getMediaTags(note)}
+</${AUTOANKI_TAGS.METADATA}>
+
+<${AUTOANKI_TAGS.FINAL_CONTENT}>
+${finalContent}
+</${AUTOANKI_TAGS.FINAL_CONTENT}>`;
 }
 
 const autoankiNoteFieldSchema = z.object({
@@ -82,6 +113,14 @@ const autoankiNoteFieldSchema = z.object({
     })
     .strict(),
   [AUTOANKI_TAGS.METADATA]: z.object({
+    object: z.array(
+      z.object({
+        '@_attributes': z.object({
+          data: z.string(),
+          type: z.string(),
+        }),
+      })
+    ),
     '@_attributes': z.object({
       'data-autoanki-uuid': z.string(),
       'data-autoanki-note-type': z.string(),
@@ -127,6 +166,14 @@ export interface AutoankiNoteFieldFromAnki {
    */
   finalContent: AutoankiNoteFieldMetadata;
   /**
+   * Script media files
+   */
+  scriptMediaFiles: string[];
+  /**
+   * Style media files
+   */
+  styleMediaFiles: string[];
+  /**
    * The autoanki uuid hiddenly stored in the Anki note field
    */
   uuid: string;
@@ -149,7 +196,7 @@ const parser = new XMLParser({
   stopNodes: [
     `*.${AUTOANKI_TAGS.SOURCE_CONTENT}`,
     `*.${AUTOANKI_TAGS.FINAL_CONTENT}`,
-    `*.${AUTOANKI_TAGS.METADATA}`,
+    `*.${AUTOANKI_TAGS.METADATA}.object`,
   ],
 });
 
@@ -247,10 +294,23 @@ Reason: ${error.toString()}`
   finalContent.fieldChanged =
     finalContent.computedHash !== finalContent.storedHash;
 
+  const styleMediaFiles = [];
+  const scriptMediaFiles = [];
+  for (const obj of field['autoanki-metadata'].object) {
+    if (obj['@_attributes'].type === 'text/css') {
+      styleMediaFiles.push(obj['@_attributes'].data);
+    }
+    if (obj['@_attributes'].type === 'application/javascript') {
+      scriptMediaFiles.push(obj['@_attributes'].data);
+    }
+  }
+
   return {
     raw: ankiNoteFieldContent,
     sourceContent,
     finalContent,
+    scriptMediaFiles,
+    styleMediaFiles,
     uuid: field[AUTOANKI_TAGS.METADATA]['@_attributes']['data-autoanki-uuid'],
     modelName:
       field[AUTOANKI_TAGS.METADATA]['@_attributes']['data-autoanki-note-type'],

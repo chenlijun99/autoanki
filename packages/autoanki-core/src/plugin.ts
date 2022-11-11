@@ -1,7 +1,6 @@
 import { z } from 'zod';
 
-import { ParsedNote, AutoankiNote } from './notes.js';
-import type { MediaFile } from './media.js';
+import { ParsedNote, AutoankiNote, AutoankiMediaFile } from './notes.js';
 
 export type SourcePluginParsingOutput = {
   note: ParsedNote;
@@ -10,10 +9,6 @@ export type SourcePluginParsingOutput = {
 
 interface BasePlugin {
   name: string;
-  /**
-   * Get plugin media files
-   */
-  getPluginMediaFiles?: () => Promise<MediaFile[]>;
 }
 
 export interface SourcePlugin extends BasePlugin {
@@ -48,6 +43,9 @@ export interface SourcePlugin extends BasePlugin {
 export type TransformerPluginOutput = {
   transformedNote: AutoankiNote;
   metadata?: unknown;
+  mediaFiles?: AutoankiMediaFile[];
+  styleFiles?: AutoankiMediaFile[];
+  scriptFiles?: AutoankiMediaFile[];
 };
 
 export interface TransformerPlugin extends BasePlugin {

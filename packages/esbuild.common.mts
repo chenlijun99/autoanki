@@ -1,10 +1,69 @@
-import esbuild, { Plugin, BuildOptions } from 'esbuild';
 import process from 'node:process';
+
+import esbuild, { Plugin, BuildOptions } from 'esbuild';
 import { nodeExternalsPlugin } from 'esbuild-node-externals';
 
-const prod = process.argv[2] === 'production';
+import merge from 'lodash-es/merge.js';
+import mergeWith from 'lodash-es/mergeWith.js';
+import isEqual from 'lodash-es/isEqual.js';
+import uniqWith from 'lodash-es/uniqWith.js';
 
-const targetConfigs = {
+export const prod = process.argv[2] === 'production';
+
+function customizer(objValue: any, srcValue: any) {
+  if (Array.isArray(objValue) && Array.isArray(srcValue)) {
+    return uniqWith(objValue.concat(srcValue), isEqual);
+  }
+}
+
+function deepmergeWithDeepUniqueArray(...args: any[]) {
+  return mergeWith(...args, customizer);
+}
+
+export const combineConfigs = deepmergeWithDeepUniqueArray;
+
+export const configBase: BuildOptions = {
+  /*
+   * Assuming that esbuild is invoked in the root of each package, this
+   * relative path should work.
+   * The goal of this is to avoid that esbuild finds `../tsconfig.json`,
+   * which contains path mappings that we don't want esbuild to consider,
+   * because once it finds these path mappings, `esbuild` will then bundle the
+   * source modules rather than the built ones in the `dist/` folder of each
+   * package. This is especially problematic if some packages require custom
+   * bundling logic (e.g. @autoanki/sync bundles some JS modules as base64).
+   */
+  tsconfig: '../tsconfig.base.json',
+  logLevel: 'info',
+  sourcemap: true,
+  // enable tree shaking only in production
+  treeShaking: prod,
+};
+
+export const configBundleWithoutNodeModules = (
+  fullySpecifiedAllowList?: string[]
+): BuildOptions => {
+  return {
+    bundle: true,
+    plugins: [
+      /*
+       * esbuild already supports treating all the modules in `node_modules`/
+       * as external, via `external: ['./node_modules/*']`
+       * (see https://esbuild.github.io/getting-started/#bundling-for-node),
+       * but sometimes we want to specifiy an allow list.
+       */
+      nodeExternalsPlugin(
+        fullySpecifiedAllowList !== undefined
+          ? {
+              allowList: fullySpecifiedAllowList,
+            }
+          : {}
+      ),
+    ],
+  };
+};
+
+export const configTargetSpecific = {
   nodeApp: {
     outfile: 'dist/index.cjs',
     platform: 'node',
@@ -49,7 +108,8 @@ const targetConfigs = {
     minify: false,
   } as BuildOptions,
 } as const;
-type TargetConfigName = keyof typeof targetConfigs;
+
+type TargetConfigName = keyof typeof configTargetSpecific;
 
 /**
  * Build an application
@@ -59,6 +119,7 @@ export async function buildApplication(config: {
   extraPlugins?: Plugin[];
 }) {
   const defaultConfig: BuildOptions = {
+    ...configBase,
     entryPoints: ['src/index.ts'],
     logLevel: 'info',
     sourcemap: true,
@@ -69,7 +130,7 @@ export async function buildApplication(config: {
   };
 
   return Promise.all(
-    Object.entries(targetConfigs)
+    Object.entries(configTargetSpecific)
       .filter((conf) => config.types.includes(conf[0] as TargetConfigName))
       .map((conf) => {
         const targetConfig = conf[1];
@@ -97,11 +158,8 @@ export async function buildLibrary(
   } = {}
 ) {
   const defaultConfig: BuildOptions = {
+    ...configBase,
     entryPoints: ['src/index.ts'],
-    logLevel: 'info',
-    sourcemap: true,
-    // enable tree shaking only in production
-    treeShaking: prod,
     /*
      * Enable bundling, even though generally we want to exclude all the
      * node modules from the bundle. The idea is that for library NPM
@@ -130,6 +188,6 @@ export async function buildLibrary(
 
   return esbuild.build({
     ...defaultConfig,
-    ...targetConfigs.esmLib,
+    ...configTargetSpecific.esmLib,
   });
 }

@@ -1,7 +1,9 @@
+import difference from 'lodash/difference.js';
 import differenceBy from 'lodash/differenceBy.js';
+import { z } from 'zod';
 
 import assert from '@autoanki/utils/assert.js';
-import { invoke } from '@autoanki/anki-connect';
+import { invoke, ModelTypes } from '@autoanki/anki-connect';
 import type {
   ApiOrigin,
   ActionNames,
@@ -11,11 +13,14 @@ import type {
 } from '@autoanki/anki-connect';
 import {
   assignIdsToAutoankiNotes,
-  AutoankiNote,
   writeBackAutoankiNoteUpdates,
   transformAutoankiNote,
   AUTOANKI_NOTES_DEFAULT_TAG,
+} from '@autoanki/core';
+import type {
+  AutoankiNote,
   NoteInput,
+  AutoankiMediaFile,
 } from '@autoanki/core';
 
 import {
@@ -25,8 +30,23 @@ import {
   ExistingNoteChanges,
   computeNoteChanges,
 } from './note.js';
-import { ConcernedSide } from './common.js';
+import { AutoankiSyncError, ConcernedSide } from './common.js';
 import { getAnkiNoteField } from './note-field.js';
+import {
+  parseMediaFileMetadataDataFromFilename,
+  computeMediaFileMetadataFromMediaFile,
+  MediaFileMetadata,
+} from './media.js';
+import { updateNoteTemplatesIfNecessary } from './note-template.js';
+import {
+  ankiBridgeScriptMediaFile,
+  AutoankiSyncTransformer,
+} from './plugin/index.js';
+
+/**
+ * Export the plugin provided by autoanki-sync as default
+ */
+export { default } from './plugin/index.js';
 
 /**
  * An "properly existing" Anki note exists in the source and in Anki.
@@ -72,6 +92,109 @@ export abstract class AutomaticSyncAction extends SyncAction {
 
 export abstract class ManualSyncAction extends SyncAction {}
 
+export class SyncActionCreateDecks extends AutomaticSyncAction {
+  constructor(
+    public decks: string[],
+    ...args: ConstructorParameters<typeof AutomaticSyncAction>
+  ) {
+    super(...args);
+  }
+
+  async execute() {
+    await Promise.all(
+      this.decks.map((deck) => {
+        return this.syncProcedure._invoke({
+          action: 'createDeck',
+          request: {
+            deck,
+          },
+        });
+      })
+    );
+
+    return {
+      furtherActions: [],
+      sourcesToUpdate: [],
+    };
+  }
+}
+
+export class SyncActionUpdateInjectedScriptsInModelTemplates extends AutomaticSyncAction {
+  constructor(
+    private notes: AutoankiNote[],
+    ...args: ConstructorParameters<typeof AutomaticSyncAction>
+  ) {
+    super(...args);
+  }
+
+  private noteTypesTemplatesToBeUpdated: Record<
+    ModelTypes.ModelName,
+    ModelTypes.ModelTemplates
+  > = {};
+
+  get noteTypesThatRequireInstrumentation(): string[] {
+    return Object.keys(this.noteTypesTemplatesToBeUpdated);
+  }
+
+  async retrieveNoteTypesThatRequireUpdate(): Promise<void> {
+    const bridgeScriptMetadata = await computeMediaFileMetadataFromMediaFile(
+      AutoankiSyncTransformer.pluginName,
+      ankiBridgeScriptMediaFile
+    );
+    const noteTypes = Array.from(
+      new Set(this.notes.map((note) => note.modelName))
+    );
+    const noteTypesToBeUpdated = await Promise.all(
+      noteTypes.map(async (noteType) => {
+        const noteTypeTemplates = await this.syncProcedure._invoke({
+          action: 'modelTemplates',
+          request: {
+            modelName: noteType,
+          },
+        });
+
+        return [
+          noteType,
+          await updateNoteTemplatesIfNecessary(noteTypeTemplates, [
+            // not supported yet
+            // bridgeScriptMetadata
+          ]),
+        ] as const;
+      })
+    );
+
+    this.noteTypesTemplatesToBeUpdated = noteTypesToBeUpdated
+      .filter(([_, updatedTemplate]) => !!updatedTemplate)
+      .reduce((obj, [noteType, updatedTemplate]) => {
+        obj[noteType] = updatedTemplate!;
+        return obj;
+      }, {} as typeof this.noteTypesTemplatesToBeUpdated);
+  }
+
+  async execute() {
+    await Promise.all(
+      Object.entries(this.noteTypesTemplatesToBeUpdated).map(
+        ([noteType, updatedTemplate]) => {
+          return this.syncProcedure._invoke({
+            action: 'updateModelTemplates',
+            request: {
+              model: {
+                name: noteType,
+                templates: updatedTemplate,
+              },
+            },
+          });
+        }
+      )
+    );
+
+    return {
+      furtherActions: [],
+      sourcesToUpdate: [],
+    };
+  }
+}
+
 export class SyncActionCreateNotesInAnki extends AutomaticSyncAction {
   constructor(
     public newNotes: AutoankiNote[],
@@ -82,8 +205,15 @@ export class SyncActionCreateNotesInAnki extends AutomaticSyncAction {
 
   async execute() {
     this.newNotes = await assignIdsToAutoankiNotes(this.newNotes);
+    await this.syncProcedure._sendNonExistingMediaFilesOfNotesToAnki(
+      this.newNotes
+    );
     const newAnkiConnectNotes = await Promise.all(
-      this.newNotes.map((newNote) => autoankiNoteToAnkiConnectNewNote(newNote))
+      this.newNotes.map((newNote) => {
+        const fields = this.syncProcedure._existingNoteTypes[newNote.modelName];
+        assert(fields !== undefined);
+        return autoankiNoteToAnkiConnectNewNote(newNote, fields);
+      })
     );
     const createdNoteIds = await this.syncProcedure._invoke({
       action: 'addNotes',
@@ -98,7 +228,11 @@ export class SyncActionCreateNotesInAnki extends AutomaticSyncAction {
     for (const [i, id] of createdNoteIds.entries()) {
       if (!id) {
         throw new Error(
-          `Unable to create note ${JSON.stringify(newAnkiConnectNotes[i])}`
+          `Unable to create note. Could it be a duplicate?\n${JSON.stringify(
+            this.newNotes[i].autoanki.metadata.parsedNote,
+            undefined,
+            2
+          )}`
         );
       }
     }
@@ -127,70 +261,75 @@ export class SyncActionUpdateNotesInAnki extends AutomaticSyncAction {
   }
 
   async execute() {
-    await Promise.all(
-      this.notesToUpdate.map(async (note) => {
-        assert(note.changes.overallChanges === ConcernedSide.Source);
-        if (note.changes.tagsChanges === ConcernedSide.Anki) {
-          const { added, removed } = arrayChanges(
-            note.note.fromAnki.tags.actual,
-            note.note.fromSource.tags
-          );
-          const ops = [];
-          if (added.length > 0) {
-            ops.push(
-              this.syncProcedure._invoke({
-                action: 'addTags',
-                request: {
-                  tags: added.join(' '),
-                  notes: [note.note.fromAnki.id],
-                },
-              })
-            );
-          }
-          if (removed.length > 0) {
-            ops.push(
-              this.syncProcedure._invoke({
-                action: 'removeTags',
-                request: {
-                  tags: removed.join(' '),
-                  notes: [note.note.fromAnki.id],
-                },
-              })
-            );
-          }
-          await Promise.all(ops);
-        }
-        if (note.changes.modelNameChange === ConcernedSide.Source) {
-          throw new Error('Unspported note type change');
-        }
-        if (note.changes.fieldsOverallChanges === ConcernedSide.Source) {
-          const updatedFields: NoteTypes.UpdateNote['fields'] = {};
-          for (const [fieldName, field] of Object.entries(
-            note.changes.fields
-          )) {
-            if (
-              field.sourceContentChanges === ConcernedSide.Source ||
-              field.finalContentChanges === ConcernedSide.Source
-            ) {
-              updatedFields[fieldName] = await getAnkiNoteField(
-                note.note.fromSource,
-                note.note.fromSource.fields[fieldName],
-                note.note.fromSource.autoanki.sourceContentFields[fieldName]
-              );
-            }
-          }
-          this.syncProcedure._invoke({
-            action: 'updateNoteFields',
-            request: {
-              note: {
-                id: note.note.fromAnki.id,
-                fields: updatedFields,
+    const sendMediaFilesPromise =
+      this.syncProcedure._sendNonExistingMediaFilesOfNotesToAnki(
+        this.notesToUpdate.map((note) => note.note.fromSource)
+      );
+    const updateNotesPromise = this.notesToUpdate.map(async (note) => {
+      assert(note.changes.overallChanges === ConcernedSide.Source);
+      if (note.changes.tagsChanges === ConcernedSide.Source) {
+        const { added, removed } = arrayChanges(
+          note.note.fromAnki.tags.actual,
+          note.note.fromSource.tags
+        );
+        const ops = [];
+        if (added.length > 0) {
+          ops.push(
+            this.syncProcedure._invoke({
+              action: 'addTags',
+              request: {
+                tags: added.join(' '),
+                notes: [note.note.fromAnki.id],
               },
-            },
-          });
+            })
+          );
         }
-      })
-    );
+        if (removed.length > 0) {
+          ops.push(
+            this.syncProcedure._invoke({
+              action: 'removeTags',
+              request: {
+                tags: removed.join(' '),
+                notes: [note.note.fromAnki.id],
+              },
+            })
+          );
+        }
+        await Promise.all(ops);
+      }
+      if (note.changes.modelNameChange === ConcernedSide.Source) {
+        throw new Error('Unspported note type change');
+      }
+
+      /*
+       * Note fields must be always updated, since they contain the whole set
+       * of metadata that for sure must be updated as long as anything else is
+       * updated.
+       */
+      const updatedFields: NoteTypes.UpdateNote['fields'] = {};
+      await Promise.all(
+        this.syncProcedure._existingNoteTypes[
+          note.note.fromSource.modelName
+        ].map(async (fieldName) => {
+          updatedFields[fieldName] = await getAnkiNoteField(
+            note.note.fromSource,
+            note.note.fromSource.fields[fieldName] ?? '',
+            note.note.fromSource.autoanki.sourceContentFields[fieldName] ?? ''
+          );
+        })
+      );
+      await this.syncProcedure._invoke({
+        action: 'updateNoteFields',
+        request: {
+          note: {
+            id: note.note.fromAnki.id,
+            fields: updatedFields,
+          },
+        },
+      });
+    });
+
+    await Promise.all([sendMediaFilesPromise].concat(updateNotesPromise));
 
     return {
       furtherActions: [],
@@ -208,29 +347,78 @@ export class SyncActionUpdateNotesInSource extends AutomaticSyncAction {
   }
 
   async execute(): Promise<SyncActionResult> {
-    const updated = this.notesToUpdate.map((note) => {
-      const updatedNote = note.note.fromSource;
-      assert(note.changes.overallChanges === ConcernedSide.Anki);
-      if (note.changes.tagsChanges === ConcernedSide.Anki) {
-        updatedNote.tags = note.note.fromAnki.tags.actual;
-      }
-      if (note.changes.modelNameChange === ConcernedSide.Anki) {
-        updatedNote.modelName = note.note.fromAnki.modelName.actual;
-      }
-      if (note.changes.fieldsOverallChanges === ConcernedSide.Anki) {
-        for (const [fieldName, field] of Object.entries(note.changes.fields)) {
-          assert(field.finalContentChanges === ConcernedSide.NoSide);
-          if (field.sourceContentChanges === ConcernedSide.Anki) {
-            updatedNote.autoanki.sourceContentFields[fieldName] =
-              note.note.fromAnki.fieldsSourceContent[fieldName].content;
+    const updatedNoteWithRecomputedChanges = await Promise.all(
+      this.notesToUpdate.map(async (note) => {
+        const updatedNote = note.note.fromSource;
+
+        assert(note.changes.overallChanges === ConcernedSide.Anki);
+        if (note.changes.tagsChanges === ConcernedSide.Anki) {
+          updatedNote.tags = note.note.fromAnki.tags.actual;
+        }
+        if (note.changes.modelNameChange === ConcernedSide.Anki) {
+          updatedNote.modelName = note.note.fromAnki.modelName.actual;
+        }
+        if (note.changes.fieldsOverallChanges === ConcernedSide.Anki) {
+          for (const [fieldName, field] of Object.entries(
+            note.changes.fields
+          )) {
+            assert(field.finalContentChanges === ConcernedSide.NoSide);
+            if (field.sourceContentChanges === ConcernedSide.Anki) {
+              updatedNote.autoanki.sourceContentFields[fieldName] =
+                note.note.fromAnki.fieldsSourceContent[fieldName].content;
+            }
           }
         }
-      }
-      return updatedNote;
-    });
+
+        /*
+         * Updated the source content of the note. Re-transform it.
+         */
+        await transformAutoankiNote(updatedNote);
+        return {
+          note: {
+            fromAnki: note.note.fromAnki,
+            fromSource: updatedNote,
+          },
+          changes: {
+            ...(await computeNoteChanges(
+              updatedNote,
+              note.note.fromAnki,
+              // at this point we're sure that there is no need
+              false
+            )),
+            /*
+             * Maybe there is the difference between the updatedNote and the
+             * note from Anki (only if the transformation produced the same
+             * final content even though the source content changed).
+             * Force that there is some change from the source. At lesat we
+             * must update the metadata in Anki.
+             */
+            overallChanges: ConcernedSide.Source,
+          },
+        } as ExistingNoteWithComputedChanges;
+      })
+    );
+
+    const sourcesToUpdate = await writeBackAutoankiNoteUpdates(
+      updatedNoteWithRecomputedChanges.map((note) => note.note.fromSource)
+    );
+
     return {
-      furtherActions: [],
-      sourcesToUpdate: await writeBackAutoankiNoteUpdates(updated),
+      furtherActions: [
+        /*
+         * After a note is updated in the source and re-transformed,
+         * it needs to be updated also in Anki, because:
+         *
+         * * The metadata in the note fields must be updated.
+         * * The final content result of the transformation most probably must
+         * be updated.
+         */
+        new SyncActionUpdateNotesInAnki(
+          updatedNoteWithRecomputedChanges,
+          this.syncProcedure
+        ),
+      ],
+      sourcesToUpdate,
     };
   }
 }
@@ -302,16 +490,59 @@ export class SyncActionHandleNotesUpdateConflict extends ManualSyncAction {
   }
 }
 
+type MediaDigestMap = Record<MediaFileMetadata['digest'], MediaFileMetadata>;
+
+/**
+ * This packages doesn't use it, but it is provided as comodity for packages
+ * that make use of @autoanki/sync.
+ */
+export const syncConfigSchema = z.object({
+  moreAccurateFinalContentChangeDetection: z.boolean(),
+  origin: z.union([z.string(), z.number()]).optional() as z.ZodType<
+    ApiOrigin | undefined
+  >,
+});
+
+/**
+ * Sync config
+ */
+export type SyncConfig = z.infer<typeof syncConfigSchema>;
+
+const DEFAULT_CONFIG: SyncConfig = {
+  moreAccurateFinalContentChangeDetection: true,
+};
+
 /**
  * Anki notes sync coordinator
  */
 export class SyncProcedure {
   constructor(
     private notesToBeSynced: AutoankiNote[],
-    private origin?: ApiOrigin
-  ) {}
+    config: Partial<SyncConfig>
+  ) {
+    this.config = {
+      ...DEFAULT_CONFIG,
+      ...config,
+    };
+  }
+
+  private config: SyncConfig;
 
   private pendingSyncActions: Set<SyncAction> = new Set();
+
+  public _existingNoteTypes: Record<
+    ModelTypes.ModelName,
+    ModelTypes.FieldName[]
+  > = {};
+
+  private existingDecks: string[] = [];
+
+  private existingMediaMap: MediaDigestMap = {};
+
+  private mediaFileMetadataComputationCache: Map<
+    AutoankiMediaFile,
+    MediaFileMetadata
+  > = new Map();
 
   /**
    * Sync actions that must be performed.
@@ -343,6 +574,53 @@ export class SyncProcedure {
    * Start the sync procedure
    */
   public async start() {
+    [this.existingMediaMap, this._existingNoteTypes, this.existingDecks] =
+      await Promise.all([
+        this.getExistingAutoankiMediaFiles(),
+        this.retrieveExisistingNoteTypes(),
+        this._invoke({
+          action: 'deckNames',
+          request: undefined,
+        }),
+      ]);
+
+    const actions: SyncAction[] = [];
+
+    const noteTypes = Array.from(
+      new Set(this.notesToBeSynced.map((note) => note.modelName))
+    );
+    const missingNoteTypes = difference(
+      noteTypes,
+      Object.keys(this._existingNoteTypes)
+    );
+    if (missingNoteTypes.length > 0) {
+      throw new Error(
+        `The following note types are not defined in Anki: [${missingNoteTypes.join(
+          ', '
+        )}]`
+      );
+    }
+
+    const decksOfNotes = Array.from(
+      new Set(this.notesToBeSynced.map((note) => note.deckName))
+    );
+    const missingDecks = difference(decksOfNotes, this.existingDecks);
+    if (missingDecks.length > 0) {
+      actions.push(new SyncActionCreateDecks(missingDecks, this));
+    }
+
+    const updateNoteTemplatesAction =
+      new SyncActionUpdateInjectedScriptsInModelTemplates(
+        this.notesToBeSynced,
+        this
+      );
+    await updateNoteTemplatesAction.retrieveNoteTypesThatRequireUpdate();
+    if (
+      updateNoteTemplatesAction.noteTypesThatRequireInstrumentation.length > 0
+    ) {
+      actions.push(updateNoteTemplatesAction);
+    }
+
     const existingNotesFromAnki = await this.getExistingAutoankiNotesFromAnki();
     const existingNotesFromSource: AutoankiNote[] = [];
     const newNotesFromSource: AutoankiNote[] = [];
@@ -360,8 +638,6 @@ export class SyncProcedure {
         existingNotesFromSource.push(note);
       }
     }
-
-    const actions: SyncAction[] = [];
 
     if (newNotesFromSource.length > 0) {
       actions.push(new SyncActionCreateNotesInAnki(newNotesFromSource, this));
@@ -419,7 +695,8 @@ export class SyncProcedure {
               note: existingNote,
               changes: await computeNoteChanges(
                 existingNote.fromSource!,
-                existingNote.fromAnki!
+                existingNote.fromAnki!,
+                this.config.moreAccurateFinalContentChangeDetection
               ),
             } as ExistingNoteWithComputedChanges;
           })
@@ -432,7 +709,9 @@ export class SyncProcedure {
         [];
 
       for (const note of Object.values(notesExistingOnBothSides)) {
-        if (note.note.fromAnki.anyFieldsFinalContentChanged) {
+        if (
+          note.changes.finalContentFieldsOverallChanges & ConcernedSide.Anki
+        ) {
           throw new Error('Not handled');
         }
 
@@ -516,7 +795,7 @@ export class SyncProcedure {
     return invoke({
       ...args,
       version: 6,
-      origin: this.origin,
+      origin: this.config.origin,
     });
   }
 
@@ -538,5 +817,134 @@ export class SyncProcedure {
     return Promise.all(
       noteInfos.map((noteInfo) => ankiConnectNoteInfoToAutoankiNote(noteInfo))
     );
+  }
+
+  private async retrieveExisistingNoteTypes(): Promise<
+    this['_existingNoteTypes']
+  > {
+    const noteTypesAndFields: this['_existingNoteTypes'] = { A: [] };
+    const names = await this._invoke({
+      action: 'modelNames',
+      request: undefined,
+    });
+    await Promise.all(
+      names.map(async (noteTypeName) => {
+        const fields = await this._invoke({
+          action: 'modelFieldNames',
+          request: {
+            modelName: noteTypeName,
+          },
+        });
+        // @ts-ignore
+        // Honestly, I don't know why it gives error...
+        noteTypesAndFields[noteTypeName] = fields;
+      })
+    );
+    return noteTypesAndFields;
+  }
+
+  public _isMediaFileAlreadyAvailable(metadata: MediaFileMetadata): boolean {
+    return !!this.existingMediaMap[metadata.digest];
+  }
+
+  /**
+   * @internal
+   */
+  public async _sendMediaFile(
+    mediaFile: AutoankiMediaFile,
+    metadata: MediaFileMetadata
+  ): Promise<void> {
+    try {
+      const newFileName = await this._invoke({
+        action: 'storeMediaFile',
+        request: {
+          filename: metadata.storedFilename,
+          data: mediaFile.base64Content,
+          deleteExisting: false,
+        },
+      });
+      if (newFileName !== metadata.storedFilename) {
+        throw new AutoankiSyncError(
+          `Unable to store media file using filename ${metadata.storedFilename} in Anki. Anki returned the filename ${newFileName}"`
+        );
+      }
+    } catch (error) {
+      if (!(error instanceof AutoankiSyncError)) {
+        throw new AutoankiSyncError(
+          `Unable to store media file ${
+            metadata.storedFilename
+          } in Anki. Reason: "${error ?? 'Unknown'}"`
+        );
+      } else {
+        throw error;
+      }
+    }
+  }
+
+  /**
+   * @internal
+   */
+  public async _sendNonExistingMediaFilesOfNotesToAnki(
+    notes: AutoankiNote[]
+  ): Promise<unknown> {
+    const alreadyMet: Set<AutoankiNote['mediaFiles'][number]['media']> =
+      new Set();
+    const mediaFiles: AutoankiNote['mediaFiles'] = [];
+
+    for (const note of notes) {
+      for (const mediaFile of note.mediaFiles.concat(
+        note.scriptFiles,
+        note.styleFiles
+      )) {
+        if (!alreadyMet.has(mediaFile.media)) {
+          alreadyMet.add(mediaFile.media);
+          mediaFiles.push(mediaFile);
+        }
+      }
+    }
+
+    return Promise.all(
+      mediaFiles.map(async (media) => {
+        let cached = this.mediaFileMetadataComputationCache.get(media.media);
+        if (!cached) {
+          cached = await computeMediaFileMetadataFromMediaFile(
+            media.fromPlugin.name,
+            media.media
+          );
+          this.mediaFileMetadataComputationCache.set(media.media, cached);
+        }
+        const metadata = cached;
+        const existing = this.existingMediaMap[metadata.digest];
+        if (!existing || existing.storedFilename !== metadata.storedFilename) {
+          /*
+           * Optimistically treated as sent, so that nobody else that
+           * is concurrently running will send this again
+           */
+          this.existingMediaMap[metadata.digest] = metadata;
+          await this._sendMediaFile(media.media, metadata);
+        }
+      })
+    );
+  }
+
+  private async getExistingAutoankiMediaFiles(): Promise<MediaDigestMap> {
+    const existingAutoankiMediaFileNames = await this._invoke({
+      action: 'getMediaFilesNames',
+      request: {
+        pattern: 'autoanki__*',
+      },
+    });
+    return (
+      await Promise.all(
+        existingAutoankiMediaFileNames.map((filename) =>
+          parseMediaFileMetadataDataFromFilename(filename)
+        )
+      )
+    ).reduce((map, current) => {
+      if (current) {
+        map[current.digest] = current;
+      }
+      return map;
+    }, {} as MediaDigestMap);
   }
 }

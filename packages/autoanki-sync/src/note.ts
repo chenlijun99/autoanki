@@ -1,3 +1,7 @@
+import { unified } from 'unified';
+import rehypeParse from 'rehype-parse';
+import { toString } from 'hast-util-to-string';
+
 import type { NoteTypes } from '@autoanki/anki-connect';
 import type { AutoankiNote } from '@autoanki/core';
 
@@ -8,6 +12,7 @@ import {
   getAutoankiNoteField,
   hasFieldContentChanged,
 } from './note-field.js';
+import { computeMediaFileMetadataFromMediaFile } from './media.js';
 
 /**
  * Data type of Autoanki note retrieved from anki
@@ -45,7 +50,6 @@ export interface AutoankiNoteFromAnki {
     keyof NoteTypes.NewNote['fields'],
     AutoankiNoteFieldMetadata
   >;
-  anyFieldsSourceContentChanged: boolean;
   /**
    * The portion of the note content that is actually shown to the user. It is
    * the result of the whole note parsing and transformation pipeline of
@@ -55,19 +59,21 @@ export interface AutoankiNoteFromAnki {
     keyof NoteTypes.NewNote['fields'],
     AutoankiNoteFieldMetadata
   >;
-  anyFieldsFinalContentChanged: boolean;
+  scriptMediaFiles: string[];
+  styleMediaFiles: string[];
 }
 
 export async function autoankiNoteToAnkiConnectNewNote(
-  newNote: AutoankiNote
+  newNote: AutoankiNote,
+  noteTypeFields: string[]
 ): Promise<NoteTypes.NewNote> {
   const fields: NoteTypes.NewNote['fields'] = {};
   await Promise.all(
-    Object.entries(newNote.fields).map(async ([name, content]) => {
-      fields[name] = await getAnkiNoteField(
+    noteTypeFields.map(async (fieldName) => {
+      fields[fieldName] = await getAnkiNoteField(
         newNote,
-        content,
-        newNote.autoanki.sourceContentFields[name]
+        newNote.fields[fieldName] ?? '',
+        newNote.autoanki.sourceContentFields[fieldName] ?? ''
       );
     })
   );
@@ -76,10 +82,10 @@ export async function autoankiNoteToAnkiConnectNewNote(
     fields,
     deckName: newNote.deckName,
     modelName: newNote.modelName,
-    audio: newNote.audio,
-    video: newNote.video,
-    options: newNote.options,
-    picture: newNote.picture,
+    options: newNote.options ?? {
+      // By default allow duplicate.
+      allowDuplicate: true,
+    },
     tags: newNote.tags,
   };
 }
@@ -100,6 +106,21 @@ class InconsistentMetadataError<T> extends AutoankiNoteFromAnkiError {
            while field ${rhs.fieldName} has ${rhs.value}`);
     this.name = this.constructor.name;
   }
+}
+
+function equal<T>(a: T, b: T): boolean {
+  return a === b;
+}
+function arrayEqual<T>(a: T[], b: T[]): boolean {
+  if (a.length !== b.length) {
+    return false;
+  }
+  for (let i = 0, length = a.length; i < length; ++i) {
+    if (a[i] !== b[i]) {
+      return false;
+    }
+  }
+  return true;
 }
 
 export async function ankiConnectNoteInfoToAutoankiNote(
@@ -133,23 +154,32 @@ export async function ankiConnectNoteInfoToAutoankiNote(
   let uuid: string = autoankiNoteFields[0][1].uuid;
   let tags: string = autoankiNoteFields[0][1].tags;
   let modelName: string = autoankiNoteFields[0][1].modelName;
-  let anySourceSubfieldsChanged = false;
-  let anyContentSubfieldsChanged = false;
+  let scriptMediaFiles: string[] = autoankiNoteFields[0][1].scriptMediaFiles;
+  let styleMediaFiles: string[] = autoankiNoteFields[0][1].styleMediaFiles;
 
   for (const [i, [fieldName, field]] of autoankiNoteFields.entries()) {
     sourceSubfields[fieldName] = field.sourceContent;
-    anySourceSubfieldsChanged ||= field.sourceContent.fieldChanged;
     contentSubfields[fieldName] = field.finalContent;
-    anyContentSubfieldsChanged ||= field.finalContent.fieldChanged;
 
     // metadata consistency check
     if (i > 0) {
       for (const check of [
-        ['uuid', uuid, field.uuid],
-        ['tags', tags, field.tags],
-        ['modelName', modelName, field.modelName],
+        ['uuid', uuid, field.uuid, equal],
+        ['tags', tags, field.tags, equal],
+        ['modelName', modelName, field.modelName, equal],
+        [
+          'scriptMediaFiles',
+          scriptMediaFiles,
+          field.scriptMediaFiles,
+          arrayEqual,
+        ],
+        ['styleMediaFiles', styleMediaFiles, field.styleMediaFiles, arrayEqual],
       ] as const) {
-        if (check[1] !== check[2]) {
+        const checkEqual = check[3];
+        const first = check[1];
+        const nth = check[2];
+        // @ts-ignore
+        if (!checkEqual(first, nth)) {
           throw new InconsistentMetadataError(
             check[0],
             {
@@ -181,9 +211,9 @@ export async function ankiConnectNoteInfoToAutoankiNote(
     },
     rawFields,
     fieldsSourceContent: sourceSubfields,
-    anyFieldsSourceContentChanged: anySourceSubfieldsChanged,
     fieldsFinalContent: contentSubfields,
-    anyFieldsFinalContentChanged: anyContentSubfieldsChanged,
+    scriptMediaFiles,
+    styleMediaFiles,
   };
 }
 
@@ -199,15 +229,41 @@ export interface ExistingNoteChanges {
       finalContentChanges: ConcernedSide;
     }
   >;
+  sourceContentFieldsOverallChanges: ConcernedSide;
+  finalContentFieldsOverallChanges: ConcernedSide;
   fieldsOverallChanges: ConcernedSide;
+  scriptMediaFilesChanges: ConcernedSide;
+  styleMediaFilesChanges: ConcernedSide;
+}
+
+const processor = unified().use(rehypeParse, { fragment: true });
+function htmlToText(html: string): string {
+  const ast = processor.parse(html);
+  return toString(ast);
+}
+
+export async function computeMediaFilesStoredPaths(
+  mediaFiles: AutoankiNote['styleFiles'] | AutoankiNote['scriptFiles']
+): Promise<string[]> {
+  return Promise.all(
+    mediaFiles.map(async (file) => {
+      const result = await computeMediaFileMetadataFromMediaFile(
+        file.fromPlugin.name,
+        file.media
+      );
+      return result.storedFilename;
+    })
+  );
 }
 
 export async function computeNoteChanges(
   fromSource: AutoankiNote,
-  fromAnki: AutoankiNoteFromAnki
+  fromAnki: AutoankiNoteFromAnki,
+  moreAccurateFinalContentChangeDetection: boolean
 ): Promise<ExistingNoteChanges> {
-  let overallChanges: ExistingNoteChanges['overallChanges'] =
-    ConcernedSide.NoSide;
+  /*
+   * Check tags changes
+   */
   let tagsChanges: ExistingNoteChanges['tagsChanges'] = ConcernedSide.NoSide;
   {
     // TODO: support order insensitive tags comparison
@@ -216,31 +272,33 @@ export async function computeNoteChanges(
     const storedTagsInAnki = fromAnki.tags.stored.join(' ');
     if (sourceTgas !== actualTagsInAnki) {
       if (sourceTgas !== storedTagsInAnki) {
-        overallChanges |= ConcernedSide.Source;
         tagsChanges |= ConcernedSide.Source;
       }
       if (fromAnki.tags.changed) {
-        overallChanges |= ConcernedSide.Anki;
         tagsChanges |= ConcernedSide.Anki;
       }
     }
   }
 
+  /*
+   * Check note type changes
+   */
   let modelNameChange: ExistingNoteChanges['modelNameChange'] =
     ConcernedSide.NoSide;
   if (fromSource.modelName !== fromAnki.modelName.actual) {
     if (fromSource.modelName !== fromAnki.modelName.stored) {
-      overallChanges |= ConcernedSide.Source;
       modelNameChange |= ConcernedSide.Source;
     }
     if (fromAnki.modelName.changed) {
-      overallChanges |= ConcernedSide.Anki;
       modelNameChange |= ConcernedSide.Anki;
     }
   }
 
-  let fieldsOverallChanges: ExistingNoteChanges['overallChanges'] =
+  let sourceContentFieldsOverallChanges: ExistingNoteChanges['overallChanges'] =
     ConcernedSide.NoSide;
+  let finalContentFieldsOverallChanges: ExistingNoteChanges['overallChanges'] =
+    ConcernedSide.NoSide;
+
   let fields: ExistingNoteChanges['fields'] = {};
   for (const fieldName of [
     ...Object.keys(fromSource.autoanki.sourceContentFields),
@@ -253,6 +311,9 @@ export async function computeNoteChanges(
     };
   }
 
+  /*
+   * Check whether there are source content changes from the note source.
+   */
   for (const [fieldName, field] of Object.entries(
     fromSource.autoanki.sourceContentFields
   )) {
@@ -264,12 +325,23 @@ export async function computeNoteChanges(
         fromAnki.fieldsSourceContent[fieldName]
       ))
     ) {
-      overallChanges |= ConcernedSide.Source;
-      fieldsOverallChanges |= ConcernedSide.Source;
+      sourceContentFieldsOverallChanges |= ConcernedSide.Source;
       fields[fieldName].sourceContentChanges |= ConcernedSide.Source;
     }
   }
 
+  /*
+   * Check whether there are final content changes from the note source.
+   *
+   * NOTE that even if the note source has not changed at all, the final
+   * content could still change.
+   *
+   * E.g.
+   *
+   * * The transformer plugin has been updated and now adds something new.
+   * * A media references by the source note has been edited.
+   * * etc.
+   */
   for (const [fieldName, field] of Object.entries(fromSource.fields)) {
     fields[fieldName].availability |= ConcernedSide.Source;
     if (
@@ -279,31 +351,86 @@ export async function computeNoteChanges(
         fromAnki.fieldsFinalContent[fieldName]
       ))
     ) {
-      overallChanges |= ConcernedSide.Source;
-      fieldsOverallChanges |= ConcernedSide.Source;
+      finalContentFieldsOverallChanges |= ConcernedSide.Source;
       fields[fieldName].finalContentChanges |= ConcernedSide.Source;
     }
   }
 
+  /*
+   * Check whether there are content changes from the Anki.
+   */
   for (const fieldName of Object.keys(fromAnki.rawFields)) {
     fields[fieldName].availability |= ConcernedSide.Anki;
     if (fromAnki.fieldsSourceContent[fieldName].fieldChanged) {
-      overallChanges |= ConcernedSide.Anki;
-      fieldsOverallChanges |= ConcernedSide.Anki;
+      sourceContentFieldsOverallChanges |= ConcernedSide.Anki;
       fields[fieldName].sourceContentChanges |= ConcernedSide.Anki;
     }
-    if (fromAnki.fieldsFinalContent[fieldName].fieldChanged) {
-      overallChanges |= ConcernedSide.Anki;
-      fieldsOverallChanges |= ConcernedSide.Anki;
+
+    let finalContentChanged =
+      fromAnki.fieldsFinalContent[fieldName].fieldChanged;
+    if (
+      finalContentChanged &&
+      moreAccurateFinalContentChangeDetection &&
+      !!fromSource.fields[fieldName]
+    ) {
+      /*
+       * Sometimes the Anki-desktop editor may automatically perform cosmetic
+       * changes to the HTML (that don't impact the actual rendered textual
+       * content). E.g. escaping of named entities, indentation, etc.
+       * If `moreAccurateFinalContentChangeDetection` is enabled,
+       * we extract the text from HTML and check whether they do indeed
+       * differ to it was just a HTML differnece.
+       */
+      finalContentChanged =
+        htmlToText(fromAnki.fieldsFinalContent[fieldName].content) !==
+        htmlToText(fromSource.fields[fieldName]);
+    }
+
+    if (finalContentChanged) {
+      finalContentFieldsOverallChanges |= ConcernedSide.Anki;
       fields[fieldName].finalContentChanges |= ConcernedSide.Anki;
     }
   }
 
+  /*
+   * Check changes in media
+   *
+   * For now we assume that only the source changes the media files
+   */
+  const [sourceScriptMediaFiles, sourceStyleMediaFilesChanged] =
+    await Promise.all([
+      computeMediaFilesStoredPaths(fromSource.scriptFiles),
+      computeMediaFilesStoredPaths(fromSource.styleFiles),
+    ]);
+  const scriptMediaFilesChanges = arrayEqual(
+    sourceScriptMediaFiles,
+    fromAnki.scriptMediaFiles
+  )
+    ? ConcernedSide.NoSide
+    : ConcernedSide.Source;
+  const styleMediaFilesChanges = arrayEqual(
+    sourceStyleMediaFilesChanged,
+    fromAnki.styleMediaFiles
+  )
+    ? ConcernedSide.NoSide
+    : ConcernedSide.Source;
+
   return {
-    overallChanges,
+    overallChanges:
+      sourceContentFieldsOverallChanges |
+      finalContentFieldsOverallChanges |
+      tagsChanges |
+      modelNameChange |
+      scriptMediaFilesChanges |
+      styleMediaFilesChanges,
     tagsChanges,
     modelNameChange,
     fields,
-    fieldsOverallChanges,
+    sourceContentFieldsOverallChanges,
+    finalContentFieldsOverallChanges,
+    fieldsOverallChanges:
+      sourceContentFieldsOverallChanges | finalContentFieldsOverallChanges,
+    scriptMediaFilesChanges,
+    styleMediaFilesChanges,
   };
 }

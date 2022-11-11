@@ -9,8 +9,21 @@ export class AutoankiNoteFromAnkiError extends Error {
   }
 }
 
+export class AutoankiSyncError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = this.constructor.name;
+  }
+}
+
 export enum ConcernedSide {
   NoSide = 0,
   Source = 1,
   Anki = 1 << 1,
 }
+
+export const AUTOANKI_TAGS = {
+  SOURCE_CONTENT: 'autoanki-source-content',
+  FINAL_CONTENT: 'autoanki-final-content',
+  METADATA: 'autoanki-metadata',
+} as const;

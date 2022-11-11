@@ -2,11 +2,15 @@
   // Shared tsconfig for all the library-like packages in this monorepo
   //
   // We don't use TSC to emit JS, but tsconfig.json is still required in any
-  // TS project. Purpose of this `tsconfig.json`:
+  // TS project. Purpose of this `tsconfig.base.json` is to serve as common base
+  // for
   //
   // * IDE features
-  // * As base `tsconfig.json` for emission of type declarations
+  // * ts-jest
   // * ts-node
+  // * As base `tsconfig.json` for emission of type declarations
+  // * bundlers and transpilers
+  // * etc.
   "exclude": ["**/node_modules"],
   "compilerOptions": {
     // Stop loading whatever is in node_modules/@types.
@@ -62,4 +66,3 @@
     "esm": true
   }
 }
-

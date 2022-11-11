@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 
 import esbuild, { BuildOptions, Plugin } from 'esbuild';
 import {
+  prod,
   combineConfigs,
   configBase,
   configBundleWithoutNodeModules,
@@ -12,32 +14,35 @@ import {
  * Bundled the CSS of Katex (including all the fonts) and returns the bundled
  * CSS as string.
  */
-async function buildKatexCss(katexCssEntrypoint: string): Promise<string> {
+async function buildBridge(): Promise<string> {
   const result = esbuild.buildSync({
-    entryPoints: [katexCssEntrypoint],
+    entryPoints: ['src/anki-bridge/index.ts'],
     logLevel: 'info',
-    minify: true,
+    minify: prod,
     treeShaking: true,
     bundle: true,
-    loader: {
-      /* Bundle katex fonts inside the css file */
-      '.ttf': 'base64',
-      '.woff': 'base64',
-      '.woff2': 'base64',
-    },
-    write: false,
+    outfile: 'dist/anki-bridge.js',
+    target: ['es2015'],
+    platform: 'browser',
   });
+
   assert(result.errors.length === 0);
-  assert(result.outputFiles.length === 1);
-  return result.outputFiles[0].text;
+  const content = await readFile('dist/anki-bridge.js');
+  return content.toString();
 }
 
-const loadBundledKatexCssPlugin: Plugin = {
-  name: 'bundle_katex_css',
+const loadBundledBridgeScriptsAsBase64: Plugin = {
+  name: 'bundle_anki_bridge',
   setup(build) {
-    build.onLoad({ filter: /katex\/dist\/katex\.min\.css$/ }, async (args) => {
+    build.onResolve({ filter: /anki-bridge-bundled-base64\.js$/ }, (args) => {
       return {
-        contents: await buildKatexCss(args.path),
+        path: args.path,
+        namespace: 'bridge',
+      };
+    });
+    build.onLoad({ filter: /.*/, namespace: 'bridge' }, async (args) => {
+      return {
+        contents: await buildBridge(),
         loader: 'base64',
       };
     });
@@ -47,7 +52,7 @@ const loadBundledKatexCssPlugin: Plugin = {
 const config: BuildOptions = {
   entryPoints: ['src/index.ts'],
   outfile: 'dist/index.js',
-  plugins: [loadBundledKatexCssPlugin],
+  plugins: [loadBundledBridgeScriptsAsBase64],
   // bundle css of transfomer plugin as base64
   loader: { '.css': 'base64' },
 };
@@ -56,7 +61,7 @@ esbuild
   .build(
     combineConfigs(
       configBase,
-      configBundleWithoutNodeModules(['katex/dist/katex.min.css']),
+      configBundleWithoutNodeModules(),
       configTargetSpecific.esmLib,
       config
     )

@@ -100,7 +100,13 @@ module.exports = {
      * Hey, I like `reduce`!
      */
     'unicorn/no-array-reduce': 'off',
+    /**
+     * Generally, ok. But raises false positive when on NodeList.
+     * It's not such an important rule anyway.
+     */
+    'unicorn/no-array-for-each': 'off',
     'unicorn/no-await-expression-member': 'off',
+    'unicorn/prefer-spread': 'off',
     'unicorn/prefer-ternary': ['warn', 'only-single-line'],
   },
 };

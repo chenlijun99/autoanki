@@ -15,9 +15,9 @@ export {
   assignIdsToAutoankiNotes,
   AUTOANKI_NOTES_DEFAULT_TAG,
 } from './notes.js';
-export type { MediaFile } from './media.js';
 export type {
   AutoankiNote,
+  AutoankiMediaFile,
   NoteInput,
   NoteInputs,
   LazyNoteInputs,

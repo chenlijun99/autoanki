@@ -76,7 +76,7 @@ export async function invoke<
     throw new Error('response is missing required result field');
   }
   if (response.data.error) {
-    throw response.data.error;
+    throw new Error(`Anki-connect request failed: "${response.data.error}"`);
   }
   return response.data.result;
 }

@@ -50,7 +50,9 @@
     "unified": "^10.1.2"
   },
   "devDependencies": {
-    "@autoanki/core": "workspace:^"
+    "@autoanki/core": "workspace:^",
+    "@types/sass": "^1.43.1",
+    "sass": "^1.56.1"
   },
   "scripts": {
     "update-config": "node config.mjs",
