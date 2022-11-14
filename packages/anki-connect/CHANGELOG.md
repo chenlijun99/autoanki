@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.0.7](https://github.com/chenlijun99/autoanki/compare/@autoanki/anki-connect@0.0.6...@autoanki/anki-connect@0.0.7) (2022-11-14)
+
+**Note:** Version bump only for package @autoanki/anki-connect
+
 ## [0.0.6](https://github.com/chenlijun99/autoanki/compare/@autoanki/anki-connect@0.0.5...@autoanki/anki-connect@0.0.6) (2022-11-14)
 
 **Note:** Version bump only for package @autoanki/anki-connect

@@ -1,6 +1,6 @@
 {
   "name": "@autoanki/plugin-content-markdown",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Extract Anki cards from Markdown fiels",
   "keywords": [
     "anki",
