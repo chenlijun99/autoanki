@@ -13,6 +13,7 @@
     "directory": "packages/autoanki-cli"
   },
   "license": "MIT",
+  "access": "public",
   "engines": {
     "node": ">=16.16.0"
   },

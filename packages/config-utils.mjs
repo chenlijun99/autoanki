@@ -83,6 +83,7 @@ const DEFAULT_PACKAGE_JSON = {
   engines: {
     node: '>=16.16.0',
   },
+  access: 'public',
   files: [
     // Our convention is to put everything under dist
     './dist/*',
@@ -119,6 +120,7 @@ const npmPropertiesDesiredOrder = [
   'author',
   'repository',
   'license',
+  'access',
   'engines',
   'type',
   'bin',

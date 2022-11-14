@@ -15,6 +15,7 @@
     "directory": "packages/anki-connect"
   },
   "license": "MIT",
+  "access": "public",
   "engines": {
     "node": ">=16.16.0"
   },

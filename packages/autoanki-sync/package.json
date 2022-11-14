@@ -13,6 +13,7 @@
     "directory": "packages/autoanki-sync"
   },
   "license": "MIT",
+  "access": "public",
   "engines": {
     "node": ">=16.16.0"
   },
