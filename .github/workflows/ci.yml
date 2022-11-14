@@ -14,17 +14,17 @@ jobs:
       matrix:
         node-version: [16.x]
     steps:
-      - uses: actions/checkout@v2
-      - uses: pnpm/action-setup@v2.2.2
+      - uses: actions/checkout@v3
+      - uses: pnpm/action-setup@v2.2.4
         with:
           version: 7
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'pnpm'
-      - name: install dependencies
-        run: pnpm install
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
       - name: Check code formatting
         run: pnpm run prettier
       - name: Lint scripts
@@ -32,6 +32,4 @@ jobs:
       - name: Lint styles
         run: pnpm run lint-styles
       - name: Building packages
-        run: pnpm lerna run build
-      - name: Testing packages
-        run: pnpm lerna run test:coverage
+        run: pnpm lerna run build:prod
