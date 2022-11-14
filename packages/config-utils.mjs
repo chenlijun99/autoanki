@@ -266,6 +266,7 @@ const DEFAULT_TSCONFIG_JSON = {
    * See https://www.typescriptlang.org/tsconfig#type-exclude
    */
   include: ['src/**/*.ts'],
+  exclude: ['src/**/*.spec.ts'],
 };
 
 export async function writeTsConfig() {

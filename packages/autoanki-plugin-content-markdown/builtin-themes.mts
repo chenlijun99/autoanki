@@ -10,7 +10,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const assetsPath = path.join(__dirname, 'assets');
 
 function toBase64(str: string): string {
-  return Buffer.from(str).toString("base64");
+  return Buffer.from(str).toString('base64');
 }
 
 function getThemeJsModuleString(themeCss: string): string {
