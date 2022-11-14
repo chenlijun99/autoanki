@@ -1,6 +1,6 @@
 {
   "name": "@autoanki/cli",
-  "version": "0.0.4-next.1",
+  "version": "0.0.4",
   "description": "Autoanki - CLI",
   "keywords": [
     "anki",

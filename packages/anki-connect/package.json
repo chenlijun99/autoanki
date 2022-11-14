@@ -1,6 +1,6 @@
 {
   "name": "@autoanki/anki-connect",
-  "version": "0.0.2-next.1",
+  "version": "0.0.2",
   "description": "Automatic anki toolkit - anki connect wrapper",
   "keywords": [
     "anki",
