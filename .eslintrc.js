@@ -19,7 +19,7 @@ module.exports = {
     'plugin:import/recommended',
   ],
   parserOptions: {
-    project: ['./packages/**/tsconfig.json', './scripts/tsconfig.json'],
+    project: ['./packages/tsconfig.json'],
     tsconfigRootDir: __dirname,
   },
   settings: {

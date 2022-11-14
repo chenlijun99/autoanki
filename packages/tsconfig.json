@@ -4,6 +4,8 @@
   // it can be found automatically by `tsserver`. which doesn't seem to allow
   // customization of the name of `tsconfig.json`,
   // so we have to use `tsconfig.json` for `tsserver`.
+  //
+  // It is also used by eslint for TypeScript files
   "extends": "./tsconfig.base.json",
 
   "compilerOptions": {
