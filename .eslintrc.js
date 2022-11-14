@@ -107,6 +107,7 @@ module.exports = {
     'unicorn/no-array-for-each': 'off',
     'unicorn/no-await-expression-member': 'off',
     'unicorn/prefer-spread': 'off',
+    'unicorn/no-empty-file': 'off',
     'unicorn/prefer-ternary': ['warn', 'only-single-line'],
   },
 };
