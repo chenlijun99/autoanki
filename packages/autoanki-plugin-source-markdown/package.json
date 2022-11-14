@@ -1,7 +1,7 @@
 {
   "name": "@autoanki/plugin-source-markdown",
   "version": "0.0.1",
-  "description": "Extract Anki cards from Markdown fiels",
+  "description": "Extract Anki cards from Markdown files",
   "keywords": [
     "anki",
     "autoanki",
@@ -35,8 +35,17 @@
   "peerDependencies": {
     "@autoanki/core": "workspace:^"
   },
+  "dependencies": {
+    "@autoanki/plugin-source-yaml": "workspace:^",
+    "remark": "^14.0.2",
+    "remark-parse": "^10.0.1",
+    "remark-stringify": "^10.0.2",
+    "unified": "^10.1.2",
+    "unist-util-visit": "^4.1.1"
+  },
   "devDependencies": {
-    "@autoanki/core": "workspace:^"
+    "@autoanki/core": "workspace:^",
+    "@types/mdast": "^3.0.10"
   },
   "scripts": {
     "update-config": "node config.mjs",

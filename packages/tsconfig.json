@@ -17,7 +17,10 @@
       "@autoanki/anki-connect": ["./anki-connect/src/index.ts"],
       "@autoanki/core": ["./autoanki-core/src/index.ts"],
       "@autoanki/sync": ["./autoanki-sync/src/index.ts"],
-      "@autoanki/utils/*": ["./autoanki-utils/src/*"]
+      "@autoanki/utils/*": ["./autoanki-utils/src/*"],
+      "@autoanki/plugin-source-yaml": [
+        "./autoanki-plugin-source-yaml/src/index.ts"
+      ]
     }
   }
 }
