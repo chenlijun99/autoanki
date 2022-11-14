@@ -1,0 +1,28 @@
+{
+  // This is the tsconfig.json what is used by tsserver
+  // It is is called intentionally `tsconfig.json` so that
+  // it can be found automatically by `tsserver`. which doesn't seem to allow
+  // customization of the name of `tsconfig.json`,
+  // so we have to use `tsconfig.json` for `tsserver`.
+  //
+  // It is also used by eslint for TypeScript files
+  "extends": "./tsconfig.base.json",
+
+  "compilerOptions": {
+    "types": ["jest"],
+    // Mapping between typescript import path and the actual package in the monorepo.
+    // Using this, we don't need to build the type declaration of the packages
+    // during development.
+    //
+    // Generally, all the packages in the monorepo should be addd here.
+    "paths": {
+      "@autoanki/anki-connect": ["./anki-connect/src/index.ts"],
+      "@autoanki/core": ["./autoanki-core/src/index.ts"],
+      "@autoanki/sync": ["./autoanki-sync/src/index.ts"],
+      "@autoanki/utils/*": ["./autoanki-utils/src/*"],
+      "@autoanki/plugin-source-yaml": [
+        "./autoanki-plugin-source-yaml/src/index.ts"
+      ]
+    }
+  }
+}

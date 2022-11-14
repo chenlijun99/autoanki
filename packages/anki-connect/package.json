@@ -8,30 +8,43 @@
     "markdown",
     "srs"
   ],
-  "type": "module",
-  "main": "src/index.ts",
-  "publishConfig": {
-    "access": "public",
-    "type": "commonjs",
-    "source": "src/index.ts",
-    "exports": "./dist/anki-connect.modern.js",
-    "main": "./dist/anki-connect.js",
-    "module": "./dist/anki-connect.module.js",
-    "unpkg": "./dist/anki-connect.umd.js",
-    "types": "dist/index.d.ts"
-  },
-  "scripts": {
-    "build": "rimraf dist/ && microbundle",
-    "dev": "microbundle watch",
-    "prepack": "npm run build"
-  },
+  "author": "Lijun Chen",
   "repository": {
     "type": "git",
-    "url": "https://github.com/chenlijun99/autoanki.git"
+    "url": "https://github.com/chenlijun99/autoanki.git",
+    "directory": "packages/anki-connect"
   },
-  "author": "Lijun Chen",
-  "license": "ISC",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.16.0"
+  },
+  "type": "module",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    }
+  },
+  "files": [
+    "./dist/*",
+    "./src/*"
+  ],
   "dependencies": {
-    "axios": "^0.21.1"
+    "axios": "^1.1.3",
+    "tslib": "^2.4.0"
+  },
+  "scripts": {
+    "update-config": "node config.mjs",
+    "typegen": "tsc --project tsconfig.build.json --emitDeclarationOnly --declaration --declarationDir dist/ --declarationMap",
+    "prepare": "pnpm run build:prod",
+    "clean": "rimraf ./dist/ ./tsconfig.build.tsbuildinfo",
+    "build:dev": "swc --config-file ../swcrc ./src -d dist/ --source-maps",
+    "prebuild:dev": "pnpm run clean",
+    "prebuild:prod": "pnpm run clean && pnpm run typegen",
+    "build:prod": "swc --config-file ../swcrc ./src -d dist/ --source-maps"
   }
 }

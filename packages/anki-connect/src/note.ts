@@ -1,4 +1,4 @@
-import type { MediaFile } from './media';
+import type { MediaFile } from './media.js';
 
 export type NoteId = number;
 
@@ -11,7 +11,7 @@ export type ActionsToPayloadMap = {
   addNote: {
     6: {
       request: {
-        note: Note;
+        note: NewNote;
       };
       response: NoteId | null;
     };
@@ -26,7 +26,7 @@ export type ActionsToPayloadMap = {
   addNotes: {
     6: {
       request: {
-        notes: Array<Note>;
+        notes: Array<NewNote>;
       };
       response: Array<NoteId | null>;
     };
@@ -40,16 +40,16 @@ export type ActionsToPayloadMap = {
   canAddNotes: {
     6: {
       request: {
-        notes: Array<Note>;
+        notes: Array<NewNote>;
       };
       response: Array<boolean>;
     };
   };
   /**
-   * Modify the fields of an exist note. You can also include audio, video, or
-   * picture files which will be added to the note with an optional audio,
-   * video, or picture property. Please see the documentation for addNote for an
-   * explanation of objects in the audio, video, or picture array.
+   * Modify the fields of an existing note. You can also include audio, video,
+   * or picture files which will be added to the note with an optional audio,
+   * video, or picture property. Please see the documentation for addNote for
+   * an explanation of objects in the audio, video, or picture array.
    */
   updateNoteFields: {
     6: {
@@ -66,6 +66,9 @@ export type ActionsToPayloadMap = {
     6: {
       request: {
         notes: NoteId[];
+        /**
+         * A string containing space separated list of tags
+         */
         tags: string;
       };
       response: null;
@@ -78,6 +81,9 @@ export type ActionsToPayloadMap = {
     6: {
       request: {
         notes: NoteId[];
+        /**
+         * A string containing space separated list of tags
+         */
         tags: string;
       };
       response: null;
@@ -175,30 +181,31 @@ export type ActionsToPayloadMap = {
 
 export type NoteMediaFile = MediaFile & {
   /**
-   * The skipHash field can be optionally provided to skip the inclusion of
-   * files with an MD5 hash that matches the provided value. This is useful
-   * for avoiding the saving of error pages and stub files.
-   */
-  skipHash: string;
-  /**
-   * The fields member
-   * is a list of fields that should play audio or video, or show a
-   * picture when the card is displayed in Anki
+   * The fields member is a list of fields that should play audio or video, or
+   * show a picture when the card is displayed in Anki.
+   *
+   * When the media is successfully inserted into Anki, Anki-connect will
+   * append an appropriate text (e.g. `<img src="<image_name>">`,
+   * `[sound:<sound_filename>]`) to the specified note fields.
    */
   fields: Array<string>;
 };
 
-export interface Note {
+/**
+ * Data type of a new note that has not been inserted into the Anki database yet.
+ * In fact, it doesn't have the `id` field.
+ */
+export interface NewNote {
   deckName: string;
   modelName: string;
   fields: Record<string, string>;
-  options: {
+  options?: {
     allowDuplicate: boolean;
     /**
      * The duplicateScope member inside options can be used to specify the
      * scope for which duplicates are checked
-     * A value of "deckName" will only check for duplicates in the target
-     * d eck; any other value will check the entire collection
+     * A value of "deckName" will only check for duplicates in the target deck;
+     * any other value will check the entire collection.
      */
     duplicateScope?: 'deckName' | unknown;
     /**
@@ -221,13 +228,28 @@ export interface Note {
     };
   };
   tags: Array<string>;
-  audio?: Array<NoteMediaFile>;
-  video?: Array<NoteMediaFile>;
-  picture?: Array<NoteMediaFile>;
+  audio?: NoteMediaFile | Array<NoteMediaFile>;
+  video?: NoteMediaFile | Array<NoteMediaFile>;
+  picture?: NoteMediaFile | Array<NoteMediaFile>;
 }
 
-export type NoteInfo = Pick<Note, 'modelName' | 'tags' | 'fields'> & {
-  id: NoteId;
+/**
+ * Data about an existing note
+ */
+export type NoteInfo = Pick<NewNote, 'modelName' | 'tags'> & {
+  fields: Record<
+    string,
+    {
+      value: string;
+      order: number;
+    }
+  >;
+  noteId: NoteId;
 };
 
-export type UpdateNote = Omit<Note, 'deckName' | 'modelName'> & { id: NoteId };
+/**
+ * Data type used to update an note
+ */
+export type UpdateNote = Omit<NewNote, 'deckName' | 'modelName' | 'tags'> & {
+  id: NoteId;
+};

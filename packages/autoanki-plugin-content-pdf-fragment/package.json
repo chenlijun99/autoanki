@@ -1,0 +1,44 @@
+{
+  "name": "@autoanki/autoanki-plugin-content-pdf-fragment",
+  "version": "0.0.1",
+  "keywords": [
+    "anki",
+    "autoanki",
+    "autoanki-content-plugin",
+    "pdf"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/chenlijun99/autoanki.git",
+    "directory": "packages/autoanki-plugin-content-pdf-fragment"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.16.0"
+  },
+  "type": "module",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    }
+  },
+  "files": [
+    "./dist/*",
+    "./src/*"
+  ],
+  "scripts": {
+    "update-config": "node config.mjs",
+    "typegen": "tsc --project tsconfig.build.json --emitDeclarationOnly --declaration --declarationDir dist/ --declarationMap",
+    "prepare": "pnpm run build:prod",
+    "clean": "rimraf ./dist/ ./tsconfig.build.tsbuildinfo",
+    "build:dev": "swc --config-file ../swcrc ./src -d dist/ --source-maps",
+    "prebuild:dev": "pnpm run clean",
+    "prebuild:prod": "pnpm run clean && pnpm run typegen",
+    "build:prod": "swc --config-file ../swcrc ./src -d dist/ --source-maps"
+  }
+}

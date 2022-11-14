@@ -1,0 +1,47 @@
+{
+  "name": "@autoanki/plugin-source-pdf",
+  "version": "0.0.1",
+  "description": "Extract Anki cards from PDF",
+  "keywords": [
+    "anki",
+    "autoanki",
+    "autoanki-plugin",
+    "pdf"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/chenlijun99/autoanki.git",
+    "directory": "packages/autoanki-plugin-source-pdf"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.16.0"
+  },
+  "type": "module",
+  "module": "./dist/index.js",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    }
+  },
+  "files": [
+    "./dist/*",
+    "./src/*"
+  ],
+  "dependencies": {
+    "pdfjs-dist": "^2.16.105"
+  },
+  "scripts": {
+    "update-config": "node config.mjs",
+    "prepare": "pnpm run build:prod",
+    "clean": "rimraf ./dist/ ./tsconfig.build.tsbuildinfo",
+    "typegen": "tsc --project tsconfig.build.json --emitDeclarationOnly --declaration --declarationDir dist/ --declarationMap",
+    "prebuild:dev": "pnpm run clean",
+    "prebuild:prod": "pnpm run clean && pnpm run typegen",
+    "build:dev": "swc --config-file ../swcrc ./src -d dist/ --source-maps",
+    "build:prod": "swc --config-file ../swcrc ./src -d dist/ --source-maps"
+  }
+}

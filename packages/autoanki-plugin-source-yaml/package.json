@@ -1,0 +1,55 @@
+{
+  "name": "@autoanki/plugin-source-yaml",
+  "version": "0.0.1",
+  "description": "Extract Anki cards from Markdown fiels",
+  "keywords": [
+    "anki",
+    "autoanki",
+    "autoanki-source-plugin",
+    "markdown"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/chenlijun99/autoanki.git",
+    "directory": "packages/autoanki-plugin-source-yaml"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.16.0"
+  },
+  "type": "module",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    }
+  },
+  "files": [
+    "./dist/*",
+    "./src/*"
+  ],
+  "peerDependencies": {
+    "@autoanki/core": "workspace:^"
+  },
+  "dependencies": {
+    "yaml": "^2.1.3",
+    "zod": "^3.19.1"
+  },
+  "devDependencies": {
+    "@autoanki/core": "workspace:^"
+  },
+  "scripts": {
+    "update-config": "node config.mjs",
+    "typegen": "tsc --project tsconfig.build.json --emitDeclarationOnly --declaration --declarationDir dist/ --declarationMap",
+    "prepare": "pnpm run build:prod",
+    "clean": "rimraf ./dist/ ./tsconfig.build.tsbuildinfo",
+    "build:dev": "swc --config-file ../swcrc ./src -d dist/ --source-maps",
+    "prebuild:dev": "pnpm run clean",
+    "prebuild:prod": "pnpm run clean && pnpm run typegen",
+    "build:prod": "swc --config-file ../swcrc ./src -d dist/ --source-maps"
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "name": "@autoanki/cli",
+  "version": "0.0.4-next.1",
+  "description": "Autoanki - CLI",
+  "keywords": [
+    "anki",
+    "autoanki",
+    "cli"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/chenlijun99/autoanki.git",
+    "directory": "packages/autoanki-cli"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.16.0"
+  },
+  "type": "module",
+  "bin": {
+    "autoanki": "dist/index.cjs"
+  },
+  "files": [
+    "./dist/*",
+    "./src/*"
+  ],
+  "dependencies": {
+    "@autoanki/core": "workspace:^",
+    "@autoanki/sync": "workspace:^",
+    "cosmiconfig": "^7.0.1",
+    "ink": "^3.2.0",
+    "react": "17.x",
+    "validate-npm-package-name": "^5.0.0",
+    "winston": "^3.8.1",
+    "yargs": "^17.5.1",
+    "zod": "^3.19.1"
+  },
+  "devDependencies": {
+    "@types/react": "17.x",
+    "@types/validate-npm-package-name": "^4.0.0",
+    "@types/yargs": "^17.0.10"
+  },
+  "scripts": {
+    "update-config": "node config.mjs",
+    "prepare": "pnpm run build:prod",
+    "clean": "rimraf ./dist/ ./tsconfig.build.tsbuildinfo",
+    "typecheck": "tsc --project tsconfig.build.json --noEmit",
+    "build:dev": "ts-node -T esbuild.config.mts",
+    "prebuild:dev": "pnpm run clean",
+    "prebuild:prod": "pnpm run clean && pnpm run typecheck",
+    "build:prod": "ts-node -T esbuild.config.mts production"
+  }
+}

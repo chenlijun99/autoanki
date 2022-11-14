@@ -1,0 +1,64 @@
+{
+  "name": "@autoanki/sync",
+  "version": "0.0.1",
+  "description": "Automatic anki toolkit - sync via Anki-connect",
+  "keywords": [
+    "anki",
+    "autoanki",
+    "anki-connect"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/chenlijun99/autoanki.git",
+    "directory": "packages/autoanki-sync"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.16.0"
+  },
+  "type": "module",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    }
+  },
+  "files": [
+    "./dist/*",
+    "./src/*"
+  ],
+  "dependencies": {
+    "@autoanki/anki-connect": "workspace:^",
+    "@autoanki/core": "workspace:^",
+    "@autoanki/utils": "workspace:^",
+    "fast-xml-parser": "^4.0.11",
+    "hast-util-to-string": "^2.0.0",
+    "html-escaper": "^3.0.3",
+    "lodash": "^4.17.21",
+    "rehype": "^12.0.1",
+    "rehype-parse": "^8.0.4",
+    "rehype-stringify": "^9.0.3",
+    "unified": "^10.1.2",
+    "unist-util-visit": "^4.1.1",
+    "zod": "^3.19.1"
+  },
+  "devDependencies": {
+    "@types/hast": "^2.3.4",
+    "@types/html-escaper": "^3.0.0",
+    "@types/lodash": "^4.14.187"
+  },
+  "scripts": {
+    "update-config": "node config.mjs",
+    "typegen": "tsc --project tsconfig.build.json --emitDeclarationOnly --declaration --declarationDir dist/ --declarationMap",
+    "prepare": "pnpm run build:prod",
+    "clean": "rimraf ./dist/ ./tsconfig.build.tsbuildinfo",
+    "build:dev": "ts-node -T esbuild.config.mts",
+    "prebuild:dev": "pnpm run clean",
+    "prebuild:prod": "pnpm run clean && pnpm run typegen",
+    "build:prod": "ts-node -T esbuild.config.mts production"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "tasksRunnerOptions": {
+    "default": {
+      "runner": "nx/tasks-runners/default",
+      "options": {
+        "cacheableOperations": ["build:dev", "build:prod"],
+        "parallel": 8
+      }
+    }
+  },
+  "targetDefaults": {
+    // I don't know why, but if the script is called `dev`, nx doesn't cache it.
+    // build:dev OTOH works...
+    "build:dev": {
+      "dependsOn": ["^build:dev"],
+      "outputs": ["{projectRoot}/dist"]
+    },
+    "build:prod": {
+      "dependsOn": ["^build:prod"],
+      "outputs": ["{projectRoot}/dist/"]
+    }
+  }
+}

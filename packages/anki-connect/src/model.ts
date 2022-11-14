@@ -1,3 +1,8 @@
+/**
+ * Anki-connect: model related types.
+ *
+ * NOTE: models are also called "note types" in Anki.
+ */
 export type ModelId = number;
 export type ModelName = string;
 export type FieldName = string;
@@ -13,13 +18,15 @@ export interface NewModel {
   modelName: ModelName;
   inOrderFields: FieldName[];
   css: string;
-  isClose: boolean;
+  isCloze: boolean;
   cardTemplates: CardTemplate[];
 }
 
+export type ModelTemplates = Record<CardName, Omit<CardTemplate, 'Name'>>;
+
 export interface UpdateModel {
   name: ModelName;
-  templates: CardTemplate[];
+  templates: ModelTemplates;
 }
 
 export type ActionsToPayloadMap = {
@@ -92,7 +99,7 @@ export type ActionsToPayloadMap = {
       request: {
         modelName: ModelName;
       };
-      response: Record<CardName, Omit<CardTemplate, 'Name'>>;
+      response: ModelTemplates;
     };
   };
   /**

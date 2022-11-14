@@ -419,6 +419,9 @@ tags
 
 # End of https://www.toptal.com/developers/gitignore/api/vim,web,git,code,react,reactnative,node
 
+# pnpm
+pnpm-lock.yaml
+
 ### Project specific ###
 
 CHANGELOG.md
