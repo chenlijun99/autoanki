@@ -1,0 +1,8 @@
+/*
+ * When inside the Anki note editor, we reduce the opacity to give a
+ * visual hint that the field is non-editable.
+ */
+anki-editable autoanki-final-content {
+  display: block;
+  opacity: 0.7;
+}

@@ -10,6 +10,7 @@ import type {
 } from '@autoanki/core';
 
 import bundledBase64 from 'anki-bridge-bundled-base64.js';
+import styleBase64 from './style.css';
 
 export const ankiBridgeScriptMediaFile: AutoankiMediaFile = Object.freeze({
   base64Content: bundledBase64,
@@ -29,6 +30,11 @@ export const ankiBridgeScriptMediaFile: AutoankiMediaFile = Object.freeze({
   filename: 'anki_bridge.js',
 });
 
+export const styleMediaFile: AutoankiMediaFile = Object.freeze({
+  base64Content: styleBase64,
+  filename: 'style.css',
+});
+
 export class AutoankiSyncTransformer implements TransformerPlugin {
   static pluginName = '@autoanki/sync';
 
@@ -38,6 +44,7 @@ export class AutoankiSyncTransformer implements TransformerPlugin {
     return {
       transformedNote: note,
       scriptFiles: [ankiBridgeScriptMediaFile],
+      styleFiles: [styleMediaFile],
     };
   }
 }

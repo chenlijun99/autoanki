@@ -81,6 +81,12 @@ export async function getAnkiNoteField(
 ): Promise<string> {
   assert(note.autoanki.uuid !== undefined);
 
+  /*
+   * NOTE: we're setting contenteditable="false" on the final content tag
+   * so that it is not ediable even if it is inside the Anki's note editor.
+   * This should prevent normal users from accidentally making changes
+   * to the final content of a note.
+   */
   return `<${AUTOANKI_TAGS.SOURCE_CONTENT} hidden>
 ${escape(sourceContent)}
 </${AUTOANKI_TAGS.SOURCE_CONTENT}>
@@ -95,7 +101,7 @@ ${escape(sourceContent)}
  ${await getMediaTags(note)}
 </${AUTOANKI_TAGS.METADATA}>
 
-<${AUTOANKI_TAGS.FINAL_CONTENT}>
+<${AUTOANKI_TAGS.FINAL_CONTENT} contenteditable="false">
 ${finalContent}
 </${AUTOANKI_TAGS.FINAL_CONTENT}>`;
 }
@@ -103,15 +109,16 @@ ${finalContent}
 const autoankiNoteFieldSchema = z.object({
   [AUTOANKI_TAGS.SOURCE_CONTENT]: z
     .object({
+      // can contain whatever attributes
       '@_attributes': z.object({}),
       '#text': z.string(),
     })
     .strict(),
-  [AUTOANKI_TAGS.FINAL_CONTENT]: z
-    .object({
-      '#text': z.string(),
-    })
-    .strict(),
+  [AUTOANKI_TAGS.FINAL_CONTENT]: z.object({
+    // can contain whatever attributes
+    '@_attributes': z.object({}),
+    '#text': z.string(),
+  }),
   [AUTOANKI_TAGS.METADATA]: z.object({
     object: z.array(
       z.object({
