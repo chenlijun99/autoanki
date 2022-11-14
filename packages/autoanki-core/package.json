@@ -12,6 +12,9 @@
     "directory": "packages/autoanki-core"
   },
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "engines": {
     "node": ">=16.16.0"
   },
