@@ -1,6 +1,6 @@
 {
   "name": "@autoanki/core",
-  "version": "0.0.2-next.1",
+  "version": "0.0.2",
   "description": "Automatic anki toolkit - core logic",
   "keywords": [
     "anki",
