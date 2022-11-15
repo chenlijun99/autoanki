@@ -2,7 +2,10 @@ import { writeFile } from 'node:fs/promises';
 
 import type { CommandModule } from 'yargs';
 
-import { groupAutoankiNotesBySourcePluginAndInput } from '@autoanki/core';
+import {
+  groupAutoankiNotesBySourcePluginAndInput,
+  getPluginName,
+} from '@autoanki/core';
 import syncPlugin, {
   AutomaticSyncAction,
   SyncAction,
@@ -33,7 +36,7 @@ function syncActionToString(action: SyncAction) {
     str += 'Create notes in Anki\n';
     const grouped = groupAutoankiNotesBySourcePluginAndInput(action.newNotes);
     for (const [sourcePlugin, groupedbySource] of grouped) {
-      str += `      From "${sourcePlugin.name}"\n`;
+      str += `      From "${getPluginName(sourcePlugin)}"\n`;
       for (const [source, notes] of groupedbySource) {
         str += `         ${notes.length} new notes from "${source.key}"\n`;
       }
@@ -45,7 +48,7 @@ function syncActionToString(action: SyncAction) {
       (item) => item.note.fromSource
     );
     for (const [sourcePlugin, groupedbySource] of grouped) {
-      str += `      From "${sourcePlugin.name}"\n`;
+      str += `      From "${getPluginName(sourcePlugin)}"\n`;
       for (const [source, notes] of groupedbySource) {
         str += `         from "${source.key}"\n`;
         for (const note of notes) {
@@ -60,7 +63,7 @@ function syncActionToString(action: SyncAction) {
       (item) => item.note.fromSource
     );
     for (const [sourcePlugin, groupedbySource] of grouped) {
-      str += `      From "${sourcePlugin.name}"\n`;
+      str += `      From "${getPluginName(sourcePlugin)}"\n`;
       for (const [source, notes] of groupedbySource) {
         str += `         from "${source.key}"\n`;
         for (const note of notes) {
@@ -74,7 +77,7 @@ function syncActionToString(action: SyncAction) {
       action.notesToBeRemoved
     );
     for (const [sourcePlugin, groupedbySource] of grouped) {
-      str += `      From "${sourcePlugin.name}"\n`;
+      str += `      From "${getPluginName(sourcePlugin)}"\n`;
       for (const [source, notes] of groupedbySource) {
         str += `         from "${source.key}"\n`;
         for (const note of notes) {
@@ -89,7 +92,7 @@ function syncActionToString(action: SyncAction) {
       (item) => item.note.fromSource
     );
     for (const [sourcePlugin, groupedbySource] of grouped) {
-      str += `      From "${sourcePlugin.name}"\n`;
+      str += `      From "${getPluginName(sourcePlugin)}"\n`;
       for (const [source, notes] of groupedbySource) {
         str += `         from "${source.key}"\n`;
         for (const note of notes) {

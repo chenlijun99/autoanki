@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import { unified } from 'unified';
 import { Code, Root } from 'mdast';
 import remarkParse from 'remark-parse';
@@ -6,16 +7,30 @@ import { visit } from 'unist-util-visit';
 
 import type {
   AutoankiPlugin,
+  AutoankiPluginApi,
   SourcePlugin,
   SourcePluginParsingOutput,
 } from '@autoanki/core';
 
 import yamlPlugin from '@autoanki/plugin-source-yaml';
+import type { PluginConfig as YamlPluginConfig } from '@autoanki/plugin-source-yaml';
 
 interface Metadata {
   index: number;
   yamlMetadata: unknown;
 }
+
+export const pluginConfigSchema = z
+  .object({
+    defaultDeck: z.string(),
+  })
+  .strict();
+
+export type PluginConfig = z.infer<typeof pluginConfigSchema>;
+
+const defaultConfig: PluginConfig = {
+  defaultDeck: 'Default',
+};
 
 const mdProcessor = unified().use(remarkParse);
 const mdStringifyProcessor = unified().use(remarkStringify);
@@ -24,14 +39,28 @@ const encoder = new TextEncoder();
 const decoder = new TextDecoder('utf8');
 
 export class MarkdownSourcePlugin implements SourcePlugin {
-  name = '@autoanki/plugin-source-yaml';
+  static pluginName = '@autoanki/plugin-source-markdown';
 
   private markdownParseCache: Record<
     string,
     { ast: Root; yamlBlocks: Code[] }
   > = {};
 
-  private yamlPlugin = new yamlPlugin.source!();
+  private yamlPlugin;
+
+  constructor(api: AutoankiPluginApi, config?: Partial<PluginConfig>) {
+    let finalConfig: PluginConfig = defaultConfig;
+    if (config) {
+      finalConfig = {
+        ...defaultConfig,
+        ...pluginConfigSchema.parse(config),
+      };
+    }
+    this.yamlPlugin = new yamlPlugin.source!(
+      api,
+      finalConfig as YamlPluginConfig
+    );
+  }
 
   async writeBackToInput(
     inputKey: string,

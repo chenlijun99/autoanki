@@ -1,12 +1,16 @@
 export { configSchema } from './config.js';
 export type { Config, ConfigPluginInstance } from './config.js';
+
 export type {
   AutoankiPlugin,
+  AutoankiPluginApi,
   SourcePlugin,
   TransformerPlugin,
   SourcePluginParsingOutput,
   TransformerPluginOutput,
 } from './plugin.js';
+export { getPluginName } from './plugin.js';
+
 export {
   extractAutoankiNotes,
   groupAutoankiNotesBySourcePluginAndInput,
@@ -17,9 +21,21 @@ export {
 } from './notes.js';
 export type {
   AutoankiNote,
-  AutoankiMediaFile,
   NoteInput,
   NoteInputs,
   LazyNoteInputs,
   ParsedNote,
 } from './notes.js';
+
+export {
+  computeMediaFileMetadataSync,
+  computeMediaFileMetadata,
+  computeAutoankiMediaFileFromRaw,
+  computeAutoankiMediaFileFromRawSync,
+  parseMediaFileMetadataFromFilename,
+} from './media.js';
+export type {
+  RawAutoankiMediaFile,
+  AutoankiMediaFile,
+  AutoankiMediaFileMetadata,
+} from './media.js';

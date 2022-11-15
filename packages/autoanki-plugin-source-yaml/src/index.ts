@@ -6,6 +6,7 @@ import type {
   SourcePlugin,
   ParsedNote,
   SourcePluginParsingOutput,
+  AutoankiPluginApi,
 } from '@autoanki/core';
 
 interface Metadata {
@@ -53,20 +54,23 @@ function parsedNoteToYamlAnkiNote(parsedNote: ParsedNote): YamlAnkiNote {
   };
 }
 
-const pluginConfigSchema = z
+export const pluginConfigSchema = z
   .object({
-    defaultDeck: z.string().default('Default'),
+    defaultDeck: z.string(),
   })
   .strict();
 
-type PluginConfig = z.infer<typeof pluginConfigSchema>;
+export type PluginConfig = z.infer<typeof pluginConfigSchema>;
 
 export class YamlSourcePlugin implements SourcePlugin {
-  name = '@autoanki/plugin-source-yaml';
+  static pluginName = '@autoanki/plugin-source-yaml';
 
-  constructor(inputConfig?: unknown) {
+  constructor(_: AutoankiPluginApi, inputConfig?: Partial<PluginConfig>) {
     if (inputConfig) {
-      this.config = pluginConfigSchema.parse(inputConfig);
+      this.config = {
+        ...this.config,
+        ...pluginConfigSchema.partial().parse(inputConfig),
+      };
     }
   }
 

@@ -15,12 +15,14 @@ import {
   assignIdsToAutoankiNotes,
   writeBackAutoankiNoteUpdates,
   transformAutoankiNote,
+  parseMediaFileMetadataFromFilename,
   AUTOANKI_NOTES_DEFAULT_TAG,
 } from '@autoanki/core';
 import type {
   AutoankiNote,
   NoteInput,
   AutoankiMediaFile,
+  AutoankiMediaFileMetadata,
 } from '@autoanki/core';
 
 import {
@@ -32,11 +34,6 @@ import {
 } from './note.js';
 import { AutoankiSyncError, ConcernedSide } from './common.js';
 import { getAnkiNoteField } from './note-field.js';
-import {
-  parseMediaFileMetadataDataFromFilename,
-  computeMediaFileMetadataFromMediaFile,
-  MediaFileMetadata,
-} from './media.js';
 import { updateNoteTemplatesIfNecessary } from './note-template.js';
 import {
   ankiBridgeScriptMediaFile,
@@ -137,10 +134,6 @@ export class SyncActionUpdateInjectedScriptsInModelTemplates extends AutomaticSy
   }
 
   async retrieveNoteTypesThatRequireUpdate(): Promise<void> {
-    const bridgeScriptMetadata = await computeMediaFileMetadataFromMediaFile(
-      AutoankiSyncTransformer.pluginName,
-      ankiBridgeScriptMediaFile
-    );
     const noteTypes = Array.from(
       new Set(this.notes.map((note) => note.modelName))
     );
@@ -157,7 +150,7 @@ export class SyncActionUpdateInjectedScriptsInModelTemplates extends AutomaticSy
           noteType,
           await updateNoteTemplatesIfNecessary(noteTypeTemplates, [
             // not supported yet
-            // bridgeScriptMetadata
+            // ankiBridgeScriptMediaFile
           ]),
         ] as const;
       })
@@ -490,7 +483,10 @@ export class SyncActionHandleNotesUpdateConflict extends ManualSyncAction {
   }
 }
 
-type MediaDigestMap = Record<MediaFileMetadata['digest'], MediaFileMetadata>;
+type MediaDigestMap = Record<
+  AutoankiMediaFileMetadata['digest'],
+  AutoankiMediaFileMetadata
+>;
 
 /**
  * This packages doesn't use it, but it is provided as comodity for packages
@@ -538,11 +534,6 @@ export class SyncProcedure {
   private existingDecks: string[] = [];
 
   private existingMediaMap: MediaDigestMap = {};
-
-  private mediaFileMetadataComputationCache: Map<
-    AutoankiMediaFile,
-    MediaFileMetadata
-  > = new Map();
 
   /**
    * Sync actions that must be performed.
@@ -843,7 +834,9 @@ export class SyncProcedure {
     return noteTypesAndFields;
   }
 
-  public _isMediaFileAlreadyAvailable(metadata: MediaFileMetadata): boolean {
+  public _isMediaFileAlreadyAvailable(
+    metadata: AutoankiMediaFileMetadata
+  ): boolean {
     return !!this.existingMediaMap[metadata.digest];
   }
 
@@ -852,7 +845,7 @@ export class SyncProcedure {
    */
   public async _sendMediaFile(
     mediaFile: AutoankiMediaFile,
-    metadata: MediaFileMetadata
+    metadata: AutoankiMediaFileMetadata
   ): Promise<void> {
     try {
       const newFileName = await this._invoke({
@@ -887,8 +880,7 @@ export class SyncProcedure {
   public async _sendNonExistingMediaFilesOfNotesToAnki(
     notes: AutoankiNote[]
   ): Promise<unknown> {
-    const alreadyMet: Set<AutoankiNote['mediaFiles'][number]['media']> =
-      new Set();
+    const alreadyMet: Set<AutoankiMediaFileMetadata['digest']> = new Set();
     const mediaFiles: AutoankiNote['mediaFiles'] = [];
 
     for (const note of notes) {
@@ -896,8 +888,8 @@ export class SyncProcedure {
         note.scriptFiles,
         note.styleFiles
       )) {
-        if (!alreadyMet.has(mediaFile.media)) {
-          alreadyMet.add(mediaFile.media);
+        if (!alreadyMet.has(mediaFile.media.metadata.digest)) {
+          alreadyMet.add(mediaFile.media.metadata.digest);
           mediaFiles.push(mediaFile);
         }
       }
@@ -905,15 +897,7 @@ export class SyncProcedure {
 
     return Promise.all(
       mediaFiles.map(async (media) => {
-        let cached = this.mediaFileMetadataComputationCache.get(media.media);
-        if (!cached) {
-          cached = await computeMediaFileMetadataFromMediaFile(
-            media.fromPlugin.name,
-            media.media
-          );
-          this.mediaFileMetadataComputationCache.set(media.media, cached);
-        }
-        const metadata = cached;
+        const metadata = media.media.metadata;
         const existing = this.existingMediaMap[metadata.digest];
         if (!existing || existing.storedFilename !== metadata.storedFilename) {
           /*
@@ -937,7 +921,7 @@ export class SyncProcedure {
     return (
       await Promise.all(
         existingAutoankiMediaFileNames.map((filename) =>
-          parseMediaFileMetadataDataFromFilename(filename)
+          parseMediaFileMetadataFromFilename(filename)
         )
       )
     ).reduce((map, current) => {

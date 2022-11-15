@@ -1,4 +1,4 @@
-import webcrypto from '@autoanki/utils/webcrypto.js';
+import webcrypto from '#webcrypto.js';
 
 const { subtle } = webcrypto;
 

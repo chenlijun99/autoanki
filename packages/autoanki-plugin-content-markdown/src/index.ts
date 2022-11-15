@@ -10,6 +10,8 @@ import rehypeRaw from 'rehype-raw';
 import rehypeFormat from 'rehype-format';
 import rehypeStringify from 'rehype-stringify';
 
+import { z } from 'zod';
+
 import katexBundledBase64 from 'katex/dist/katex.min.css';
 import styleBundledBase64 from './style.css';
 
@@ -19,21 +21,33 @@ import type {
   TransformerPlugin,
   TransformerPluginOutput,
   AutoankiMediaFile,
+  RawAutoankiMediaFile,
+  AutoankiPluginApi,
 } from '@autoanki/core';
 
 import { builtinThemes, ThemeModule } from './builtin-themes.js';
 
-interface Theme {
-  name: typeof builtinThemes[number];
-}
+const builtinThemesSchema = z.enum(builtinThemes);
 
-interface Config {
-  assetsBaseUrl: string;
-  highlight: {
-    lightTheme: Theme;
-    darkTheme: Theme;
-  };
-}
+const pluginConfigThemeSchema = z
+  .object({
+    name: builtinThemesSchema,
+  })
+  .strict();
+
+const pluginConfigSchema = z
+  .object({
+    assetsBaseUrl: z.string(),
+    highlight: z
+      .object({
+        lightTheme: pluginConfigThemeSchema,
+        darkTheme: pluginConfigThemeSchema,
+      })
+      .strict(),
+  })
+  .strict();
+
+type Config = z.infer<typeof pluginConfigSchema>;
 
 const defaultConfig: Config = {
   assetsBaseUrl: `${import.meta.url}/../../assets/`,
@@ -47,39 +61,61 @@ const defaultConfig: Config = {
   },
 };
 
-export class MarkdownContentPlugin implements TransformerPlugin {
-  name = '@autoanki/plugin-content-markdown';
+const rawCssFiles: RawAutoankiMediaFile[] = [
+  {
+    filename: 'katex.css',
+    base64Content: katexBundledBase64,
+  },
+  {
+    filename: 'style.css',
+    base64Content: styleBundledBase64,
+  },
+];
 
-  constructor(config?: Partial<Config>) {
-    const finalConfig = {
-      ...defaultConfig,
-      ...config,
-    };
-    this.loadingHighlightResourcesPromise = Promise.all([
-      import(
-        new URL(
-          finalConfig.highlight.lightTheme.name + '-autoanki-light.js',
-          finalConfig.assetsBaseUrl
-        ).toString()
+export class MarkdownContentPlugin implements TransformerPlugin {
+  static pluginName = '@autoanki/plugin-content-markdown';
+
+  constructor(private coreApi: AutoankiPluginApi, config?: Partial<Config>) {
+    let finalConfig = defaultConfig;
+    if (config) {
+      finalConfig = {
+        ...defaultConfig,
+        ...pluginConfigSchema.parse(config),
+      };
+    }
+    this.cssFilesPromise = Promise.all([
+      Promise.all(
+        rawCssFiles.map((file) =>
+          this.coreApi.media.computeAutoankiMediaFileFromRaw(file)
+        )
       ),
-      import(
-        new URL(
-          finalConfig.highlight.darkTheme.name + '-autoanki-dark.js',
-          finalConfig.assetsBaseUrl
-        ).toString()
+      this.getHighlightMediaFile(
+        finalConfig.highlight.lightTheme.name,
+        'light',
+        finalConfig.assetsBaseUrl
       ),
-    ]).then((themeModules: ThemeModule[]) => {
-      this.cssFiles.push(
-        {
-          filename: `highlight/light/${finalConfig.highlight.lightTheme.name}.css`,
-          base64Content: themeModules[0].themeCssBase64,
-        },
-        {
-          filename: `highlight/dark/${finalConfig.highlight.darkTheme.name}.css`,
-          base64Content: themeModules[1].themeCssBase64,
-        }
-      );
-      this.highlightResourcesLoaded = true;
+      this.getHighlightMediaFile(
+        finalConfig.highlight.lightTheme.name,
+        'dark',
+        finalConfig.assetsBaseUrl
+      ),
+    ] as const).then(([predefinedFiles, lightTheme, darkTheme]) => {
+      this.cssFiles = predefinedFiles.concat([lightTheme, darkTheme]);
+      this.cssFilesLoaded = true;
+    });
+  }
+
+  private async getHighlightMediaFile(
+    themeName: string,
+    themeType: 'light' | 'dark',
+    baseUrl: string
+  ): Promise<AutoankiMediaFile> {
+    const loaded: ThemeModule = await import(
+      new URL(themeName + `-autoanki-${themeType}.js`, baseUrl).toString()
+    );
+    return this.coreApi.media.computeAutoankiMediaFileFromRaw({
+      filename: `highlight/${themeType}/${themeName}.css`,
+      base64Content: loaded.themeCssBase64,
     });
   }
 
@@ -118,20 +154,11 @@ export class MarkdownContentPlugin implements TransformerPlugin {
       },
     });
 
-  private loadingHighlightResourcesPromise: Promise<unknown>;
+  private cssFilesPromise: Promise<unknown>;
 
-  private highlightResourcesLoaded: boolean = false;
+  private cssFilesLoaded: boolean = false;
 
-  private cssFiles: AutoankiMediaFile[] = [
-    {
-      filename: 'katex.css',
-      base64Content: katexBundledBase64,
-    },
-    {
-      filename: 'style.css',
-      base64Content: styleBundledBase64,
-    },
-  ];
+  private cssFiles: AutoankiMediaFile[] = [];
 
   async markdownToHtml(md: string): Promise<string> {
     return this.unifiedPipeline
@@ -140,8 +167,8 @@ export class MarkdownContentPlugin implements TransformerPlugin {
   }
 
   async transform(note: AutoankiNote): Promise<TransformerPluginOutput> {
-    if (!this.highlightResourcesLoaded) {
-      await this.loadingHighlightResourcesPromise;
+    if (!this.cssFilesLoaded) {
+      await this.cssFilesPromise;
     }
     await Promise.all(
       Object.entries(note.fields).map(async ([fieldName, fieldContent]) => {

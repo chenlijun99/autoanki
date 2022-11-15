@@ -1,17 +1,18 @@
 import { z } from 'zod';
+import {
+  AutoankiMediaFile,
+  AutoankiMediaFileMetadata,
+  RawAutoankiMediaFile,
+} from './media.js';
 
-import { ParsedNote, AutoankiNote, AutoankiMediaFile } from './notes.js';
+import { ParsedNote, AutoankiNote } from './notes.js';
 
 export type SourcePluginParsingOutput = {
   note: ParsedNote;
   metadata?: unknown;
 };
 
-interface BasePlugin {
-  name: string;
-}
-
-export interface SourcePlugin extends BasePlugin {
+export interface SourcePlugin {
   /**
    * Given an array of newly inserted Anki notes, the plugin shall write the
    * note ids of the newly inserted notes back in the source input.
@@ -48,11 +49,33 @@ export type TransformerPluginOutput = {
   scriptFiles?: AutoankiMediaFile[];
 };
 
-export interface TransformerPlugin extends BasePlugin {
+export interface TransformerPlugin {
   transform: (note: AutoankiNote) => Promise<TransformerPluginOutput>;
 }
 
-type Class<T> = new (...args: unknown[]) => T;
+export interface AutoankiPluginApi {
+  media: {
+    computeAutoankiMediaFileFromRaw: (
+      mediaFile: RawAutoankiMediaFile
+    ) => Promise<AutoankiMediaFile>;
+    computeAutoankiMediaFileFromRawSync: (
+      mediaFile: RawAutoankiMediaFile
+    ) => AutoankiMediaFile;
+  };
+}
+
+interface PluginClass<T> {
+  /**
+   * Source and transformer plugins must be classed that have an constructor
+   * that accept an API object from @autoanki/core, which contains a few
+   * handy functions.
+   */
+  new (api: AutoankiPluginApi, args?: unknown): T;
+  /**
+   * They also must have an static name property
+   */
+  pluginName: string;
+}
 
 /**
  * Datatype of an Autoanki plugin.
@@ -64,8 +87,8 @@ type Class<T> = new (...args: unknown[]) => T;
  * the autoanki monorepo.
  */
 export interface AutoankiPlugin {
-  source?: Class<SourcePlugin>;
-  transformer?: Class<TransformerPlugin>;
+  source?: PluginClass<SourcePlugin>;
+  transformer?: PluginClass<TransformerPlugin>;
 }
 
 export const autoankiPluginSchema = z
@@ -74,5 +97,9 @@ export const autoankiPluginSchema = z
     transformer: z.function().optional(),
   })
   .transform((obj) => obj as AutoankiPlugin);
+
+export function getPluginName(plugin: SourcePlugin | TransformerPlugin) {
+  return (plugin.constructor as PluginClass<typeof plugin>).pluginName;
+}
 
 export type PluginType = keyof Required<AutoankiPlugin>;

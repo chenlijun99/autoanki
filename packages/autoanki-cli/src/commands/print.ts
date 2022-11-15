@@ -5,6 +5,7 @@ import type {
   SourcePlugin,
   TransformerPlugin,
 } from '@autoanki/core';
+import { getPluginName } from '@autoanki/core';
 
 import { extractAnkiNotesFromFiles } from '../utils/index.js';
 
@@ -29,7 +30,7 @@ function isAutoankiMediaFile(
 function replacer(key: string, value: any): any {
   if (isAutoankiMediaFile(value)) {
     return {
-      fromPlugin: value.fromPlugin.name,
+      fromPlugin: getPluginName(value.fromPlugin),
       media: {
         filename: value.media.filename,
         content: '[Media content not shown...]',
@@ -37,7 +38,7 @@ function replacer(key: string, value: any): any {
     };
   }
   if (isPlugin(value)) {
-    return value.name;
+    return getPluginName(value);
   }
   return value;
 }

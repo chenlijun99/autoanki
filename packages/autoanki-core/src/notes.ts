@@ -17,10 +17,11 @@ import type { ReadonlyDeep } from 'type-fest';
 
 import type { NoteTypes, MediaTypes } from '@autoanki/anki-connect';
 
-import { SourcePlugin, TransformerPlugin } from './plugin.js';
 import { Config } from './config.js';
-import type { Equals, AssertTrue } from './utils/type.js';
+import { AutoankiMediaFile, autoankiMediaFileSchema } from './media.js';
+import { SourcePlugin, TransformerPlugin, getPluginName } from './plugin.js';
 import { loadPlugin } from './plugin-loader.js';
+import type { Equals, AssertTrue } from './utils/type.js';
 
 const ankiConnectMediaFileSchema = z
   .object({
@@ -97,14 +98,6 @@ type AnkiConnectNewNote = z.infer<typeof ankiConnectNewNoteSchema>;
 type NewNoteSchemaMatchesInterface = AssertTrue<
   Equals<NoteTypes.NewNote, AnkiConnectNewNote>
 >;
-
-const autoankiMediaFileSchema = z
-  .object({
-    filename: z.string(),
-    base64Content: z.string(),
-  })
-  .strict();
-export type AutoankiMediaFile = z.infer<typeof autoankiMediaFileSchema>;
 
 const parsedNoteSchema = ankiConnectNewNoteSchema
   .omit({
@@ -280,7 +273,7 @@ function parsedNoteToAutoankiNote(
         transformerPlugins,
       },
       pluginMetadata: {
-        [sourcePlugin.name]: sourcePluginParsingMetadata,
+        [getPluginName(sourcePlugin)]: sourcePluginParsingMetadata,
       },
     },
   };
@@ -371,10 +364,14 @@ export async function transformAutoankiNote(
       await plugin.transform(currentNote);
     currentNote = transformedNote;
     // add new metadata, but ensure that it is indeed readonly
-    Object.defineProperty(currentNote.autoanki.pluginMetadata, plugin.name, {
-      enumerable: true,
-      value: metadata,
-    });
+    Object.defineProperty(
+      currentNote.autoanki.pluginMetadata,
+      getPluginName(plugin),
+      {
+        enumerable: true,
+        value: metadata,
+      }
+    );
     for (const media of scriptFiles ?? []) {
       currentNote.scriptFiles.push(convertMedia(media, plugin));
     }
@@ -568,7 +565,7 @@ export async function writeBackAutoankiNoteUpdates(
             note: autoankiNoteToParsedNote(note),
             metadata:
               note.autoanki.pluginMetadata[
-                note.autoanki.metadata.sourcePlugin.name
+                getPluginName(note.autoanki.metadata.sourcePlugin)
               ],
           };
         })

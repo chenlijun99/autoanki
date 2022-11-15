@@ -26,9 +26,22 @@
       "browser": "./dist/webcrypto.browser.js",
       "default": "./dist/webcrypto.browser.js"
     },
+    "./hash-sync.js": {
+      "types": "./dist/hash-sync.default.d.ts",
+      "node": "./dist/hash-sync.node.js",
+      "default": "./dist/hash-sync.default.js"
+    },
     "./*.js": {
       "types": "./dist/*.d.ts",
       "default": "./dist/*.js"
+    }
+  },
+  "imports": {
+    "#webcrypto.js": {
+      "types": "./src/webcrypto.d.ts",
+      "node": "./src/webcrypto.node.ts",
+      "browser": "./src/webcrypto.browser.ts",
+      "default": "./src/webcrypto.browser.ts"
     }
   },
   "files": [
@@ -44,5 +57,9 @@
     "prebuild:dev": "pnpm run clean",
     "prebuild:prod": "pnpm run clean && pnpm run typegen",
     "build:prod": "swc --config-file ../swcrc ./src -d dist/ --source-maps"
+  },
+  "dependencies": {
+    "@types/crypto-js": "^4.1.1",
+    "crypto-js": "^4.1.1"
   }
 }
