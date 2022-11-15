@@ -1,13 +1,11 @@
+import { fileURLToPath } from 'node:url';
 import { readdirSync, promises } from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 
 import sass from 'sass';
 const { compileString } = sass;
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
-const assetsPath = path.join(__dirname, 'assets');
 
 function toBase64(str: string): string {
   return Buffer.from(str).toString('base64');
@@ -22,14 +20,15 @@ ${toBase64(themeCss)}
 
 async function buildAndSaveTheme(
   cssPath: string,
-  themeNameWithPathSeparator: string
+  themeNameWithPathSeparator: string,
+  assetsBasePath: string
 ): Promise<unknown> {
   const lightModeOutputPath = path.join(
-    assetsPath,
+    assetsBasePath,
     `${themeNameWithPathSeparator}-autoanki-light.js`
   );
   const darkModeOutputPath = path.join(
-    assetsPath,
+    assetsBasePath,
     `${themeNameWithPathSeparator}-autoanki-dark.js`
   );
 
@@ -74,11 +73,11 @@ const themeNamesWithPathSeparator = cssFiles.map((css) => {
   return withoutExtension;
 });
 
-export async function buildAndWriteBuiltinThemes() {
+export async function buildAndWriteBuiltinThemes(assetsBasePath: string) {
   await Promise.all(
     cssPaths.map((cssPath) => {
       const relative = path.relative(cssCommonPathPrefix, cssPath);
-      const outputDir = path.join(assetsPath, relative);
+      const outputDir = path.join(assetsBasePath, relative);
 
       return promises.mkdir(outputDir, {
         recursive: true,
@@ -88,7 +87,11 @@ export async function buildAndWriteBuiltinThemes() {
 
   return Promise.all(
     cssFiles.map((css, i) => {
-      return buildAndSaveTheme(css, themeNamesWithPathSeparator[i]);
+      return buildAndSaveTheme(
+        css,
+        themeNamesWithPathSeparator[i],
+        assetsBasePath
+      );
     })
   );
 }
