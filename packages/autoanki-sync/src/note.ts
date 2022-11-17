@@ -251,12 +251,11 @@ export async function computeNoteChanges(
    */
   let tagsChanges: ExistingNoteChanges['tagsChanges'] = ConcernedSide.NoSide;
   {
-    // TODO: support order insensitive tags comparison
-    const sourceTgas = fromSource.tags.join(' ');
-    const actualTagsInAnki = fromAnki.tags.actual.join(' ');
-    const storedTagsInAnki = fromAnki.tags.stored.join(' ');
-    if (sourceTgas !== actualTagsInAnki) {
-      if (sourceTgas !== storedTagsInAnki) {
+    const sourceTags = fromSource.tags.sort().join(' ');
+    const actualTagsInAnki = fromAnki.tags.actual.sort().join(' ');
+    const storedTagsInAnki = fromAnki.tags.stored.sort().join(' ');
+    if (sourceTags !== actualTagsInAnki) {
+      if (sourceTags !== storedTagsInAnki) {
         tagsChanges |= ConcernedSide.Source;
       }
       if (fromAnki.tags.changed) {

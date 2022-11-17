@@ -105,7 +105,7 @@ importers:
       '@autoanki/config': workspace:^
       '@autoanki/core': workspace:^
       '@autoanki/sync': workspace:^
-      '@autoanki/utils': workspace:^0.1.0
+      '@autoanki/utils': workspace:^
       '@types/react': 17.x
       '@types/validate-npm-package-name': ^4.0.0
       '@types/yargs': ^17.0.10
