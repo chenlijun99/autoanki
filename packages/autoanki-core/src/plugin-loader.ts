@@ -6,8 +6,8 @@ import {
 } from './media.js';
 
 type PluginConfig<Type extends PluginType> = Type extends 'source'
-  ? Config['pipelines'][0]['source']
-  : NonNullable<Config['pipelines'][0]['transformers']>[0];
+  ? Config['pipeline']['source']
+  : NonNullable<Config['pipeline']['transformers']>[0];
 
 type LoadedPluginType<Type extends PluginType> = InstanceType<
   NonNullable<AutoankiPlugin[Type]>

@@ -28,8 +28,10 @@
     "./src/*"
   ],
   "dependencies": {
+    "@autoanki/config": "workspace:^",
     "@autoanki/core": "workspace:^",
     "@autoanki/sync": "workspace:^",
+    "@autoanki/utils": "workspace:^",
     "cosmiconfig": "^7.0.1",
     "ink": "^3.2.0",
     "react": "17.x",

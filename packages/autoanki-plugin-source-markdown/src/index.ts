@@ -1,4 +1,3 @@
-import { z } from 'zod';
 import { unified } from 'unified';
 import { Code, Root } from 'mdast';
 import remarkParse from 'remark-parse';
@@ -13,24 +12,11 @@ import type {
 } from '@autoanki/core';
 
 import yamlPlugin from '@autoanki/plugin-source-yaml';
-import type { PluginConfig as YamlPluginConfig } from '@autoanki/plugin-source-yaml';
 
 interface Metadata {
   index: number;
   yamlMetadata: unknown;
 }
-
-export const pluginConfigSchema = z
-  .object({
-    defaultDeck: z.string(),
-  })
-  .strict();
-
-export type PluginConfig = z.infer<typeof pluginConfigSchema>;
-
-const defaultConfig: PluginConfig = {
-  defaultDeck: 'Default',
-};
 
 const mdProcessor = unified().use(remarkParse);
 const mdStringifyProcessor = unified().use(remarkStringify);
@@ -48,18 +34,8 @@ export class MarkdownSourcePlugin implements SourcePlugin {
 
   private yamlPlugin;
 
-  constructor(api: AutoankiPluginApi, config?: Partial<PluginConfig>) {
-    let finalConfig: PluginConfig = defaultConfig;
-    if (config) {
-      finalConfig = {
-        ...defaultConfig,
-        ...pluginConfigSchema.parse(config),
-      };
-    }
-    this.yamlPlugin = new yamlPlugin.source!(
-      api,
-      finalConfig as YamlPluginConfig
-    );
+  constructor(api: AutoankiPluginApi) {
+    this.yamlPlugin = new yamlPlugin.source!(api);
   }
 
   async writeBackToInput(

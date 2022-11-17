@@ -6,7 +6,6 @@ import type {
   SourcePlugin,
   ParsedNote,
   SourcePluginParsingOutput,
-  AutoankiPluginApi,
 } from '@autoanki/core';
 
 interface Metadata {
@@ -30,15 +29,12 @@ const yamlAnkiNoteSchema = z
 
 type YamlAnkiNote = z.infer<typeof yamlAnkiNoteSchema>;
 
-function yamlAnkiNoteToParsedNote(
-  yamlNote: YamlAnkiNote,
-  defaultDeck: string
-): ParsedNote {
+function yamlAnkiNoteToParsedNote(yamlNote: YamlAnkiNote): ParsedNote {
   return {
     tags: yamlNote.tags ?? [],
     id: yamlNote.id,
     fields: yamlNote.fields,
-    deckName: yamlNote.deck ?? defaultDeck,
+    deckName: yamlNote.deck,
     modelName: yamlNote.note_type,
     deleted: yamlNote.deleted,
   };
@@ -54,29 +50,8 @@ function parsedNoteToYamlAnkiNote(parsedNote: ParsedNote): YamlAnkiNote {
   };
 }
 
-export const pluginConfigSchema = z
-  .object({
-    defaultDeck: z.string(),
-  })
-  .strict();
-
-export type PluginConfig = z.infer<typeof pluginConfigSchema>;
-
 export class YamlSourcePlugin implements SourcePlugin {
   static pluginName = '@autoanki/plugin-source-yaml';
-
-  constructor(_: AutoankiPluginApi, inputConfig?: Partial<PluginConfig>) {
-    if (inputConfig) {
-      this.config = {
-        ...this.config,
-        ...pluginConfigSchema.partial().parse(inputConfig),
-      };
-    }
-  }
-
-  private config: PluginConfig = {
-    defaultDeck: 'Default',
-  };
 
   private yamlParseCache: Record<
     string,
@@ -137,10 +112,7 @@ export class YamlSourcePlugin implements SourcePlugin {
     return (parsedYaml as any[]).map((item, i) => {
       const parsedItem = yamlAnkiNoteSchema.parse(item);
       currentInputCache.parsed.push(parsedItem);
-      const note: ParsedNote = yamlAnkiNoteToParsedNote(
-        parsedItem,
-        this.config.defaultDeck
-      );
+      const note: ParsedNote = yamlAnkiNoteToParsedNote(parsedItem);
       return {
         note,
         metadata: { index: i } as Metadata,
