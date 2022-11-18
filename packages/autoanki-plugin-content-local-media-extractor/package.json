@@ -1,0 +1,58 @@
+{
+  "name": "@autoanki/plugin-content-local-media-extractor",
+  "version": "0.1.0",
+  "description": "Plugin to extract media files from the local file system",
+  "keywords": [
+    "anki",
+    "autoanki",
+    "autoanki-content-plugin"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/chenlijun99/autoanki.git",
+    "directory": "packages/autoanki-plugin-content-local-media-extractor"
+  },
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=16.16.0"
+  },
+  "type": "module",
+  "module": "./dist/index.js",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    }
+  },
+  "files": [
+    "./dist/*",
+    "./src/*"
+  ],
+  "dependencies": {
+    "rehype-parse": "^8.0.4",
+    "rehype-stringify": "^9.0.3",
+    "unified": "^10.1.2",
+    "unist-util-visit": "^4.1.1",
+    "vfile": "^5.3.6",
+    "zod": "^3.19.1"
+  },
+  "devDependencies": {
+    "@autoanki/core": "workspace:^",
+    "@types/hast": "^2.3.4"
+  },
+  "scripts": {
+    "update-config": "node config.mjs",
+    "prepare": "pnpm run build:prod",
+    "clean": "rimraf ./dist/ ./tsconfig.build.tsbuildinfo",
+    "typegen": "tsc --project tsconfig.build.json --emitDeclarationOnly --declaration --declarationDir dist/ --declarationMap",
+    "prebuild:dev": "pnpm run clean",
+    "prebuild:prod": "pnpm run clean && pnpm run typegen",
+    "build:dev": "swc --config-file ../swcrc ./src -d dist/ --source-maps",
+    "build:prod": "swc --config-file ../swcrc ./src -d dist/ --source-maps"
+  }
+}
