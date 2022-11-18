@@ -128,7 +128,7 @@ const autoankiNoteFieldSchema = z.object({
       z.object({
         '@_attributes': z.object({
           data: z.string(),
-          type: z.string(),
+          type: z.string().optional(),
         }),
       })
     ),
