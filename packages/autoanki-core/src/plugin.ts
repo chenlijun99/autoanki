@@ -1,9 +1,7 @@
 import { z } from 'zod';
-import {
-  AutoankiMediaFile,
-  AutoankiMediaFileMetadata,
-  RawAutoankiMediaFile,
-} from './media.js';
+
+import type { Logger } from './logger.js';
+import { AutoankiMediaFile, RawAutoankiMediaFile } from './media.js';
 
 import { ParsedNote, AutoankiNote } from './notes.js';
 
@@ -62,6 +60,7 @@ export interface AutoankiPluginApi {
       mediaFile: RawAutoankiMediaFile
     ) => AutoankiMediaFile;
   };
+  logger: Logger;
 }
 
 interface PluginClass<T> {
@@ -97,6 +96,27 @@ export const autoankiPluginSchema = z
     transformer: z.function().optional(),
   })
   .transform((obj) => obj as AutoankiPlugin);
+
+export function isPlugin(
+  value: unknown
+): value is SourcePlugin | TransformerPlugin {
+  type Plugin = SourcePlugin | TransformerPlugin;
+
+  if (
+    value &&
+    value.constructor &&
+    (value.constructor as PluginClass<Plugin>).pluginName
+  ) {
+    const sourcePlugin = value as SourcePlugin;
+    const transformerPlugin = value as TransformerPlugin;
+    return !!(
+      sourcePlugin.parseFromInput ||
+      sourcePlugin.writeBackToInput ||
+      transformerPlugin.transform
+    );
+  }
+  return false;
+}
 
 export function getPluginName(plugin: SourcePlugin | TransformerPlugin) {
   return (plugin.constructor as PluginClass<typeof plugin>).pluginName;

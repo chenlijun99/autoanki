@@ -9,7 +9,7 @@ export type {
   SourcePluginParsingOutput,
   TransformerPluginOutput,
 } from './plugin.js';
-export { getPluginName } from './plugin.js';
+export { getPluginName, isPlugin } from './plugin.js';
 
 export {
   extractAutoankiNotes,
@@ -39,3 +39,6 @@ export type {
   AutoankiMediaFile,
   AutoankiMediaFileMetadata,
 } from './media.js';
+
+export { setLogger } from './logger.js';
+export type { RootLogger, Logger } from './logger.js';

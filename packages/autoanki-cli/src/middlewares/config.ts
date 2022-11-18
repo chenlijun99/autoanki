@@ -1,9 +1,10 @@
 import { z } from 'zod';
-import winston from 'winston';
 import { cosmiconfigSync } from 'cosmiconfig';
 
 import { buildConfigManager, Config, ConfigManager } from '@autoanki/config';
 import assert from '@autoanki/utils/assert.js';
+
+import { getLogger } from './log.js';
 
 let defaultConfig: Config = {
   filesConfig: [],
@@ -17,22 +18,23 @@ export function getConfig(): ConfigManager {
 }
 
 export function initConfig() {
-  winston.debug('Loading configuration...');
+  const logger = getLogger();
+  logger.debug('Loading configuration...');
   const result = cosmiconfigSync('autoanki').search();
   if (result) {
-    winston.debug(`Using configuratino found at ${result.filepath}`);
+    logger.debug(`Using configuratino found at ${result.filepath}`);
     try {
       configManager = buildConfigManager(result.filepath, result.config);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        winston.error(`Invalid configuration from ${result.filepath}`);
-        winston.error(JSON.stringify(error.issues, undefined, 2));
+        logger.error(`Invalid configuration from ${result.filepath}`);
+        logger.error(JSON.stringify(error.issues, undefined, 2));
       } else {
         throw error;
       }
     }
   } else {
-    winston.debug('No configuration file found. Use default configuration');
+    logger.debug('No configuration file found. Use default configuration');
     /*
      * Just pass a fake absolute path path
      */

@@ -21,6 +21,7 @@ import syncPlugin, {
 } from '@autoanki/sync';
 
 import { extractAnkiNotesFromFiles } from '../../utils/index.js';
+import { getLogger } from '../../middlewares/log.js';
 
 interface Args {
   inputs: string[];
@@ -117,6 +118,9 @@ function syncActionToString(action: SyncAction) {
 }
 
 async function handler(argv: Args) {
+  const logger = getLogger();
+
+  logger.info('Parsing Anki notes from note sources...');
   const notes = await extractAnkiNotesFromFiles(argv.inputs, [
     [syncPlugin, undefined],
   ]);
@@ -124,6 +128,7 @@ async function handler(argv: Args) {
     origin: argv.port,
   });
 
+  logger.info('Computing required sync actions...');
   await sync.start();
 
   for (const action of sync.syncActions) {
@@ -131,6 +136,7 @@ async function handler(argv: Args) {
   }
 
   if (!argv['dry-run']) {
+    logger.info('Syncing...');
     await sync.runAllAutomaticActions();
 
     if (sync.completed) {
@@ -139,6 +145,8 @@ async function handler(argv: Args) {
           return writeFile(source.key, Buffer.from(source.content));
         })
       );
+
+      logger.info('Done!');
     } else {
       throw new Error('Manual operations not supported yet');
     }

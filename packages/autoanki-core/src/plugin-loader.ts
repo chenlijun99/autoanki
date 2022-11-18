@@ -4,6 +4,7 @@ import {
   computeAutoankiMediaFileFromRaw,
   computeAutoankiMediaFileFromRawSync,
 } from './media.js';
+import { getLogger } from './logger.js';
 
 type PluginConfig<Type extends PluginType> = Type extends 'source'
   ? Config['pipeline']['source']
@@ -21,6 +22,7 @@ export class PluginLoadingError extends Error {
 }
 
 async function importPlugin(moduleName: string): Promise<AutoankiPlugin> {
+  getLogger().log(`Loading plugin ${moduleName}`);
   return import(moduleName)
     .then((module) => module.default)
     .catch((error) => {
@@ -69,6 +71,7 @@ export async function loadPlugin<Type extends PluginType>(
         );
       },
     },
+    logger: getLogger().createChildLogger(pluginConstructor.pluginName),
   };
 
   return new pluginConstructor(api, pluginArgs) as LoadedPluginType<Type>;
