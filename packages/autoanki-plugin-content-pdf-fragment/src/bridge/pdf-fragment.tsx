@@ -18,13 +18,11 @@ export default function PdfFragment(props: PdfFragmentProps) {
       <Document
         file={props.pdfUrl}
         onLoadSuccess={onDocumentLoadSuccess}
-        options={
-          {
-            /* cMapUrl: `https://unpkg.com/pdfjs-dist@${pdfjs.version}/cmaps/`, */
-            /* cMapPacked: true, */
-            /* standardFontDataUrl: `https://unpkg.com/pdfjs-dist@${pdfjs.version}/standard_fonts`, */
-          }
-        }
+        options={{
+          cMapUrl: `https://unpkg.com/pdfjs-dist@${pdfjs.version}/cmaps/`,
+          cMapPacked: true,
+          standardFontDataUrl: `https://unpkg.com/pdfjs-dist@${pdfjs.version}/standard_fonts`,
+        }}
       >
         <Page pageNumber={pageNumber} />
       </Document>
