@@ -9,7 +9,7 @@ import type {
 } from '@autoanki/core';
 import { computeAutoankiMediaFileFromRawSync } from '@autoanki/core';
 
-import bundledBase64 from 'anki-bridge-bundled-base64.js';
+import bundledBase64 from 'bridge/index.bundled.js';
 import styleBase64 from './style.css';
 
 const PLUGIN_NAME = '@autoanki/sync';

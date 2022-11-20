@@ -1,16 +1,15 @@
 {
-  "name": "@autoanki/autoanki-plugin-content-pdf-fragment",
-  "version": "0.1.0",
+  "name": "@autoanki/anki-bridge",
+  "version": "0.0.1",
+  "description": "Dynamic JavaScript loading bridge inside Anki",
   "keywords": [
     "anki",
-    "autoanki",
-    "autoanki-content-plugin",
-    "pdf"
+    "autoanki"
   ],
   "repository": {
     "type": "git",
     "url": "https://github.com/chenlijun99/autoanki.git",
-    "directory": "packages/autoanki-plugin-content-pdf-fragment"
+    "directory": "packages/autoanki-anki-bridge"
   },
   "license": "MIT",
   "publishConfig": {
@@ -21,7 +20,6 @@
   },
   "type": "module",
   "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "import": {
@@ -34,27 +32,17 @@
     "./dist/*",
     "./src/*"
   ],
-  "devDependencies": {
-    "@autoanki/anki-bridge": "workspace:^",
-    "@autoanki/core": "workspace:^0.1.0"
-  },
   "scripts": {
     "update-config": "node config.mjs",
-    "typegen": "tsc --project tsconfig.build.json --emitDeclarationOnly --declaration --declarationDir dist/ --declarationMap",
     "prepare": "pnpm run build:prod",
     "clean": "rimraf ./dist/ ./tsconfig.build.tsbuildinfo",
-    "build:dev": "ts-node -T esbuild.config.mts",
+    "typegen": "tsc --project tsconfig.build.json --emitDeclarationOnly --declaration --declarationDir dist/ --declarationMap",
     "prebuild:dev": "pnpm run clean",
     "prebuild:prod": "pnpm run clean && pnpm run typegen",
+    "build:dev": "ts-node -T esbuild.config.mts",
     "build:prod": "ts-node -T esbuild.config.mts production"
   },
   "dependencies": {
-    "@types/react": "~18.0.25",
-    "@types/react-dom": "^18.0.9",
-    "@types/react-pdf": "^5.7.4",
-    "pdfjs-dist": "2.16.105",
-    "react": "~18.2.0",
-    "react-dom": "^18.2.0",
-    "react-pdf": "^6.1.0"
+    "@autoanki/utils": "workspace:^"
   }
 }

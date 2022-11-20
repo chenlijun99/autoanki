@@ -33,11 +33,13 @@ export {
   computeAutoankiMediaFileFromRaw,
   computeAutoankiMediaFileFromRawSync,
   parseMediaFileMetadataFromFilename,
+  AUTOANKI_MEDIA_PREFIX,
 } from './media.js';
 export type {
   RawAutoankiMediaFile,
   AutoankiMediaFile,
   AutoankiMediaFileMetadata,
+  AutoankiScriptMediaFile,
 } from './media.js';
 
 export { setLogger } from './logger.js';

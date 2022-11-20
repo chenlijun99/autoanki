@@ -11,6 +11,9 @@
   // * As base `tsconfig.json` for emission of type declarations
   // * bundlers and transpilers
   // * etc.
+
+  "files": ["./declarations.d.ts"],
+
   "exclude": ["**/node_modules"],
   "compilerOptions": {
     // Stop loading whatever is in node_modules/@types.
@@ -18,6 +21,10 @@
 
     // Strict hurray. Better safe than sorry.
     "strict": true,
+
+    // Probably just any value would be ok. We don't use tsc to transpile JSX
+    // We just need tsc and tsserver to not complain when doing type-checking
+    "jsx": "react-jsx",
 
     // Faster
     "skipDefaultLibCheck": true,

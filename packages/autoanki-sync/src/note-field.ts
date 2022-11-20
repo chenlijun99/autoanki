@@ -20,7 +20,10 @@ import type { AutoankiNote } from '@autoanki/core';
 import assert from '@autoanki/utils/assert.js';
 import { hashContent } from '@autoanki/utils/hash.js';
 
-import { AutoankiNoteFromAnkiError, AUTOANKI_TAGS } from './common.js';
+import {
+  AutoankiNoteFromAnkiError,
+  AUTOANKI_HTML_CONSTANTS,
+} from './common.js';
 
 function getMediaTags(note: AutoankiNote): string {
   const styleTags = note.styleFiles.map((styleFile) => {
@@ -46,16 +49,26 @@ function getMediaTags(note: AutoankiNote): string {
      */
     return `
 <object data="${
-      styleFile.media.metadata.storedFilename
+      styleFile.metadata.storedFilename
     }" type="text/css" declare></object>
 <style>
-@import "${encodeURIComponent(styleFile.media.metadata.storedFilename)}"
+@import "${encodeURIComponent(styleFile.metadata.storedFilename)}"
 </style>
 `;
   });
 
   const scriptTags = note.scriptFiles.map((file) => {
-    return `<object data="${file.media.metadata.storedFilename}" type="application/javascript" declare></object>`;
+    return `<object
+data="${file.metadata.storedFilename}"
+type="application/javascript"
+${
+  file.scriptArgs === undefined
+    ? ''
+    : `data-${
+        AUTOANKI_HTML_CONSTANTS.METADATA_SCRIPT_ARGS_DATA_ATTRIBUTE
+      }='${JSON.stringify(file.scriptArgs)}'`
+}
+declare></object>`;
   });
 
   /*
@@ -65,7 +78,7 @@ function getMediaTags(note: AutoankiNote): string {
    * esoteric media that they then render via JavaScript.
    */
   const miscTags = note.mediaFiles.map((file) => {
-    return `<object data="${file.media.metadata.storedFilename}" declare></object>`;
+    return `<object data="${file.metadata.storedFilename}" declare></object>`;
   });
   return [styleTags, scriptTags, miscTags].flat().join('\n');
 }
@@ -91,11 +104,11 @@ export async function getAnkiNoteField(
    * This should prevent normal users from accidentally making changes
    * to the final content of a note.
    */
-  return `<${AUTOANKI_TAGS.SOURCE_CONTENT} hidden>
+  return `<${AUTOANKI_HTML_CONSTANTS.SOURCE_CONTENT_TAG} hidden>
 ${escape(sourceContent)}
-</${AUTOANKI_TAGS.SOURCE_CONTENT}>
+</${AUTOANKI_HTML_CONSTANTS.SOURCE_CONTENT_TAG}>
 
-<${AUTOANKI_TAGS.METADATA}
+<${AUTOANKI_HTML_CONSTANTS.METADATA_TAG}
  data-autoanki-uuid="${note.autoanki.uuid}"
  data-autoanki-note-type="${note.modelName}"
  data-autoanki-tags="${note.tags}"
@@ -103,27 +116,27 @@ ${escape(sourceContent)}
  data-autoanki-final-content-hash="${finalContentDigest}"
  hidden>
  ${getMediaTags(note)}
-</${AUTOANKI_TAGS.METADATA}>
+</${AUTOANKI_HTML_CONSTANTS.METADATA_TAG}>
 
-<${AUTOANKI_TAGS.FINAL_CONTENT} contenteditable="false">
+<${AUTOANKI_HTML_CONSTANTS.FINAL_CONTENT_TAG} contenteditable="false">
 ${finalContent}
-</${AUTOANKI_TAGS.FINAL_CONTENT}>`;
+</${AUTOANKI_HTML_CONSTANTS.FINAL_CONTENT_TAG}>`;
 }
 
 const autoankiNoteFieldSchema = z.object({
-  [AUTOANKI_TAGS.SOURCE_CONTENT]: z
+  [AUTOANKI_HTML_CONSTANTS.SOURCE_CONTENT_TAG]: z
     .object({
       // can contain whatever attributes
       '@_attributes': z.object({}),
       '#text': z.string(),
     })
     .strict(),
-  [AUTOANKI_TAGS.FINAL_CONTENT]: z.object({
+  [AUTOANKI_HTML_CONSTANTS.FINAL_CONTENT_TAG]: z.object({
     // can contain whatever attributes
     '@_attributes': z.object({}),
     '#text': z.string(),
   }),
-  [AUTOANKI_TAGS.METADATA]: z.object({
+  [AUTOANKI_HTML_CONSTANTS.METADATA_TAG]: z.object({
     object: z.array(
       z.object({
         '@_attributes': z.object({
@@ -205,9 +218,9 @@ const parser = new XMLParser({
   attributeNamePrefix: '',
   allowBooleanAttributes: true,
   stopNodes: [
-    `*.${AUTOANKI_TAGS.SOURCE_CONTENT}`,
-    `*.${AUTOANKI_TAGS.FINAL_CONTENT}`,
-    `*.${AUTOANKI_TAGS.METADATA}.object`,
+    `*.${AUTOANKI_HTML_CONSTANTS.SOURCE_CONTENT_TAG}`,
+    `*.${AUTOANKI_HTML_CONSTANTS.FINAL_CONTENT_TAG}`,
+    `*.${AUTOANKI_HTML_CONSTANTS.METADATA_TAG}.object`,
   ],
 });
 
@@ -279,11 +292,11 @@ Reason: ${error.toString()}`
 
   const sourceContent: AutoankiNoteFieldMetadata = {
     storedHash:
-      field[AUTOANKI_TAGS.METADATA]['@_attributes'][
+      field[AUTOANKI_HTML_CONSTANTS.METADATA_TAG]['@_attributes'][
         'data-autoanki-source-content-hash'
       ],
     content: getOriginalContent(
-      unescape(field[AUTOANKI_TAGS.SOURCE_CONTENT]['#text'])
+      unescape(field[AUTOANKI_HTML_CONSTANTS.SOURCE_CONTENT_TAG]['#text'])
     ),
     computedHash: '',
     fieldChanged: false,
@@ -294,10 +307,12 @@ Reason: ${error.toString()}`
 
   const finalContent: AutoankiNoteFieldMetadata = {
     storedHash:
-      field[AUTOANKI_TAGS.METADATA]['@_attributes'][
+      field[AUTOANKI_HTML_CONSTANTS.METADATA_TAG]['@_attributes'][
         'data-autoanki-final-content-hash'
       ],
-    content: getOriginalContent(field[AUTOANKI_TAGS.FINAL_CONTENT]['#text']),
+    content: getOriginalContent(
+      field[AUTOANKI_HTML_CONSTANTS.FINAL_CONTENT_TAG]['#text']
+    ),
     computedHash: '',
     fieldChanged: false,
   };
@@ -322,10 +337,16 @@ Reason: ${error.toString()}`
     finalContent,
     scriptMediaFiles,
     styleMediaFiles,
-    uuid: field[AUTOANKI_TAGS.METADATA]['@_attributes']['data-autoanki-uuid'],
+    uuid: field[AUTOANKI_HTML_CONSTANTS.METADATA_TAG]['@_attributes'][
+      'data-autoanki-uuid'
+    ],
     modelName:
-      field[AUTOANKI_TAGS.METADATA]['@_attributes']['data-autoanki-note-type'],
-    tags: field[AUTOANKI_TAGS.METADATA]['@_attributes']['data-autoanki-tags'],
+      field[AUTOANKI_HTML_CONSTANTS.METADATA_TAG]['@_attributes'][
+        'data-autoanki-note-type'
+      ],
+    tags: field[AUTOANKI_HTML_CONSTANTS.METADATA_TAG]['@_attributes'][
+      'data-autoanki-tags'
+    ],
   } as AutoankiNoteFieldFromAnki;
 }
 

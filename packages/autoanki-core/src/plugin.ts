@@ -1,7 +1,11 @@
 import { z } from 'zod';
 
 import type { Logger } from './logger.js';
-import { AutoankiMediaFile, RawAutoankiMediaFile } from './media.js';
+import {
+  AutoankiMediaFile,
+  AutoankiScriptMediaFile,
+  RawAutoankiMediaFile,
+} from './media.js';
 
 import { ParsedNote, AutoankiNote } from './notes.js';
 
@@ -44,7 +48,7 @@ export type TransformerPluginOutput = {
   metadata?: unknown;
   mediaFiles?: AutoankiMediaFile[];
   styleFiles?: AutoankiMediaFile[];
-  scriptFiles?: AutoankiMediaFile[];
+  scriptFiles?: AutoankiScriptMediaFile[];
 };
 
 export interface TransformerPlugin {

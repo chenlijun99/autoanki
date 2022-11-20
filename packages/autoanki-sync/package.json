@@ -35,6 +35,7 @@
     "./src/*"
   ],
   "dependencies": {
+    "@autoanki/anki-bridge": "workspace:^",
     "@autoanki/anki-connect": "workspace:^",
     "@autoanki/core": "workspace:^",
     "@autoanki/utils": "workspace:^",

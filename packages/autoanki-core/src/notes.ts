@@ -18,8 +18,17 @@ import type { ReadonlyDeep } from 'type-fest';
 import type { NoteTypes, MediaTypes } from '@autoanki/anki-connect';
 
 import { Config } from './config.js';
-import { AutoankiMediaFile, autoankiMediaFileSchema } from './media.js';
-import { SourcePlugin, TransformerPlugin, getPluginName } from './plugin.js';
+import {
+  AutoankiMediaFile,
+  autoankiMediaFileSchema,
+  AutoankiScriptMediaFile,
+} from './media.js';
+import {
+  SourcePlugin,
+  TransformerPlugin,
+  getPluginName,
+  SourcePluginParsingOutput,
+} from './plugin.js';
 import { loadPlugin } from './plugin-loader.js';
 import type { Equals, AssertTrue } from './utils/type.js';
 import { tagSchema } from './utils.js';
@@ -141,24 +150,14 @@ const parsedNoteSchema = ankiConnectNewNoteSchema
  */
 export type ParsedNote = z.infer<typeof parsedNoteSchema>;
 
-interface AutoankiMediaFileFromPlugin {
-  fromPlugin: SourcePlugin | TransformerPlugin;
-  /**
-   * Medias returned from plugins are immutable.
-   * As long as two media files are referentially equal, we consider
-   * them to have the same content.
-   */
-  media: Readonly<AutoankiMediaFile>;
-}
-
 /**
  * Core Anki note type used throughout the Autoanki system
  */
 export interface AutoankiNote
   extends Omit<AnkiConnectNewNote, 'id' | 'audio' | 'video' | 'picture'> {
-  mediaFiles: Readonly<AutoankiMediaFileFromPlugin>[];
-  styleFiles: Readonly<AutoankiMediaFileFromPlugin>[];
-  scriptFiles: Readonly<AutoankiMediaFileFromPlugin>[];
+  mediaFiles: AutoankiMediaFile[];
+  styleFiles: AutoankiMediaFile[];
+  scriptFiles: AutoankiScriptMediaFile[];
   /**
    * All the data relevant to the Autoanki system are contained
    * in the `autoanki` property.
@@ -221,24 +220,14 @@ export interface AutoankiNote
  */
 export const AUTOANKI_NOTES_DEFAULT_TAG = 'autoanki' as const;
 
-function convertMedia(
-  media: AutoankiMediaFile,
-  plugin: AutoankiMediaFileFromPlugin['fromPlugin']
-): AutoankiMediaFileFromPlugin {
-  return Object.freeze({
-    fromPlugin: plugin,
-    media: Object.freeze(media),
-  });
-}
-
-function parsedNoteToAutoankiNote(
-  note: ParsedNote,
-  sourcePluginParsingMetadata: unknown,
+function sourcePluginOutputToAutoankiNote(
+  output: SourcePluginParsingOutput,
   sourcePlugin: SourcePlugin,
   transformerPlugins: TransformerPlugin[],
   input: NoteInput,
   config: Config
 ): AutoankiNote {
+  const note = output.note;
   const {
     id,
     deleted,
@@ -254,15 +243,11 @@ function parsedNoteToAutoankiNote(
     tags.add(tag);
   }
 
-  const wrap = (media: AutoankiMediaFile) => {
-    return convertMedia(media, sourcePlugin);
-  };
-
   const coreAnkiNote: AutoankiNote = {
     ...presentAlsoInAutoankiNote,
-    mediaFiles: mediaFiles ? mediaFiles.map((media) => wrap(media)) : [],
-    styleFiles: styleFiles ? styleFiles.map((media) => wrap(media)) : [],
-    scriptFiles: scriptFiles ? scriptFiles.map((media) => wrap(media)) : [],
+    mediaFiles: mediaFiles ?? [],
+    styleFiles: styleFiles ?? [],
+    scriptFiles: scriptFiles ?? [],
     deckName: note.deckName ?? config.defaultDeck ?? 'Default',
     tags: Array.from(tags),
     autoanki: {
@@ -276,7 +261,7 @@ function parsedNoteToAutoankiNote(
         transformerPlugins,
       },
       pluginMetadata: {
-        [getPluginName(sourcePlugin)]: sourcePluginParsingMetadata,
+        [getPluginName(sourcePlugin)]: output.metadata,
       },
     },
   };
@@ -375,15 +360,9 @@ export async function transformAutoankiNote(
         value: metadata,
       }
     );
-    for (const media of scriptFiles ?? []) {
-      currentNote.scriptFiles.push(convertMedia(media, plugin));
-    }
-    for (const media of styleFiles ?? []) {
-      currentNote.styleFiles.push(convertMedia(media, plugin));
-    }
-    for (const media of mediaFiles ?? []) {
-      currentNote.mediaFiles.push(convertMedia(media, plugin));
-    }
+    currentNote.scriptFiles = currentNote.scriptFiles.concat(scriptFiles ?? []);
+    currentNote.styleFiles = currentNote.styleFiles.concat(styleFiles ?? []);
+    currentNote.mediaFiles = currentNote.mediaFiles.concat(mediaFiles ?? []);
   }
   return currentNote;
 }
@@ -471,9 +450,8 @@ export async function extractAutoankiNotes(
 
       return Promise.all(
         outputs.map(async (output) => {
-          const note = parsedNoteToAutoankiNote(
-            output.note,
-            output.metadata,
+          const note = sourcePluginOutputToAutoankiNote(
+            output,
             sourcePlugin,
             transformerPlugins,
             input,

@@ -20,6 +20,8 @@ import type {
   AutoankiPluginApi,
 } from '@autoanki/core';
 
+import { urlToFilePath } from './utils.js';
+
 export const resolverSchema = z.union([
   z.object({
     type: z.literal('relativeTo'),
@@ -80,7 +82,7 @@ async function attemptToResolveAndLoadFile(
       continue;
     }
     try {
-      options.coreApi.logger.log(`Attempting to access ${resolvedPath}...`);
+      options.coreApi.logger.log(`Attempting to access "${resolvedPath}"...`);
       const buffer = await fs.promises.readFile(resolvedPath);
       return {
         success: true,
@@ -122,30 +124,32 @@ const rehypeExtractMediaFilesAndRename: Plugin<[RehypePluginOptions]> = (
         node.properties?.src &&
         typeof node.properties.src === 'string'
       ) {
-        logger.log(
-          `Extracting ${node.properties.src} from ${node.tagName} tag`
-        );
-        extractedMedias.push({
-          mediaPath: node.properties!.src,
-          mediaPathUpdater: (newPath) => {
-            node.properties!.src = newPath;
-          },
-        });
+        const filePath = urlToFilePath(node.properties.src);
+        if (filePath) {
+          logger.log(`Extracting "${filePath}" from "${node.tagName}" tag`);
+          extractedMedias.push({
+            mediaPath: filePath,
+            mediaPathUpdater: (newPath) => {
+              node.properties!.src = newPath;
+            },
+          });
+        }
       }
       if (
         node.tagName === 'object' &&
         node.properties?.data &&
         typeof node.properties.data === 'string'
       ) {
-        logger.log(
-          `Extracting ${node.properties.data} from ${node.tagName} tag`
-        );
-        extractedMedias.push({
-          mediaPath: node.properties!.data,
-          mediaPathUpdater: (newPath) => {
-            node.properties!.data = newPath;
-          },
-        });
+        const filePath = urlToFilePath(node.properties.data);
+        if (filePath) {
+          logger.log(`Extracting "${filePath}" from "${node.tagName}" tag`);
+          extractedMedias.push({
+            mediaPath: filePath,
+            mediaPathUpdater: (newPath) => {
+              node.properties!.data = newPath;
+            },
+          });
+        }
       }
     });
 

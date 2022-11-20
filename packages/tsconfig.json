@@ -8,6 +8,10 @@
   // It is also used by eslint for TypeScript files
   "extends": "./tsconfig.base.json",
 
+  // Include all TS source files, which is what we want since this
+  // tsconfig.json is used by tsserver
+  "include": ["**/src/**/*.ts", "**/src/**/*.tsx"],
+
   "compilerOptions": {
     "types": ["jest"],
     // Mapping between typescript import path and the actual package in the monorepo.
@@ -20,9 +24,13 @@
       "@autoanki/core": ["./autoanki-core/src/index.ts"],
       "@autoanki/sync": ["./autoanki-sync/src/index.ts"],
       "@autoanki/config": ["./autoanki-config/src/index.ts"],
+      "@autoanki/anki-bridge": ["./autoanki-anki-bridge/src/index.ts"],
       "@autoanki/utils/*": ["./autoanki-utils/src/*"],
       "@autoanki/plugin-source-yaml": [
         "./autoanki-plugin-source-yaml/src/index.ts"
+      ],
+      "@autoanki/plugin-content-local-media-extractor": [
+        "./autoanki-plugin-content-local-media-extractor/src/index.ts"
       ]
     }
   }

@@ -21,7 +21,7 @@ import syncPlugin, {
 } from '@autoanki/sync';
 
 import { extractAnkiNotesFromFiles } from '../../utils/index.js';
-import { getLogger } from '../../middlewares/log.js';
+import { createChildLogger, getLogger } from '../../middlewares/log.js';
 
 interface Args {
   inputs: string[];
@@ -124,9 +124,13 @@ async function handler(argv: Args) {
   const notes = await extractAnkiNotesFromFiles(argv.inputs, [
     [syncPlugin, undefined],
   ]);
-  const sync = new SyncProcedure(notes, {
-    origin: argv.port,
-  });
+  const sync = new SyncProcedure(
+    notes,
+    {
+      origin: argv.port,
+    },
+    createChildLogger('@autoanki/sync')
+  );
 
   logger.info('Computing required sync actions...');
   await sync.start();

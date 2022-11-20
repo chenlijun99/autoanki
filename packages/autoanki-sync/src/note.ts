@@ -382,13 +382,13 @@ export async function computeNoteChanges(
    * For now we assume that only the source changes the media files
    */
   const scriptMediaFilesChanges = arrayEqual(
-    fromSource.scriptFiles.map((file) => file.media.metadata.storedFilename),
+    fromSource.scriptFiles.map((file) => file.metadata.storedFilename),
     fromAnki.scriptMediaFiles
   )
     ? ConcernedSide.NoSide
     : ConcernedSide.Source;
   const styleMediaFilesChanges = arrayEqual(
-    fromSource.styleFiles.map((file) => file.media.metadata.storedFilename),
+    fromSource.styleFiles.map((file) => file.metadata.storedFilename),
     fromAnki.styleMediaFiles
   )
     ? ConcernedSide.NoSide

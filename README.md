@@ -33,6 +33,8 @@ Set of tools that streamline the learning experience with Anki.
 
 ## Usage and supported environments
 
+- Anki >=2.1.54
+
 ### Autoanki applications
 
 - [@autoanki/cli](./packages/autoanki-cli) for terminal users.

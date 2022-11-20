@@ -1,3 +1,5 @@
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 import process from 'node:process';
 
 import esbuild, { Plugin, BuildOptions } from 'esbuild';
@@ -64,6 +66,14 @@ export const configBundleWithoutNodeModules = (
 };
 
 export const configTargetSpecific = {
+  ankiWebView: {
+    minify: prod,
+    treeShaking: prod,
+    bundle: true,
+    target: ['es2020'],
+    platform: 'browser',
+    format: 'esm',
+  } as BuildOptions,
   nodeApp: {
     outfile: 'dist/index.cjs',
     platform: 'node',
@@ -108,6 +118,50 @@ export const configTargetSpecific = {
     minify: false,
   } as BuildOptions,
 } as const;
+
+async function buildBridge(entrypoint?: string): Promise<string> {
+  const result = esbuild.buildSync({
+    entryPoints: [entrypoint ?? 'src/bridge/index.ts'],
+    outfile: 'dist/bridge.js',
+    ...configTargetSpecific.ankiWebView,
+  });
+
+  assert(result.errors.length === 0);
+  const content = await readFile('dist/bridge.js');
+  return content.toString();
+}
+
+/**
+ * Convention over configuration.
+ * When using this plugin ensure that:
+ *
+ * * The entrypoint of the bridge plugin is in `src/bridge/index.ts`.
+ * * The import specifier for the bundled plugin is 'bridge/index.bundled.js'.
+ */
+export const configPluginBundledBridgePluginAsBase64 = (
+  entrypoint?: string
+) => {
+  return {
+    name: 'bundle_bridge_plugin',
+    setup(build) {
+      build.onResolve({ filter: /bridge\/index\.bundled\.js$/ }, (args) => {
+        return {
+          path: args.path,
+          namespace: 'bridge',
+        };
+      });
+      build.onLoad(
+        { filter: /bridge\/index\.bundled\.js$/, namespace: 'bridge' },
+        async (args) => {
+          return {
+            contents: await buildBridge(entrypoint),
+            loader: 'base64',
+          };
+        }
+      );
+    },
+  } as Plugin;
+};
 
 type TargetConfigName = keyof typeof configTargetSpecific;
 

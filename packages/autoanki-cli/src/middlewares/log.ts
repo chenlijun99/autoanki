@@ -30,6 +30,10 @@ const myFormat = winston.format.printf(
   }
 );
 
+export function createChildLogger(childName: string): Logger {
+  return winstonToAutoankiCoreLogger(logger.child({ label: childName }));
+}
+
 export function initLog(verbose: boolean) {
   const formats = [winston.format.colorize(), winston.format.simple()];
   if (verbose) {
@@ -45,10 +49,8 @@ export function initLog(verbose: boolean) {
   logger.level = verbose ? 'verbose' : 'info';
 
   setLogger({
-    ...winstonToAutoankiCoreLogger(logger),
-    createChildLogger: (childName) => {
-      return winstonToAutoankiCoreLogger(logger.child({ label: childName }));
-    },
+    ...createChildLogger('@autoanki/core'),
+    createChildLogger,
   });
 }
 

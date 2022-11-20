@@ -12,6 +12,7 @@ delete tsconfigPathMaps['^@autoanki/utils/(.*)$'];
 
 function projectConfig(packageName) {
   return {
+    displayName: packageName,
     extensionsToTreatAsEsm: ['.ts'],
     modulePaths: ['<rootDir>/packages/'],
     moduleNameMapper: {
@@ -51,5 +52,6 @@ module.exports = {
     projectConfig('autoanki-sync'),
     projectConfig('autoanki-core'),
     projectConfig('autoanki-utils'),
+    projectConfig('autoanki-plugin-content-local-media-extractor'),
   ],
 };

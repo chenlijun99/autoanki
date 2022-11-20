@@ -10,7 +10,7 @@ import { hashContentSync } from '@autoanki/utils/hash-sync.js';
  * See https://docs.ankiweb.net/templates/styling.html#installing-fonts
  */
 const ANKI_DONT_REFERENCE_COUNT_PREFIX = '_';
-const AUTOANKI_MEDIA_PREFIX = 'autoanki' as const;
+export const AUTOANKI_MEDIA_PREFIX = 'autoanki' as const;
 
 export const ANKI_MAX_FILENAME_LENGTH = 120 as const;
 
@@ -189,3 +189,13 @@ export const autoankiMediaFileSchema = rawAutoankiMediaFileSchema
   .strict();
 
 export type AutoankiMediaFile = z.infer<typeof autoankiMediaFileSchema>;
+
+export const autoankiScriptMediaFileSchema = autoankiMediaFileSchema
+  .extend({
+    scriptArgs: z.unknown(),
+  })
+  .strict();
+
+export type AutoankiScriptMediaFile = z.infer<
+  typeof autoankiScriptMediaFileSchema
+>;

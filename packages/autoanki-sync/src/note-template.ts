@@ -97,7 +97,7 @@ const rehypeInstrumentAutoankiSyncScripts: Plugin<[PluginOptions]> = (
           return {
             type: 'element',
             tagName: 'script',
-            properties: { src: scriptSrc },
+            properties: { src: scriptSrc, type: 'module' },
             children: [],
           } as Element;
         });
