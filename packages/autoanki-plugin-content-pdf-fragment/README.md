@@ -4,6 +4,10 @@ This plugin injects the necessary JavaScript to dynamically render PDF (fragment
 
 ## Caveats
 
+### Rendering some annotations requires access to the Internet
+
+For annotations such as "sticky notes", the PDF rendering engine needs to download some SVG icons from the Internet.
+
 ### Rendering some PDFs requires access to the Internet
 
 Rendering of legacy PDF with non-latin characters requires cmaps.
