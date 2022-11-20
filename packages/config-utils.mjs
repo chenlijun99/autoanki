@@ -213,6 +213,18 @@ export const packageJsonSingleEntryLibrary = {
   },
 };
 
+export const packageJsonAutoankiPluginLibrary = {
+  ...packageJsonLibrary,
+  ...packageJsonSingleEntryLibrary,
+  exports: {
+    ...packageJsonSingleEntryLibrary.exports,
+    './api/*.js': {
+      types: './dist/api/*.d.ts',
+      default: './dist/api/*.js',
+    },
+  },
+};
+
 export const packageJsonUseEsbuild = {
   scripts: {
     /*

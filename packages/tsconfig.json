@@ -31,6 +31,9 @@
       ],
       "@autoanki/plugin-content-local-media-extractor": [
         "./autoanki-plugin-content-local-media-extractor/src/index.ts"
+      ],
+      "@autoanki/plugin-content-local-media-extractor/api/*": [
+        "./autoanki-plugin-content-local-media-extractor/src/api/*"
       ]
     }
   }

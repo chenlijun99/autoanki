@@ -1,6 +1,6 @@
 import {
   writePackageJson,
-  packageJsonSingleEntryLibrary,
+  packageJsonAutoankiPluginLibrary,
   packageJsonUseSWC,
   combinePackageJsonChunks,
   writeTsConfig,
@@ -9,5 +9,5 @@ import {
 await writeTsConfig();
 
 await writePackageJson(
-  combinePackageJsonChunks(packageJsonSingleEntryLibrary, packageJsonUseSWC)
+  combinePackageJsonChunks(packageJsonAutoankiPluginLibrary, packageJsonUseSWC)
 );

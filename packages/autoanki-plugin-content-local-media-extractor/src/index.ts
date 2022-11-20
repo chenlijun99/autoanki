@@ -7,7 +7,7 @@ import { VFile } from 'vfile';
 import { unified } from 'unified';
 import type { Plugin } from 'unified';
 import { visit } from 'unist-util-visit';
-import { Root } from 'hast';
+import { Root, Element } from 'hast';
 import rehypeParse from 'rehype-parse';
 import rehypeStringify from 'rehype-stringify';
 
@@ -21,6 +21,7 @@ import type {
 } from '@autoanki/core';
 
 import { urlToFilePath } from './utils.js';
+import { DOMConstants } from './api/constants.js';
 
 export const resolverSchema = z.union([
   z.object({
@@ -107,6 +108,14 @@ type RehypePluginData = {
   extractedMediaFiles: AutoankiMediaFile[];
 };
 
+function addOriginalQueryStringAndHash(node: Element, url: string): void {
+  // Given a random base if it is a relative url.
+  const u = new URL(url, 'http://hello');
+
+  node.properties![DOMConstants.dataAttributeOriginalQueryString] = u.search;
+  node.properties![DOMConstants.dataAttributeOriginalHash] = u.hash;
+}
+
 const rehypeExtractMediaFilesAndRename: Plugin<[RehypePluginOptions]> = (
   options
 ) => {
@@ -130,6 +139,10 @@ const rehypeExtractMediaFilesAndRename: Plugin<[RehypePluginOptions]> = (
           extractedMedias.push({
             mediaPath: filePath,
             mediaPathUpdater: (newPath) => {
+              addOriginalQueryStringAndHash(
+                node,
+                node.properties!.src as string
+              );
               node.properties!.src = newPath;
             },
           });
@@ -146,6 +159,10 @@ const rehypeExtractMediaFilesAndRename: Plugin<[RehypePluginOptions]> = (
           extractedMedias.push({
             mediaPath: filePath,
             mediaPathUpdater: (newPath) => {
+              addOriginalQueryStringAndHash(
+                node,
+                node.properties!.data as string
+              );
               node.properties!.data = newPath;
             },
           });
