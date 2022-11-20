@@ -97,7 +97,16 @@ const rehypeInstrumentAutoankiSyncScripts: Plugin<[PluginOptions]> = (
           return {
             type: 'element',
             tagName: 'script',
-            properties: { src: scriptSrc, type: 'module' },
+            properties: {
+              src: scriptSrc,
+              /*
+               * NOTE: loading ES6 modules via <script> is not supported
+               * by Anki-Android due to CORS problems.
+               *
+               * See https://github.com/ankidroid/Anki-Android/issues/5400
+               */
+              // type: 'module'
+            },
             children: [],
           } as Element;
         });

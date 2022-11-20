@@ -1,5 +1,7 @@
 import { AUTOANKI_HTML_CONSTANTS } from '../common.js';
-import AnkiBridge from '@autoanki/anki-bridge';
+import AnkiBridge, {
+  encodeObjectDataUrlIfNecessary,
+} from '@autoanki/anki-bridge';
 
 declare global {
   interface Window {
@@ -29,18 +31,18 @@ if (!window.ankiBridgeLoaded) {
     );
     const plugins: Record<string, unknown> = {};
     resourceObjects.forEach((object) => {
-      if (
-        object.type === 'application/javascript' &&
-        object.data !== thisScriptSrc &&
-        !(object.data in plugins)
-      ) {
-        const scriptArgs = object.getAttribute(
-          `data-${AUTOANKI_HTML_CONSTANTS.METADATA_SCRIPT_ARGS_DATA_ATTRIBUTE}`
-        );
-        if (scriptArgs) {
-          plugins[object.data] = JSON.parse(scriptArgs);
-        } else {
-          plugins[object.data] = undefined;
+      if (object.type === 'application/javascript') {
+        const scriptUrl = encodeObjectDataUrlIfNecessary(object.data);
+
+        if (scriptUrl !== thisScriptSrc && !(scriptUrl in plugins)) {
+          const scriptArgs = object.getAttribute(
+            `data-${AUTOANKI_HTML_CONSTANTS.METADATA_SCRIPT_ARGS_DATA_ATTRIBUTE}`
+          );
+          if (scriptArgs) {
+            plugins[scriptUrl] = JSON.parse(scriptArgs);
+          } else {
+            plugins[scriptUrl] = undefined;
+          }
         }
       }
     });

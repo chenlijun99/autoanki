@@ -66,6 +66,10 @@ export const configBundleWithoutNodeModules = (
 };
 
 export const configTargetSpecific = {
+  /**
+   * Thanks to https://github.com/ankidroid/Anki-Android/issues/7760 we can use
+   * `import()` and dynamically load ES6 modules even in Anki-Android.
+   */
   ankiWebView: {
     minify: prod,
     treeShaking: prod,
@@ -73,6 +77,23 @@ export const configTargetSpecific = {
     target: ['es2020'],
     platform: 'browser',
     format: 'esm',
+  } as BuildOptions,
+  /**
+   * Anki webview script, i.e. scripts that are loaded via the <script> tag,
+   * shouldn't be ES6 modules.
+   * This is because scripts loaded using `<script type="module">` are subject
+   * to Single Origin Policy (see
+   * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script#attr-type),
+   * which causes problems on Android.
+   * See https://github.com/ankidroid/Anki-Android/issues/5400
+   */
+  ankiWebViewScript: {
+    minify: prod,
+    treeShaking: prod,
+    bundle: true,
+    target: ['es2020'],
+    platform: 'browser',
+    format: 'iife',
   } as BuildOptions,
   nodeApp: {
     outfile: 'dist/index.cjs',
@@ -135,11 +156,10 @@ async function buildBridge(entrypoint?: string): Promise<string> {
  * Convention over configuration.
  * When using this plugin ensure that:
  *
- * * The entrypoint of the bridge plugin is in `src/bridge/index.ts`.
  * * The import specifier for the bundled plugin is 'bridge/index.bundled.js'.
  */
 export const configPluginBundledBridgePluginAsBase64 = (
-  entrypoint?: string
+  entrypoint: string = 'src/bridge/index.ts'
 ) => {
   return {
     name: 'bundle_bridge_plugin',
