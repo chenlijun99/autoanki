@@ -1,5 +1,7 @@
 import ReactDOM from 'react-dom/client';
 
+import { pdfjs } from 'react-pdf';
+
 import type {
   AnkiBridgeModule,
   AnkiBridgePlugin,
@@ -7,7 +9,7 @@ import type {
 } from '@autoanki/anki-bridge';
 
 import PdfFragment from './pdf-fragment.js';
-import { pdfjs } from 'react-pdf';
+import { DOMConstants } from '@autoanki/plugin-content-local-media-extractor/api/constants.js';
 
 export interface PluginArgs {
   pdfFilesToRender: string[];
@@ -55,14 +57,21 @@ class PdfRenderPlugin implements AnkiBridgePlugin {
       const dataUrlDecoded = decodeURI(dataUrl);
       if (args.pdfFilesToRender.includes(dataUrlDecoded)) {
         console.log('Rendering', objEl);
+        const hash =
+          objEl.getAttribute(DOMConstants.dataAttributeOriginalHash) ?? '';
+        const query =
+          objEl.getAttribute(DOMConstants.dataAttributeOriginalQueryString) ??
+          '';
+
         const div = document.createElement('div');
         div.classList.add(CLASS_NAME);
         objEl.replaceWith(div);
         const root = ReactDOM.createRoot(div);
         this.reactRoots.set(div, root);
-        root.render(
-          <PdfFragment pdfUrl={this.api.misc.getMediaFileUrlForXHR(dataUrl)} />
-        );
+
+        const pdfUrl =
+          this.api.misc.getMediaFileUrlForXHR(dataUrl) + query + hash;
+        root.render(<PdfFragment pdfUrl={pdfUrl} />);
       }
     });
   }

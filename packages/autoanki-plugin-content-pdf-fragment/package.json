@@ -49,9 +49,11 @@
     "build:prod": "ts-node -T esbuild.config.mts production"
   },
   "dependencies": {
+    "@autoanki/plugin-content-local-media-extractor": "workspace:^",
     "@types/react": "~18.0.25",
     "@types/react-dom": "^18.0.9",
     "@types/react-pdf": "^5.7.4",
+    "parse-numeric-range": "^1.3.0",
     "pdfjs-dist": "2.16.105",
     "react": "~18.2.0",
     "react-dom": "^18.2.0",

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { SizeMe, SizeMeProps } from 'react-sizeme';
 
@@ -8,7 +8,18 @@ interface PdfFragmentProps {
 
 export default function PdfFragment(props: PdfFragmentProps) {
   const [numPages, setNumPages] = useState<number>();
-  const [pageNumber, setPageNumber] = useState(1);
+
+  let initialPage = 1;
+  const params = new URLSearchParams(new URL(props.pdfUrl).hash.slice(1));
+  const page = params.get('page');
+  if (page) {
+    const p = Number.parseInt(page);
+    if (p !== Number.NaN) {
+      initialPage = p;
+    }
+  }
+
+  const [pageNumber, setPageNumber] = useState(initialPage);
 
   const onDocumentLoadSuccess: Document['props']['onLoadSuccess'] = (pdf) => {
     setNumPages(pdf.numPages);
@@ -38,6 +49,7 @@ export default function PdfFragment(props: PdfFragmentProps) {
             <Page
               renderInteractiveForms={false}
               width={size.width ?? 1}
+              height={size.height ?? 1}
               pageNumber={pageNumber}
             />
           </Document>
