@@ -34,4 +34,17 @@ const argv = yargs(process.argv.slice(2))
       initLog(aArgv.verbose);
     },
     initConfig,
-  ]).argv;
+  ])
+  .showHelpOnFail(false)
+  .fail((msg, error, aYargs) => {
+    if (error === undefined) {
+      /*
+       * Didn't find it in the documentation. But when error is undefined
+       * it meanas it was yargs who raised the error because the CLI
+       * wasn't well formatted.
+       * Only in that case we want to print the help.
+       */
+      console.info(msg);
+      aYargs.showHelp();
+    }
+  }).argv;
