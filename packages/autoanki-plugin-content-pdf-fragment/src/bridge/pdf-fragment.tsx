@@ -30,6 +30,7 @@ export default function PdfFragment(props: PdfFragmentProps) {
    * for auto-sizing the PDF to fit the parent div.
    */
   return (
+    // @ts-ignore
     <SizeMe
       refreshRate={128}
       refreshMode={'debounce'}
