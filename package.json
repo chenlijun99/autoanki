@@ -20,6 +20,7 @@
   "devDependencies": {
     "@commitlint/cli": "^17.0.3",
     "@commitlint/config-conventional": "^17.0.3",
+    "@commitlint/config-lerna-scopes": "^17.2.1",
     "@fast-check/jest": "^1.4.0",
     "@jest/globals": "^29.3.1",
     "@stylelint/postcss-css-in-js": "^0.38.0",
