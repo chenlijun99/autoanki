@@ -58,11 +58,11 @@
   "scripts": {
     "update-config": "node config.mjs",
     "typegen": "tsc --project tsconfig.build.json --emitDeclarationOnly --declaration --declarationDir dist/ --declarationMap",
-    "prepare": "pnpm run build:prod",
     "clean": "rimraf ./dist/ ./tsconfig.build.tsbuildinfo",
     "build:dev": "ts-node -T esbuild.config.mts",
     "prebuild:dev": "pnpm run clean",
     "prebuild:prod": "pnpm run clean && pnpm run typegen",
-    "build:prod": "ts-node -T esbuild.config.mts production"
+    "build:prod": "ts-node -T esbuild.config.mts production",
+    "prepublishOnly": "pnpm run build:prod"
   }
 }

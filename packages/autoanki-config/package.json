@@ -32,16 +32,6 @@
     "./dist/*",
     "./src/*"
   ],
-  "scripts": {
-    "update-config": "node config.mjs",
-    "prepare": "pnpm run build:prod",
-    "clean": "rimraf ./dist/ ./tsconfig.build.tsbuildinfo",
-    "typegen": "tsc --project tsconfig.build.json --emitDeclarationOnly --declaration --declarationDir dist/ --declarationMap",
-    "prebuild:dev": "pnpm run clean",
-    "prebuild:prod": "pnpm run clean && pnpm run typegen",
-    "build:dev": "swc --config-file ../swcrc ./src -d dist/ --source-maps",
-    "build:prod": "swc --config-file ../swcrc ./src -d dist/ --source-maps"
-  },
   "dependencies": {
     "@autoanki/core": "workspace:^",
     "@autoanki/sync": "workspace:^",
@@ -52,5 +42,15 @@
   "devDependencies": {
     "@types/minimatch": "^5.1.2",
     "@types/validate-npm-package-name": "^4.0.0"
+  },
+  "scripts": {
+    "update-config": "node config.mjs",
+    "clean": "rimraf ./dist/ ./tsconfig.build.tsbuildinfo",
+    "typegen": "tsc --project tsconfig.build.json --emitDeclarationOnly --declaration --declarationDir dist/ --declarationMap",
+    "prebuild:dev": "pnpm run clean",
+    "prebuild:prod": "pnpm run clean && pnpm run typegen",
+    "build:dev": "swc --config-file ../swcrc ./src -d dist/ --source-maps",
+    "build:prod": "swc --config-file ../swcrc ./src -d dist/ --source-maps",
+    "prepublishOnly": "pnpm run build:prod"
   }
 }

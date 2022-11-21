@@ -62,13 +62,13 @@
   "scripts": {
     "update-config": "node config.mjs",
     "typegen": "tsc --project tsconfig.build.json --emitDeclarationOnly --declaration --declarationDir dist/ --declarationMap",
-    "prepare": "pnpm run build:prod",
     "clean": "rimraf ./dist/ ./tsconfig.build.tsbuildinfo",
     "build:dev": "ts-node -T esbuild.config.mts",
     "prebuild:dev": "pnpm run clean",
     "prebuild:prod": "pnpm run clean && pnpm run typegen",
     "build:prod": "ts-node -T esbuild.config.mts production",
     "assets-gen": "ts-node builtin-themes-build.mts",
-    "postbuild:prod": "pnpm run assets-gen"
+    "postbuild:prod": "pnpm run assets-gen",
+    "prepublishOnly": "pnpm run build:prod"
   }
 }

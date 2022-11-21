@@ -34,20 +34,6 @@
     "./dist/*",
     "./src/*"
   ],
-  "devDependencies": {
-    "@autoanki/anki-bridge": "workspace:^",
-    "@autoanki/core": "workspace:^0.1.0"
-  },
-  "scripts": {
-    "update-config": "node config.mjs",
-    "typegen": "tsc --project tsconfig.build.json --emitDeclarationOnly --declaration --declarationDir dist/ --declarationMap",
-    "prepare": "pnpm run build:prod",
-    "clean": "rimraf ./dist/ ./tsconfig.build.tsbuildinfo",
-    "build:dev": "ts-node -T esbuild.config.mts",
-    "prebuild:dev": "pnpm run clean",
-    "prebuild:prod": "pnpm run clean && pnpm run typegen",
-    "build:prod": "ts-node -T esbuild.config.mts production"
-  },
   "dependencies": {
     "@autoanki/plugin-content-local-media-extractor": "workspace:^",
     "@types/react": "~18.0.25",
@@ -59,5 +45,19 @@
     "react-dom": "^18.2.0",
     "react-pdf": "^6.1.0",
     "react-sizeme": "^3.0.2"
+  },
+  "devDependencies": {
+    "@autoanki/anki-bridge": "workspace:^",
+    "@autoanki/core": "workspace:^0.1.0"
+  },
+  "scripts": {
+    "update-config": "node config.mjs",
+    "typegen": "tsc --project tsconfig.build.json --emitDeclarationOnly --declaration --declarationDir dist/ --declarationMap",
+    "clean": "rimraf ./dist/ ./tsconfig.build.tsbuildinfo",
+    "build:dev": "ts-node -T esbuild.config.mts",
+    "prebuild:dev": "pnpm run clean",
+    "prebuild:prod": "pnpm run clean && pnpm run typegen",
+    "build:prod": "ts-node -T esbuild.config.mts production",
+    "prepublishOnly": "pnpm run build:prod"
   }
 }
