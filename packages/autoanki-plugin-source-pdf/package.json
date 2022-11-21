@@ -1,6 +1,6 @@
 {
   "name": "@autoanki/plugin-source-pdf",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Extract Anki cards from PDF",
   "keywords": [
     "anki",

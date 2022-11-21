@@ -3,6 +3,30 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.1.1](https://github.com/chenlijun99/autoanki/compare/@autoanki/sync@0.1.0...@autoanki/sync@0.1.1) (2022-11-21)
+
+### Bug Fixes
+
+- tags change detection should be order agnostic ([c02c6cc](https://github.com/chenlijun99/autoanki/commit/c02c6cc5259770689da0f69056cc8773aa3049ca))
+- type attribute in object tag inside metadata is not required ([14000b6](https://github.com/chenlijun99/autoanki/commit/14000b6d0c7c3eb94a407511bc7ff0bd320eb2e0))
+
+### Code Refactoring
+
+- drastically changed how media files are handled ([dd58183](https://github.com/chenlijun99/autoanki/commit/dd5818332064f3c5c4c062bd0178110929004b42))
+
+### Features
+
+- **pdf:** support rendering PDFs on Anki-Android ([daa7382](https://github.com/chenlijun99/autoanki/commit/daa7382b7f620d06ac09cdceaf2aa7520e74454e))
+- support rendering PDFs inside Autoanki notes ([08c602c](https://github.com/chenlijun99/autoanki/commit/08c602cb836c647c3b2b47daeea84e4a89c73674))
+
+### Performance Improvements
+
+- **logging:** provide lazy logging primitives and use them ([4f419f5](https://github.com/chenlijun99/autoanki/commit/4f419f55ddd301839a7dfefae54f81e4b429ce68))
+
+### BREAKING CHANGES
+
+- plugins' constructor signature changed
+
 # [0.1.0](https://github.com/chenlijun99/autoanki/compare/@autoanki/sync@0.0.3...@autoanki/sync@0.1.0) (2022-11-14)
 
 **Note:** Version bump only for package @autoanki/sync

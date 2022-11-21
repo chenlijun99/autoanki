@@ -1,6 +1,6 @@
 {
   "name": "@autoanki/autoanki-plugin-content-pdf-fragment",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "keywords": [
     "anki",
     "autoanki",
@@ -48,7 +48,7 @@
   },
   "devDependencies": {
     "@autoanki/anki-bridge": "workspace:^",
-    "@autoanki/core": "workspace:^0.1.0"
+    "@autoanki/core": "workspace:^0.1.1"
   },
   "scripts": {
     "update-config": "node config.mjs",
