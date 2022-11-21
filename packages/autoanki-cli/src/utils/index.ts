@@ -21,13 +21,15 @@ export async function extractAnkiNotesFromFiles(
   const configManager = getConfig();
   const groupedByConfig = configManager.getFilesGroupedByConfig(inputs);
   const logger = getLogger();
-  logger.debug(
-    `Extracting Anki notes from note sources, with the following configuration groups:\n${JSON.stringify(
-      groupedByConfig,
-      undefined,
-      2
-    )}`
-  );
+  logger.logLazy((print) => {
+    print(
+      `Extracting Anki notes from note sources, with the following configuration groups:\n${JSON.stringify(
+        groupedByConfig,
+        undefined,
+        2
+      )}`
+    );
+  });
 
   const notes = await Promise.all(
     groupedByConfig.map(({ files, config }) => {

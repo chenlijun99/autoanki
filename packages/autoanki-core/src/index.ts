@@ -42,5 +42,5 @@ export type {
   AutoankiScriptMediaFile,
 } from './media.js';
 
-export { setLogger } from './logger.js';
+export { setLogger, consoleLogger } from './logger.js';
 export type { RootLogger, Logger } from './logger.js';

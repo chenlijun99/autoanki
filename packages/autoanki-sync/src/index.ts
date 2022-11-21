@@ -16,6 +16,7 @@ import {
   writeBackAutoankiNoteUpdates,
   transformAutoankiNote,
   parseMediaFileMetadataFromFilename,
+  consoleLogger,
   AUTOANKI_NOTES_DEFAULT_TAG,
   AUTOANKI_MEDIA_PREFIX,
 } from '@autoanki/core';
@@ -513,7 +514,7 @@ export class SyncProcedure {
   constructor(
     private notesToBeSynced: AutoankiNote[],
     config: Partial<SyncConfig>,
-    public _logger: Logger = console
+    public _logger: Logger = consoleLogger
   ) {
     this.config = {
       ...DEFAULT_CONFIG,
@@ -905,11 +906,13 @@ export class SyncProcedure {
     }
 
     if (mediaFilesToSend.length > 0) {
-      this._logger.log(
-        `Sending media files to Anki: ${JSON.stringify(
-          mediaFilesToSend.map((media) => media.filename)
-        )}`
-      );
+      this._logger.logLazy((print) => {
+        print(
+          `Sending media files to Anki: ${JSON.stringify(
+            mediaFilesToSend.map((media) => media.filename)
+          )}`
+        );
+      });
     }
     return Promise.all(
       mediaFilesToSend.map(async (media) => {

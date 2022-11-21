@@ -19,10 +19,10 @@ export function getConfig(): ConfigManager {
 
 export function initConfig() {
   const logger = getLogger();
-  logger.debug('Loading configuration...');
+  logger.log('Loading configuration...');
   const result = cosmiconfigSync('autoanki').search();
   if (result) {
-    logger.debug(`Using configuratino found at ${result.filepath}`);
+    logger.log(`Using configuratino found at ${result.filepath}`);
     try {
       configManager = buildConfigManager(result.filepath, result.config);
     } catch (error) {
@@ -34,7 +34,7 @@ export function initConfig() {
       }
     }
   } else {
-    logger.debug('No configuration file found. Use default configuration');
+    logger.log('No configuration file found. Use default configuration');
     /*
      * Just pass a fake absolute path path
      */
