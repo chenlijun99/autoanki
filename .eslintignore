@@ -63,3 +63,4 @@ packages/joplin-plugin/webpack.config.js
 packages/joplin-plugin/api/*
 packages/*/jest.config.ts
 packages/*/assets/
+vite.config.ts

@@ -48,7 +48,15 @@
   },
   "devDependencies": {
     "@autoanki/anki-bridge": "workspace:^",
-    "@autoanki/core": "workspace:^0.1.1"
+    "@autoanki/core": "workspace:^0.1.1",
+    "@storybook/addon-essentials": "^7.0.0-alpha.52",
+    "@storybook/addon-interactions": "^7.0.0-alpha.52",
+    "@storybook/addon-links": "^7.0.0-alpha.52",
+    "@storybook/react": "^7.0.0-alpha.52",
+    "@storybook/react-vite": "^7.0.0-alpha.52",
+    "@storybook/testing-library": "^0.0.13",
+    "storybook": "^7.0.0-alpha.52",
+    "vite": "^3.2.4"
   },
   "scripts": {
     "update-config": "node config.mjs",
@@ -58,6 +66,8 @@
     "prebuild:dev": "pnpm run clean",
     "prebuild:prod": "pnpm run clean && pnpm run typegen",
     "build:prod": "ts-node -T esbuild.config.mts production",
-    "prepublishOnly": "pnpm run build:prod"
+    "prepublishOnly": "pnpm run build:prod",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
   }
 }
