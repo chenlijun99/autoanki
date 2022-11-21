@@ -5,6 +5,7 @@ import type { AutoankiNote, ConfigPluginInstance } from '@autoanki/core';
 import { extractAutoankiNotes } from '@autoanki/core';
 
 import { getConfig } from '../middlewares/config.js';
+import { getLogger } from '../middlewares/log.js';
 
 /**
  * From https://stackoverflow.com/a/14438954
@@ -19,6 +20,14 @@ export async function extractAnkiNotesFromFiles(
 ): Promise<AutoankiNote[]> {
   const configManager = getConfig();
   const groupedByConfig = configManager.getFilesGroupedByConfig(inputs);
+  const logger = getLogger();
+  logger.debug(
+    `Extracting Anki notes from note sources, with the following configuration groups:\n${JSON.stringify(
+      groupedByConfig,
+      undefined,
+      2
+    )}`
+  );
 
   const notes = await Promise.all(
     groupedByConfig.map(({ files, config }) => {
