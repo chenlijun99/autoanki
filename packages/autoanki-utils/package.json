@@ -26,23 +26,40 @@
       "browser": "./dist/webcrypto.browser.js",
       "default": "./dist/webcrypto.browser.js"
     },
+    "./hash-sync.js": {
+      "types": "./dist/hash-sync.default.d.ts",
+      "node": "./dist/hash-sync.node.js",
+      "default": "./dist/hash-sync.default.js"
+    },
     "./*.js": {
       "types": "./dist/*.d.ts",
       "default": "./dist/*.js"
+    }
+  },
+  "imports": {
+    "#webcrypto.js": {
+      "types": "./src/webcrypto.d.ts",
+      "node": "./src/webcrypto.node.ts",
+      "browser": "./src/webcrypto.browser.ts",
+      "default": "./src/webcrypto.browser.ts"
     }
   },
   "files": [
     "./dist/*",
     "./src/*"
   ],
+  "dependencies": {
+    "@types/crypto-js": "^4.1.1",
+    "crypto-js": "^4.1.1"
+  },
   "scripts": {
     "update-config": "node config.mjs",
     "typegen": "tsc --project tsconfig.build.json --emitDeclarationOnly --declaration --declarationDir dist/ --declarationMap",
-    "prepare": "pnpm run build:prod",
     "clean": "rimraf ./dist/ ./tsconfig.build.tsbuildinfo",
     "build:dev": "swc --config-file ../swcrc ./src -d dist/ --source-maps",
     "prebuild:dev": "pnpm run clean",
     "prebuild:prod": "pnpm run clean && pnpm run typegen",
-    "build:prod": "swc --config-file ../swcrc ./src -d dist/ --source-maps"
+    "build:prod": "swc --config-file ../swcrc ./src -d dist/ --source-maps",
+    "prepublishOnly": "pnpm run build:prod"
   }
 }

@@ -22,8 +22,9 @@ export enum ConcernedSide {
   Anki = 1 << 1,
 }
 
-export const AUTOANKI_TAGS = {
-  SOURCE_CONTENT: 'autoanki-source-content',
-  FINAL_CONTENT: 'autoanki-final-content',
-  METADATA: 'autoanki-metadata',
+export const AUTOANKI_HTML_CONSTANTS = {
+  SOURCE_CONTENT_TAG: 'autoanki-source-content',
+  FINAL_CONTENT_TAG: 'autoanki-final-content',
+  METADATA_TAG: 'autoanki-metadata',
+  METADATA_SCRIPT_ARGS_DATA_ATTRIBUTE: 'autoanki-script-args',
 } as const;

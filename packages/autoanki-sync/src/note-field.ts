@@ -18,56 +18,69 @@ import { escape, unescape } from 'html-escaper';
 
 import type { AutoankiNote } from '@autoanki/core';
 import assert from '@autoanki/utils/assert.js';
+import { hashContent } from '@autoanki/utils/hash.js';
 
-import { AutoankiNoteFromAnkiError, AUTOANKI_TAGS } from './common.js';
-import { hashContent } from './hash.js';
-import { computeMediaFileMetadataFromMediaFile } from './media.js';
+import {
+  AutoankiNoteFromAnkiError,
+  AUTOANKI_HTML_CONSTANTS,
+} from './common.js';
 
-async function getMediaTags(note: AutoankiNote): Promise<string> {
-  const styleTags = Promise.all(
-    note.styleFiles.map(async (styleFile) => {
-      const metadata = await computeMediaFileMetadataFromMediaFile(
-        styleFile.fromPlugin.name,
-        styleFile.media
-      );
-      /*
-       * Create the object tag so that Anki finds the reference to the media file
-       *
-       * Create the style tag with the @import so that it is immediately
-       * available when the note renders.
-       * NOTE that <style>'s effect is global, no matter where the <style> is
-       * in the document.
-       * NOTE that the same <style> tag with the same imports is included
-       * for multiple note-fields, but AFAIK repeated inclusion of the same
-       * stylesheet should be OK. After all, CSS is declarative.
-       * NOTE also that (apparently, did check the spec, just verified
-       * empirically) the nice thing about this approach is that when
-       * the <style> is removed (because e.g. another note is rendered),
-       * also the `@import`ed stylesheet is removed. This way we don't risk
-       * style clash among notes.
-       * NOTE one final benefit of this approach is that the styles are visible
-       * also in the Anki-deskop note editor. Now, this is generally useless,
-       * because users should not use the note editor for Autoanki notes, but
-       * still something nice to have.
-       */
-      return `
-<object data="${metadata.storedFilename}" type="text/css" declare></object>
+function getMediaTags(note: AutoankiNote): string {
+  const styleTags = note.styleFiles.map((styleFile) => {
+    /*
+     * Create the object tag so that Anki finds the reference to the media file
+     *
+     * Create the style tag with the @import so that it is immediately
+     * available when the note renders.
+     * NOTE that <style>'s effect is global, no matter where the <style> is
+     * in the document.
+     * NOTE that the same <style> tag with the same imports is included
+     * for multiple note-fields, but AFAIK repeated inclusion of the same
+     * stylesheet should be OK. After all, CSS is declarative.
+     * NOTE also that (apparently, did check the spec, just verified
+     * empirically) the nice thing about this approach is that when
+     * the <style> is removed (because e.g. another note is rendered),
+     * also the `@import`ed stylesheet is removed. This way we don't risk
+     * style clash among notes.
+     * NOTE one final benefit of this approach is that the styles are visible
+     * also in the Anki-deskop note editor. Now, this is generally useless,
+     * because users should not use the note editor for Autoanki notes, but
+     * still something nice to have.
+     */
+    return `
+<object data="${
+      styleFile.metadata.storedFilename
+    }" type="text/css" declare></object>
 <style>
-@import "${encodeURIComponent(metadata.storedFilename)}"
+@import "${encodeURIComponent(styleFile.metadata.storedFilename)}"
 </style>
 `;
-    })
-  );
-  const scriptTags = Promise.all(
-    note.scriptFiles.map(async (styleFile) => {
-      const metadata = await computeMediaFileMetadataFromMediaFile(
-        styleFile.fromPlugin.name,
-        styleFile.media
-      );
-      return `<object data="${metadata.storedFilename}" type="application/javascript" declare></object>`;
-    })
-  );
-  return [await styleTags, await scriptTags].flat().join('\n');
+  });
+
+  const scriptTags = note.scriptFiles.map((file) => {
+    return `<object
+data="${file.metadata.storedFilename}"
+type="application/javascript"
+${
+  file.scriptArgs === undefined
+    ? ''
+    : `data-${
+        AUTOANKI_HTML_CONSTANTS.METADATA_SCRIPT_ARGS_DATA_ATTRIBUTE
+      }='${JSON.stringify(file.scriptArgs)}'`
+}
+declare></object>`;
+  });
+
+  /*
+   * Probably most media wouldn't need to have this "artificial" <object>
+   * reference, as they would be already referenced using the standard HTML5
+   * tags (<img>, <audio>, etc.). But plugin authors may decide to include
+   * esoteric media that they then render via JavaScript.
+   */
+  const miscTags = note.mediaFiles.map((file) => {
+    return `<object data="${file.metadata.storedFilename}" declare></object>`;
+  });
+  return [styleTags, scriptTags, miscTags].flat().join('\n');
 }
 
 /**
@@ -81,50 +94,54 @@ export async function getAnkiNoteField(
 ): Promise<string> {
   assert(note.autoanki.uuid !== undefined);
 
+  const [sourceContentDigest, finalContentDigest] = await Promise.all([
+    hashContent(sourceContent),
+    hashContent(finalContent),
+  ]);
   /*
    * NOTE: we're setting contenteditable="false" on the final content tag
    * so that it is not ediable even if it is inside the Anki's note editor.
    * This should prevent normal users from accidentally making changes
    * to the final content of a note.
    */
-  return `<${AUTOANKI_TAGS.SOURCE_CONTENT} hidden>
+  return `<${AUTOANKI_HTML_CONSTANTS.SOURCE_CONTENT_TAG} hidden>
 ${escape(sourceContent)}
-</${AUTOANKI_TAGS.SOURCE_CONTENT}>
+</${AUTOANKI_HTML_CONSTANTS.SOURCE_CONTENT_TAG}>
 
-<${AUTOANKI_TAGS.METADATA}
+<${AUTOANKI_HTML_CONSTANTS.METADATA_TAG}
  data-autoanki-uuid="${note.autoanki.uuid}"
  data-autoanki-note-type="${note.modelName}"
  data-autoanki-tags="${note.tags}"
- data-autoanki-source-content-hash="${await hashContent(sourceContent)}"
- data-autoanki-final-content-hash="${await hashContent(finalContent)}"
+ data-autoanki-source-content-hash="${sourceContentDigest}"
+ data-autoanki-final-content-hash="${finalContentDigest}"
  hidden>
- ${await getMediaTags(note)}
-</${AUTOANKI_TAGS.METADATA}>
+ ${getMediaTags(note)}
+</${AUTOANKI_HTML_CONSTANTS.METADATA_TAG}>
 
-<${AUTOANKI_TAGS.FINAL_CONTENT} contenteditable="false">
+<${AUTOANKI_HTML_CONSTANTS.FINAL_CONTENT_TAG} contenteditable="false">
 ${finalContent}
-</${AUTOANKI_TAGS.FINAL_CONTENT}>`;
+</${AUTOANKI_HTML_CONSTANTS.FINAL_CONTENT_TAG}>`;
 }
 
 const autoankiNoteFieldSchema = z.object({
-  [AUTOANKI_TAGS.SOURCE_CONTENT]: z
+  [AUTOANKI_HTML_CONSTANTS.SOURCE_CONTENT_TAG]: z
     .object({
       // can contain whatever attributes
       '@_attributes': z.object({}),
       '#text': z.string(),
     })
     .strict(),
-  [AUTOANKI_TAGS.FINAL_CONTENT]: z.object({
+  [AUTOANKI_HTML_CONSTANTS.FINAL_CONTENT_TAG]: z.object({
     // can contain whatever attributes
     '@_attributes': z.object({}),
     '#text': z.string(),
   }),
-  [AUTOANKI_TAGS.METADATA]: z.object({
+  [AUTOANKI_HTML_CONSTANTS.METADATA_TAG]: z.object({
     object: z.array(
       z.object({
         '@_attributes': z.object({
           data: z.string(),
-          type: z.string(),
+          type: z.string().optional(),
         }),
       })
     ),
@@ -201,9 +218,9 @@ const parser = new XMLParser({
   attributeNamePrefix: '',
   allowBooleanAttributes: true,
   stopNodes: [
-    `*.${AUTOANKI_TAGS.SOURCE_CONTENT}`,
-    `*.${AUTOANKI_TAGS.FINAL_CONTENT}`,
-    `*.${AUTOANKI_TAGS.METADATA}.object`,
+    `*.${AUTOANKI_HTML_CONSTANTS.SOURCE_CONTENT_TAG}`,
+    `*.${AUTOANKI_HTML_CONSTANTS.FINAL_CONTENT_TAG}`,
+    `*.${AUTOANKI_HTML_CONSTANTS.METADATA_TAG}.object`,
   ],
 });
 
@@ -275,11 +292,11 @@ Reason: ${error.toString()}`
 
   const sourceContent: AutoankiNoteFieldMetadata = {
     storedHash:
-      field[AUTOANKI_TAGS.METADATA]['@_attributes'][
+      field[AUTOANKI_HTML_CONSTANTS.METADATA_TAG]['@_attributes'][
         'data-autoanki-source-content-hash'
       ],
     content: getOriginalContent(
-      unescape(field[AUTOANKI_TAGS.SOURCE_CONTENT]['#text'])
+      unescape(field[AUTOANKI_HTML_CONSTANTS.SOURCE_CONTENT_TAG]['#text'])
     ),
     computedHash: '',
     fieldChanged: false,
@@ -290,10 +307,12 @@ Reason: ${error.toString()}`
 
   const finalContent: AutoankiNoteFieldMetadata = {
     storedHash:
-      field[AUTOANKI_TAGS.METADATA]['@_attributes'][
+      field[AUTOANKI_HTML_CONSTANTS.METADATA_TAG]['@_attributes'][
         'data-autoanki-final-content-hash'
       ],
-    content: getOriginalContent(field[AUTOANKI_TAGS.FINAL_CONTENT]['#text']),
+    content: getOriginalContent(
+      field[AUTOANKI_HTML_CONSTANTS.FINAL_CONTENT_TAG]['#text']
+    ),
     computedHash: '',
     fieldChanged: false,
   };
@@ -318,10 +337,16 @@ Reason: ${error.toString()}`
     finalContent,
     scriptMediaFiles,
     styleMediaFiles,
-    uuid: field[AUTOANKI_TAGS.METADATA]['@_attributes']['data-autoanki-uuid'],
+    uuid: field[AUTOANKI_HTML_CONSTANTS.METADATA_TAG]['@_attributes'][
+      'data-autoanki-uuid'
+    ],
     modelName:
-      field[AUTOANKI_TAGS.METADATA]['@_attributes']['data-autoanki-note-type'],
-    tags: field[AUTOANKI_TAGS.METADATA]['@_attributes']['data-autoanki-tags'],
+      field[AUTOANKI_HTML_CONSTANTS.METADATA_TAG]['@_attributes'][
+        'data-autoanki-note-type'
+      ],
+    tags: field[AUTOANKI_HTML_CONSTANTS.METADATA_TAG]['@_attributes'][
+      'data-autoanki-tags'
+    ],
   } as AutoankiNoteFieldFromAnki;
 }
 

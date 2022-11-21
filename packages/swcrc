@@ -1,6 +1,8 @@
 // Shared .swcrc. System link
 {
   "$schema": "https://json.schemastore.org/swcrc",
+  // Exclude test files
+  "exclude": [".*\\.spec\\.ts$"],
   // No need to minify. If minification is required, the final application
   // will deal with it. We simply transpile.
   "minify": false,

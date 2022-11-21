@@ -12,7 +12,6 @@ import {
   getAutoankiNoteField,
   hasFieldContentChanged,
 } from './note-field.js';
-import { computeMediaFileMetadataFromMediaFile } from './media.js';
 
 /**
  * Data type of Autoanki note retrieved from anki
@@ -242,20 +241,6 @@ function htmlToText(html: string): string {
   return toString(ast);
 }
 
-export async function computeMediaFilesStoredPaths(
-  mediaFiles: AutoankiNote['styleFiles'] | AutoankiNote['scriptFiles']
-): Promise<string[]> {
-  return Promise.all(
-    mediaFiles.map(async (file) => {
-      const result = await computeMediaFileMetadataFromMediaFile(
-        file.fromPlugin.name,
-        file.media
-      );
-      return result.storedFilename;
-    })
-  );
-}
-
 export async function computeNoteChanges(
   fromSource: AutoankiNote,
   fromAnki: AutoankiNoteFromAnki,
@@ -266,12 +251,11 @@ export async function computeNoteChanges(
    */
   let tagsChanges: ExistingNoteChanges['tagsChanges'] = ConcernedSide.NoSide;
   {
-    // TODO: support order insensitive tags comparison
-    const sourceTgas = fromSource.tags.join(' ');
-    const actualTagsInAnki = fromAnki.tags.actual.join(' ');
-    const storedTagsInAnki = fromAnki.tags.stored.join(' ');
-    if (sourceTgas !== actualTagsInAnki) {
-      if (sourceTgas !== storedTagsInAnki) {
+    const sourceTags = fromSource.tags.sort().join(' ');
+    const actualTagsInAnki = fromAnki.tags.actual.sort().join(' ');
+    const storedTagsInAnki = fromAnki.tags.stored.sort().join(' ');
+    if (sourceTags !== actualTagsInAnki) {
+      if (sourceTags !== storedTagsInAnki) {
         tagsChanges |= ConcernedSide.Source;
       }
       if (fromAnki.tags.changed) {
@@ -397,19 +381,14 @@ export async function computeNoteChanges(
    *
    * For now we assume that only the source changes the media files
    */
-  const [sourceScriptMediaFiles, sourceStyleMediaFilesChanged] =
-    await Promise.all([
-      computeMediaFilesStoredPaths(fromSource.scriptFiles),
-      computeMediaFilesStoredPaths(fromSource.styleFiles),
-    ]);
   const scriptMediaFilesChanges = arrayEqual(
-    sourceScriptMediaFiles,
+    fromSource.scriptFiles.map((file) => file.metadata.storedFilename),
     fromAnki.scriptMediaFiles
   )
     ? ConcernedSide.NoSide
     : ConcernedSide.Source;
   const styleMediaFilesChanges = arrayEqual(
-    sourceStyleMediaFilesChanged,
+    fromSource.styleFiles.map((file) => file.metadata.storedFilename),
     fromAnki.styleMediaFiles
   )
     ? ConcernedSide.NoSide

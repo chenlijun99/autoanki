@@ -1,13 +1,16 @@
-import type { AutoankiMediaFile } from '@autoanki/core';
+/**
+ * @file Media files related logic
+ */
+import { z } from 'zod';
 import assert from '@autoanki/utils/assert.js';
-
-import { hashContent } from './hash.js';
+import { hashContent } from '@autoanki/utils/hash.js';
+import { hashContentSync } from '@autoanki/utils/hash-sync.js';
 
 /**
  * See https://docs.ankiweb.net/templates/styling.html#installing-fonts
  */
 const ANKI_DONT_REFERENCE_COUNT_PREFIX = '_';
-const AUTOANKI_MEDIA_PREFIX = 'autoanki' as const;
+export const AUTOANKI_MEDIA_PREFIX = 'autoanki' as const;
 
 export const ANKI_MAX_FILENAME_LENGTH = 120 as const;
 
@@ -23,33 +26,27 @@ const ACTUAL_FILENAME_MAX_LENGTH =
   // Initial underscore, which may be included if actual filename starts with underscore
   1;
 
+export const autoankiMediaFileMetadataSchema = z
+  .object({
+    /**
+     * The complete filename as it is stored in Anki
+     */
+    storedFilename: z.string(),
+    /**
+     * Digest of the media file
+     */
+    digest: z.string(),
+  })
+  .strict();
+
 /**
  * Metadata of an Autoanki media file.
  *
  * It is fully encoded inside the media file's filename stored in Anki.
  */
-export interface MediaFileMetadata {
-  /**
-   * The complete filename as it is stored in Anki
-   */
-  storedFilename: string;
-  /**
-   * The true filename of the media file, comprised of name of plugin from
-   * which the media originated + filename of the media itself.
-   *
-   * It shouldn't be useful in any way for Autoanki...
-   * It may also be truncated due to filename length limit imposed by Anki.
-   * See https://github.com/ankitects/anki/blob/68fa661b532ef965e72357c2876636271f01fa67/rslib/src/media/files.rs#L24-L28
-   *
-   * But anyway, keeping the (even truncated) actual filename is useful for the
-   * user to have an idea of media file.
-   */
-  truncatedActualFilename: string;
-  /**
-   * Digest of the media file
-   */
-  digest: string;
-}
+export type AutoankiMediaFileMetadata = z.infer<
+  typeof autoankiMediaFileMetadataSchema
+>;
 
 /**
  * Truncate the filename trying to keep the extension and at least one
@@ -85,24 +82,24 @@ var filenameMetadataPrefixRegex = new RegExp(
 /**
  * Returns undefined if the filename is not valid
  */
-export function parseMediaFileMetadataDataFromFilename(
+export function parseMediaFileMetadataFromFilename(
   filename: string
-): MediaFileMetadata | undefined {
+): AutoankiMediaFileMetadata | undefined {
   const decoded = decodeURIComponent(filename);
   const match = filenameMetadataPrefixRegex.exec(decoded);
   if (match) {
     return {
       storedFilename: filename,
       digest: match[2],
-      truncatedActualFilename: match[3],
     };
   }
 }
 
-export async function computeMediaFileMetadataFromMediaFile(
+function computeMediaFileMetadataHelper(
   fromPluginName: string,
-  mediaFile: AutoankiMediaFile
-): Promise<MediaFileMetadata> {
+  mediaFile: RawAutoankiMediaFile,
+  mediaFileDigest: string
+): AutoankiMediaFileMetadata {
   assert(fromPluginName.length > 0);
   assert(mediaFile.filename.length > 0);
 
@@ -111,9 +108,6 @@ export async function computeMediaFileMetadataFromMediaFile(
     hasSpecialPrefix = true;
   }
 
-  const digest = await hashContent(mediaFile.base64Content);
-
-  // strip from input plugin name and filename
   let truncatedActualFilename = stripUnmatchedSurrogates(
     `${fromPluginName}_${mediaFile.filename}`
   );
@@ -125,7 +119,7 @@ export async function computeMediaFileMetadataFromMediaFile(
   const encodedFilename = encodeURIComponent(
     `${
       hasSpecialPrefix ? ANKI_DONT_REFERENCE_COUNT_PREFIX : ''
-    }${AUTOANKI_MEDIA_PREFIX}_${digest}_${truncatedActualFilename}`
+    }${AUTOANKI_MEDIA_PREFIX}_${mediaFileDigest}_${truncatedActualFilename}`
   );
 
   assert(
@@ -134,7 +128,74 @@ export async function computeMediaFileMetadataFromMediaFile(
   );
   return {
     storedFilename: encodedFilename,
-    truncatedActualFilename,
-    digest,
+    digest: mediaFileDigest,
   };
 }
+
+export function computeMediaFileMetadataSync(
+  fromPluginName: string,
+  mediaFile: RawAutoankiMediaFile
+): AutoankiMediaFileMetadata {
+  return computeMediaFileMetadataHelper(
+    fromPluginName,
+    mediaFile,
+    hashContentSync(mediaFile.base64Content)
+  );
+}
+
+export async function computeMediaFileMetadata(
+  fromPluginName: string,
+  mediaFile: RawAutoankiMediaFile
+): Promise<AutoankiMediaFileMetadata> {
+  return computeMediaFileMetadataHelper(
+    fromPluginName,
+    mediaFile,
+    await hashContent(mediaFile.base64Content)
+  );
+}
+
+export async function computeAutoankiMediaFileFromRaw(
+  fromPluginName: string,
+  mediaFile: RawAutoankiMediaFile
+): Promise<AutoankiMediaFile> {
+  return {
+    ...mediaFile,
+    metadata: await computeMediaFileMetadata(fromPluginName, mediaFile),
+  };
+}
+
+export function computeAutoankiMediaFileFromRawSync(
+  fromPluginName: string,
+  mediaFile: RawAutoankiMediaFile
+): AutoankiMediaFile {
+  return {
+    ...mediaFile,
+    metadata: computeMediaFileMetadataSync(fromPluginName, mediaFile),
+  };
+}
+
+export const rawAutoankiMediaFileSchema = z
+  .object({
+    filename: z.string(),
+    base64Content: z.string(),
+  })
+  .strict();
+export type RawAutoankiMediaFile = z.infer<typeof rawAutoankiMediaFileSchema>;
+
+export const autoankiMediaFileSchema = rawAutoankiMediaFileSchema
+  .extend({
+    metadata: autoankiMediaFileMetadataSchema,
+  })
+  .strict();
+
+export type AutoankiMediaFile = z.infer<typeof autoankiMediaFileSchema>;
+
+export const autoankiScriptMediaFileSchema = autoankiMediaFileSchema
+  .extend({
+    scriptArgs: z.unknown(),
+  })
+  .strict();
+
+export type AutoankiScriptMediaFile = z.infer<
+  typeof autoankiScriptMediaFileSchema
+>;

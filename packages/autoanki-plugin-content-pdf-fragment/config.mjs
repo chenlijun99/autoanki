@@ -1,7 +1,7 @@
 import {
   writePackageJson,
   packageJsonSingleEntryLibrary,
-  packageJsonUseSWC,
+  packageJsonUseEsbuild,
   combinePackageJsonChunks,
   writeTsConfig,
 } from '../config-utils.mjs';
@@ -9,5 +9,5 @@ import {
 await writeTsConfig();
 
 await writePackageJson(
-  combinePackageJsonChunks(packageJsonSingleEntryLibrary, packageJsonUseSWC)
+  combinePackageJsonChunks(packageJsonSingleEntryLibrary, packageJsonUseEsbuild)
 );

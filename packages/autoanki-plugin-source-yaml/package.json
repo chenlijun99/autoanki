@@ -48,11 +48,11 @@
   "scripts": {
     "update-config": "node config.mjs",
     "typegen": "tsc --project tsconfig.build.json --emitDeclarationOnly --declaration --declarationDir dist/ --declarationMap",
-    "prepare": "pnpm run build:prod",
     "clean": "rimraf ./dist/ ./tsconfig.build.tsbuildinfo",
     "build:dev": "swc --config-file ../swcrc ./src -d dist/ --source-maps",
     "prebuild:dev": "pnpm run clean",
     "prebuild:prod": "pnpm run clean && pnpm run typegen",
-    "build:prod": "swc --config-file ../swcrc ./src -d dist/ --source-maps"
+    "build:prod": "swc --config-file ../swcrc ./src -d dist/ --source-maps",
+    "prepublishOnly": "pnpm run build:prod"
   }
 }

@@ -28,8 +28,10 @@
     "./src/*"
   ],
   "dependencies": {
+    "@autoanki/config": "workspace:^",
     "@autoanki/core": "workspace:^",
     "@autoanki/sync": "workspace:^",
+    "@autoanki/utils": "workspace:^",
     "cosmiconfig": "^7.0.1",
     "ink": "^3.2.0",
     "react": "17.x",
@@ -45,12 +47,12 @@
   },
   "scripts": {
     "update-config": "node config.mjs",
-    "prepare": "pnpm run build:prod",
     "clean": "rimraf ./dist/ ./tsconfig.build.tsbuildinfo",
     "typecheck": "tsc --project tsconfig.build.json --noEmit",
     "build:dev": "ts-node -T esbuild.config.mts",
     "prebuild:dev": "pnpm run clean",
     "prebuild:prod": "pnpm run clean && pnpm run typecheck",
-    "build:prod": "ts-node -T esbuild.config.mts production"
+    "build:prod": "ts-node -T esbuild.config.mts production",
+    "prepublishOnly": "pnpm run build:prod"
   }
 }

@@ -5,10 +5,9 @@ import type { Element, Root } from 'hast';
 import rehypeParse from 'rehype-parse';
 import rehypeStringify from 'rehype-stringify';
 
+import type { AutoankiMediaFile } from '@autoanki/core';
 import { ModelTypes } from '@autoanki/anki-connect';
 import assert from '@autoanki/utils/assert.js';
-
-import { MediaFileMetadata } from './media.js';
 
 const AutoankiSyncContainerClassName = 'autoanki-sync-scripts';
 
@@ -98,7 +97,16 @@ const rehypeInstrumentAutoankiSyncScripts: Plugin<[PluginOptions]> = (
           return {
             type: 'element',
             tagName: 'script',
-            properties: { src: scriptSrc },
+            properties: {
+              src: scriptSrc,
+              /*
+               * NOTE: loading ES6 modules via <script> is not supported
+               * by Anki-Android due to CORS problems.
+               *
+               * See https://github.com/ankidroid/Anki-Android/issues/5400
+               */
+              // type: 'module'
+            },
             children: [],
           } as Element;
         });
@@ -144,7 +152,7 @@ const rehypeInstrumentAutoankiSyncScripts: Plugin<[PluginOptions]> = (
  */
 export async function updateNoteTemplatesIfNecessary(
   templates: ModelTypes.ModelTemplates,
-  expectedScripts: MediaFileMetadata[]
+  expectedScripts: AutoankiMediaFile[]
 ): Promise<ModelTypes.ModelTemplates | undefined> {
   const newTemplates: ModelTypes.ModelTemplates = {};
 
@@ -152,7 +160,7 @@ export async function updateNoteTemplatesIfNecessary(
     .use(rehypeParse, { fragment: true })
     .use(rehypeInstrumentAutoankiSyncScripts, {
       requiredScripts: expectedScripts.map((script) =>
-        encodeURIComponent(script.storedFilename)
+        encodeURIComponent(script.metadata.storedFilename)
       ),
     })
     .use(rehypeStringify);

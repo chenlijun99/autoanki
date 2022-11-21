@@ -1,85 +1,46 @@
 import { z } from 'zod';
-import * as path from 'node:path';
-import winston from 'winston';
 import { cosmiconfigSync } from 'cosmiconfig';
-import validate from 'validate-npm-package-name';
 
-import * as core from '@autoanki/core';
+import { buildConfigManager, Config, ConfigManager } from '@autoanki/config';
+import assert from '@autoanki/utils/assert.js';
 
-const cliConfigSchema = z.object({
-  '@autoanki/core': core.configSchema,
-});
+import { getLogger } from './log.js';
 
-export type CliConfig = z.infer<typeof cliConfigSchema>;
-
-let defaultConfig: CliConfig = {
-  '@autoanki/core': {
-    pipelines: [],
-  },
+let defaultConfig: Config = {
+  filesConfig: [],
 };
 
-function isPluginSpecifiedWithRelativePath(name: string) {
-  /**
-   * If the plugin's name is not a valid NPM package name and is not an
-   * absolute path, then we assume that it is a relative path.
-   */
-  return !validate(name).validForNewPackages && !path.isAbsolute(name);
+let configManager: ConfigManager;
+
+export function getConfig(): ConfigManager {
+  assert(configManager !== undefined);
+  return configManager;
 }
 
-function normalizeRelativePathPluginPath(
-  pluginInstance: core.ConfigPluginInstance,
-  configDirectory: string
-): core.ConfigPluginInstance {
-  if (
-    typeof pluginInstance === 'string' &&
-    isPluginSpecifiedWithRelativePath(pluginInstance)
-  ) {
-    return path.join(configDirectory, pluginInstance).normalize();
-  } else if (
-    Array.isArray(pluginInstance) &&
-    typeof pluginInstance[0] === 'string' &&
-    isPluginSpecifiedWithRelativePath(pluginInstance[0])
-  ) {
-    pluginInstance[0] = path
-      .join(configDirectory, pluginInstance[0])
-      .normalize();
-  }
-  return pluginInstance;
-}
-
-export function getConfig(): CliConfig {
-  return defaultConfig;
-}
 export function initConfig() {
-  winston.debug('Loading configuration...');
+  const logger = getLogger();
+  logger.log('Loading configuration...');
   const result = cosmiconfigSync('autoanki').search();
   if (result) {
-    winston.debug(`Using configuratino found at ${result.filepath}`);
+    logger.log(`Using configuratino found at ${result.filepath}`);
     try {
-      defaultConfig = cliConfigSchema.parse(result.config);
-      for (const pipeline of defaultConfig['@autoanki/core'].pipelines) {
-        pipeline.source = normalizeRelativePathPluginPath(
-          pipeline.source,
-          path.dirname(result.filepath)
-        );
-        if (pipeline.transformers) {
-          for (const [index, transformer] of pipeline.transformers.entries()) {
-            pipeline.transformers[index] = normalizeRelativePathPluginPath(
-              transformer,
-              path.dirname(result.filepath)
-            );
-          }
-        }
-      }
+      configManager = buildConfigManager(result.filepath, result.config);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        winston.error(`Invalid configuration from ${result.filepath}`);
-        winston.error(JSON.stringify(error.issues, undefined, 2));
+        logger.error(`Invalid configuration from ${result.filepath}`);
+        logger.error(JSON.stringify(error.issues, undefined, 2));
       } else {
         throw error;
       }
     }
   } else {
-    winston.debug('No configuration file found. Use default configuration');
+    logger.log('No configuration file found. Use default configuration');
+    /*
+     * Just pass a fake absolute path path
+     */
+    configManager = buildConfigManager(
+      '/autoanki/autoanki.config.js',
+      defaultConfig
+    );
   }
 }

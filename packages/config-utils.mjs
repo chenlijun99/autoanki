@@ -101,12 +101,15 @@ const DEFAULT_PACKAGE_JSON = {
   scripts: {
     'update-config': 'node config.mjs',
     /*
-     * Is run every time the package is packed
+     * Is run before the package is prepared and packed.
      * (most often a package is packed to then be published)
      *
      * See https://docs.npmjs.com/cli/v8/using-npm/scripts
+     *
+     * We use this instead of `prepare` because we don't want to deal
+     * this script of execute every time we run `pnpm install`.
      */
-    prepare: 'pnpm run build:prod',
+    prepublishOnly: 'pnpm run build:prod',
     /*
      * Remove tsconfig.tsbuildinfo to ensure that tsc re-emits files when `incremental` is enabled
      */
@@ -130,6 +133,7 @@ const npmPropertiesDesiredOrder = [
   'module',
   'types',
   'exports',
+  'imports',
   'files',
   'peerDependencies',
   'dependencies',
@@ -209,6 +213,18 @@ export const packageJsonSingleEntryLibrary = {
       },
       // We don't support CJS
       require: undefined,
+    },
+  },
+};
+
+export const packageJsonAutoankiPluginLibrary = {
+  ...packageJsonLibrary,
+  ...packageJsonSingleEntryLibrary,
+  exports: {
+    ...packageJsonSingleEntryLibrary.exports,
+    './api/*.js': {
+      types: './dist/api/*.d.ts',
+      default: './dist/api/*.js',
     },
   },
 };

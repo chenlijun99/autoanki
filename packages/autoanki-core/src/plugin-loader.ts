@@ -1,9 +1,14 @@
 import { Config } from './config.js';
-import { PluginType, AutoankiPlugin } from './plugin.js';
+import { PluginType, AutoankiPlugin, AutoankiPluginApi } from './plugin.js';
+import {
+  computeAutoankiMediaFileFromRaw,
+  computeAutoankiMediaFileFromRawSync,
+} from './media.js';
+import { getLogger } from './logger.js';
 
 type PluginConfig<Type extends PluginType> = Type extends 'source'
-  ? Config['pipelines'][0]['source']
-  : NonNullable<Config['pipelines'][0]['transformers']>[0];
+  ? Config['pipeline']['source']
+  : NonNullable<Config['pipeline']['transformers']>[0];
 
 type LoadedPluginType<Type extends PluginType> = InstanceType<
   NonNullable<AutoankiPlugin[Type]>
@@ -17,6 +22,7 @@ export class PluginLoadingError extends Error {
 }
 
 async function importPlugin(moduleName: string): Promise<AutoankiPlugin> {
+  getLogger().log(`Loading plugin ${moduleName}`);
   return import(moduleName)
     .then((module) => module.default)
     .catch((error) => {
@@ -32,12 +38,11 @@ export async function loadPlugin<Type extends PluginType>(
   type: Type
 ): Promise<LoadedPluginType<Type>> {
   let plugin: AutoankiPlugin;
-  let pluginHasArgs = false;
-  let pluginArgs: unknown;
+  let pluginArgs: unknown | undefined;
+
   if (typeof pluginConfig === 'string') {
     plugin = await importPlugin(pluginConfig);
   } else if (Array.isArray(pluginConfig)) {
-    pluginHasArgs = true;
     pluginArgs = pluginConfig[1];
     const first = pluginConfig[0];
     plugin = typeof first === 'string' ? await importPlugin(first) : first;
@@ -50,7 +55,24 @@ export async function loadPlugin<Type extends PluginType>(
       'Plugin used as source plugin has no `source` property'
     );
   }
-  return (
-    pluginHasArgs ? new pluginConstructor(pluginArgs) : new pluginConstructor()
-  ) as LoadedPluginType<Type>;
+
+  const api: AutoankiPluginApi = {
+    media: {
+      computeAutoankiMediaFileFromRawSync: (rawFile) => {
+        return computeAutoankiMediaFileFromRawSync(
+          pluginConstructor.pluginName,
+          rawFile
+        );
+      },
+      computeAutoankiMediaFileFromRaw: (rawFile) => {
+        return computeAutoankiMediaFileFromRaw(
+          pluginConstructor.pluginName,
+          rawFile
+        );
+      },
+    },
+    logger: getLogger().createChildLogger(pluginConstructor.pluginName),
+  };
+
+  return new pluginConstructor(api, pluginArgs) as LoadedPluginType<Type>;
 }

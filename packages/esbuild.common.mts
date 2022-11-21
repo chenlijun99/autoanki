@@ -1,3 +1,5 @@
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 import process from 'node:process';
 
 import esbuild, { Plugin, BuildOptions } from 'esbuild';
@@ -64,6 +66,35 @@ export const configBundleWithoutNodeModules = (
 };
 
 export const configTargetSpecific = {
+  /**
+   * Thanks to https://github.com/ankidroid/Anki-Android/issues/7760 we can use
+   * `import()` and dynamically load ES6 modules even in Anki-Android.
+   */
+  ankiWebView: {
+    minify: prod,
+    treeShaking: prod,
+    bundle: true,
+    target: ['es2020'],
+    platform: 'browser',
+    format: 'esm',
+  } as BuildOptions,
+  /**
+   * Anki webview script, i.e. scripts that are loaded via the <script> tag,
+   * shouldn't be ES6 modules.
+   * This is because scripts loaded using `<script type="module">` are subject
+   * to Single Origin Policy (see
+   * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script#attr-type),
+   * which causes problems on Android.
+   * See https://github.com/ankidroid/Anki-Android/issues/5400
+   */
+  ankiWebViewScript: {
+    minify: prod,
+    treeShaking: prod,
+    bundle: true,
+    target: ['es2020'],
+    platform: 'browser',
+    format: 'iife',
+  } as BuildOptions,
   nodeApp: {
     outfile: 'dist/index.cjs',
     platform: 'node',
@@ -108,6 +139,49 @@ export const configTargetSpecific = {
     minify: false,
   } as BuildOptions,
 } as const;
+
+async function buildBridge(entrypoint?: string): Promise<string> {
+  const result = esbuild.buildSync({
+    entryPoints: [entrypoint ?? 'src/bridge/index.ts'],
+    outfile: 'dist/bridge.js',
+    ...configTargetSpecific.ankiWebView,
+  });
+
+  assert(result.errors.length === 0);
+  const content = await readFile('dist/bridge.js');
+  return content.toString();
+}
+
+/**
+ * Convention over configuration.
+ * When using this plugin ensure that:
+ *
+ * * The import specifier for the bundled plugin is 'bridge/index.bundled.js'.
+ */
+export const configPluginBundledBridgePluginAsBase64 = (
+  entrypoint: string = 'src/bridge/index.ts'
+) => {
+  return {
+    name: 'bundle_bridge_plugin',
+    setup(build) {
+      build.onResolve({ filter: /bridge\/index\.bundled\.js$/ }, (args) => {
+        return {
+          path: args.path,
+          namespace: 'bridge',
+        };
+      });
+      build.onLoad(
+        { filter: /bridge\/index\.bundled\.js$/, namespace: 'bridge' },
+        async (args) => {
+          return {
+            contents: await buildBridge(entrypoint),
+            loader: 'base64',
+          };
+        }
+      );
+    },
+  } as Plugin;
+};
 
 type TargetConfigName = keyof typeof configTargetSpecific;
 

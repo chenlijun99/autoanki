@@ -2,7 +2,10 @@ import { writeFile } from 'node:fs/promises';
 
 import type { CommandModule } from 'yargs';
 
-import { groupAutoankiNotesBySourcePluginAndInput } from '@autoanki/core';
+import {
+  groupAutoankiNotesBySourcePluginAndInput,
+  getPluginName,
+} from '@autoanki/core';
 import syncPlugin, {
   AutomaticSyncAction,
   SyncAction,
@@ -18,6 +21,7 @@ import syncPlugin, {
 } from '@autoanki/sync';
 
 import { extractAnkiNotesFromFiles } from '../../utils/index.js';
+import { createChildLogger, getLogger } from '../../middlewares/log.js';
 
 interface Args {
   inputs: string[];
@@ -33,7 +37,7 @@ function syncActionToString(action: SyncAction) {
     str += 'Create notes in Anki\n';
     const grouped = groupAutoankiNotesBySourcePluginAndInput(action.newNotes);
     for (const [sourcePlugin, groupedbySource] of grouped) {
-      str += `      From "${sourcePlugin.name}"\n`;
+      str += `      From "${getPluginName(sourcePlugin)}"\n`;
       for (const [source, notes] of groupedbySource) {
         str += `         ${notes.length} new notes from "${source.key}"\n`;
       }
@@ -45,7 +49,7 @@ function syncActionToString(action: SyncAction) {
       (item) => item.note.fromSource
     );
     for (const [sourcePlugin, groupedbySource] of grouped) {
-      str += `      From "${sourcePlugin.name}"\n`;
+      str += `      From "${getPluginName(sourcePlugin)}"\n`;
       for (const [source, notes] of groupedbySource) {
         str += `         from "${source.key}"\n`;
         for (const note of notes) {
@@ -60,7 +64,7 @@ function syncActionToString(action: SyncAction) {
       (item) => item.note.fromSource
     );
     for (const [sourcePlugin, groupedbySource] of grouped) {
-      str += `      From "${sourcePlugin.name}"\n`;
+      str += `      From "${getPluginName(sourcePlugin)}"\n`;
       for (const [source, notes] of groupedbySource) {
         str += `         from "${source.key}"\n`;
         for (const note of notes) {
@@ -74,7 +78,7 @@ function syncActionToString(action: SyncAction) {
       action.notesToBeRemoved
     );
     for (const [sourcePlugin, groupedbySource] of grouped) {
-      str += `      From "${sourcePlugin.name}"\n`;
+      str += `      From "${getPluginName(sourcePlugin)}"\n`;
       for (const [source, notes] of groupedbySource) {
         str += `         from "${source.key}"\n`;
         for (const note of notes) {
@@ -89,7 +93,7 @@ function syncActionToString(action: SyncAction) {
       (item) => item.note.fromSource
     );
     for (const [sourcePlugin, groupedbySource] of grouped) {
-      str += `      From "${sourcePlugin.name}"\n`;
+      str += `      From "${getPluginName(sourcePlugin)}"\n`;
       for (const [source, notes] of groupedbySource) {
         str += `         from "${source.key}"\n`;
         for (const note of notes) {
@@ -114,13 +118,21 @@ function syncActionToString(action: SyncAction) {
 }
 
 async function handler(argv: Args) {
+  const logger = getLogger();
+
+  logger.info('Parsing Anki notes from note sources...');
   const notes = await extractAnkiNotesFromFiles(argv.inputs, [
     [syncPlugin, undefined],
   ]);
-  const sync = new SyncProcedure(notes, {
-    origin: argv.port,
-  });
+  const sync = new SyncProcedure(
+    notes,
+    {
+      origin: argv.port,
+    },
+    createChildLogger('@autoanki/sync')
+  );
 
+  logger.info('Computing required sync actions...');
   await sync.start();
 
   for (const action of sync.syncActions) {
@@ -128,6 +140,7 @@ async function handler(argv: Args) {
   }
 
   if (!argv['dry-run']) {
+    logger.info('Syncing...');
     await sync.runAllAutomaticActions();
 
     if (sync.completed) {
@@ -136,6 +149,8 @@ async function handler(argv: Args) {
           return writeFile(source.key, Buffer.from(source.content));
         })
       );
+
+      logger.info('Done!');
     } else {
       throw new Error('Manual operations not supported yet');
     }

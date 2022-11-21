@@ -1,0 +1,48 @@
+{
+  "name": "@autoanki/anki-bridge",
+  "version": "0.0.1",
+  "description": "Dynamic JavaScript loading bridge inside Anki",
+  "keywords": [
+    "anki",
+    "autoanki"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/chenlijun99/autoanki.git",
+    "directory": "packages/autoanki-anki-bridge"
+  },
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=16.16.0"
+  },
+  "type": "module",
+  "module": "./dist/index.js",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    }
+  },
+  "files": [
+    "./dist/*",
+    "./src/*"
+  ],
+  "dependencies": {
+    "@autoanki/utils": "workspace:^"
+  },
+  "scripts": {
+    "update-config": "node config.mjs",
+    "clean": "rimraf ./dist/ ./tsconfig.build.tsbuildinfo",
+    "typegen": "tsc --project tsconfig.build.json --emitDeclarationOnly --declaration --declarationDir dist/ --declarationMap",
+    "prebuild:dev": "pnpm run clean",
+    "prebuild:prod": "pnpm run clean && pnpm run typegen",
+    "build:dev": "ts-node -T esbuild.config.mts",
+    "build:prod": "ts-node -T esbuild.config.mts production",
+    "prepublishOnly": "pnpm run build:prod"
+  }
+}

@@ -12,14 +12,19 @@ delete tsconfigPathMaps['^@autoanki/utils/(.*)$'];
 
 function projectConfig(packageName) {
   return {
+    displayName: packageName,
     extensionsToTreatAsEsm: ['.ts'],
     modulePaths: ['<rootDir>/packages/'],
     moduleNameMapper: {
       ...tsconfigPathMaps,
       '^@autoanki/utils/webcrypto\\.js$':
         '<rootDir>/packages//autoanki-utils/src/webcrypto.node',
+      '^@autoanki/utils/hash-sync\\.js$':
+        '<rootDir>/packages//autoanki-utils/src/hash-sync.node',
       '^@autoanki/utils/(.*)\\.js$':
         '<rootDir>/packages//autoanki-utils/src/$1',
+      '^#webcrypto\\.js$':
+        '<rootDir>/packages//autoanki-utils/src/webcrypto.node',
       '^(\\.{1,2}/.*)\\.js$': '$1',
     },
     transform: {
@@ -43,5 +48,10 @@ function projectConfig(packageName) {
 
 /** @type {import('ts-jest/dist/types').InitialOptionsTsJest} */
 module.exports = {
-  projects: [projectConfig('autoanki-sync')],
+  projects: [
+    projectConfig('autoanki-sync'),
+    projectConfig('autoanki-core'),
+    projectConfig('autoanki-utils'),
+    projectConfig('autoanki-plugin-content-local-media-extractor'),
+  ],
 };

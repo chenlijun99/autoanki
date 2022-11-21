@@ -6,6 +6,7 @@ import type {
   SourcePlugin,
   ParsedNote,
   SourcePluginParsingOutput,
+  AutoankiPluginApi,
 } from '@autoanki/core';
 
 interface Metadata {
@@ -29,15 +30,12 @@ const yamlAnkiNoteSchema = z
 
 type YamlAnkiNote = z.infer<typeof yamlAnkiNoteSchema>;
 
-function yamlAnkiNoteToParsedNote(
-  yamlNote: YamlAnkiNote,
-  defaultDeck: string
-): ParsedNote {
+function yamlAnkiNoteToParsedNote(yamlNote: YamlAnkiNote): ParsedNote {
   return {
     tags: yamlNote.tags ?? [],
     id: yamlNote.id,
     fields: yamlNote.fields,
-    deckName: yamlNote.deck ?? defaultDeck,
+    deckName: yamlNote.deck,
     modelName: yamlNote.note_type,
     deleted: yamlNote.deleted,
   };
@@ -53,26 +51,10 @@ function parsedNoteToYamlAnkiNote(parsedNote: ParsedNote): YamlAnkiNote {
   };
 }
 
-const pluginConfigSchema = z
-  .object({
-    defaultDeck: z.string().default('Default'),
-  })
-  .strict();
-
-type PluginConfig = z.infer<typeof pluginConfigSchema>;
-
 export class YamlSourcePlugin implements SourcePlugin {
-  name = '@autoanki/plugin-source-yaml';
+  static pluginName = '@autoanki/plugin-source-yaml';
 
-  constructor(inputConfig?: unknown) {
-    if (inputConfig) {
-      this.config = pluginConfigSchema.parse(inputConfig);
-    }
-  }
-
-  private config: PluginConfig = {
-    defaultDeck: 'Default',
-  };
+  constructor(private coreApi: AutoankiPluginApi) {}
 
   private yamlParseCache: Record<
     string,
@@ -114,10 +96,19 @@ export class YamlSourcePlugin implements SourcePlugin {
     );
   }
 
-  async parseFromInput(inputKey: string, inputContent: ArrayBufferLike) {
+  async parseFromInput(
+    inputKey: string,
+    inputContent: ArrayBufferLike
+  ): Promise<SourcePluginParsingOutput[]> {
     var enc = new TextDecoder('utf8');
     const input = enc.decode(inputContent);
-    let parsedYaml = yaml.parse(input);
+    let parsedYaml;
+    try {
+      parsedYaml = yaml.parse(input);
+    } catch (error) {
+      this.coreApi.logger.warn(`Unable to parse YAML in ${inputKey}. ${error}`);
+      return [];
+    }
 
     const isParsedYamlArray = Array.isArray(parsedYaml);
     if (!isParsedYamlArray) {
@@ -130,18 +121,24 @@ export class YamlSourcePlugin implements SourcePlugin {
     };
     const currentInputCache = this.yamlParseCache[inputKey];
 
-    return (parsedYaml as any[]).map((item, i) => {
-      const parsedItem = yamlAnkiNoteSchema.parse(item);
-      currentInputCache.parsed.push(parsedItem);
-      const note: ParsedNote = yamlAnkiNoteToParsedNote(
-        parsedItem,
-        this.config.defaultDeck
-      );
-      return {
-        note,
-        metadata: { index: i } as Metadata,
-      } as SourcePluginParsingOutput;
-    });
+    return (
+      (parsedYaml as any[])
+        /*
+         * Some inputs may generated a parsed item that is `null`.
+         * E.g. a file that contains only YAML comments.
+         * Filter them out.
+         */
+        .filter((item) => item !== null)
+        .map((item, i) => {
+          const parsedItem = yamlAnkiNoteSchema.parse(item);
+          currentInputCache.parsed.push(parsedItem);
+          const note: ParsedNote = yamlAnkiNoteToParsedNote(parsedItem);
+          return {
+            note,
+            metadata: { index: i } as Metadata,
+          } as SourcePluginParsingOutput;
+        })
+    );
   }
 }
 

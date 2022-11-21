@@ -6,6 +6,7 @@ import { visit } from 'unist-util-visit';
 
 import type {
   AutoankiPlugin,
+  AutoankiPluginApi,
   SourcePlugin,
   SourcePluginParsingOutput,
 } from '@autoanki/core';
@@ -24,14 +25,18 @@ const encoder = new TextEncoder();
 const decoder = new TextDecoder('utf8');
 
 export class MarkdownSourcePlugin implements SourcePlugin {
-  name = '@autoanki/plugin-source-yaml';
+  static pluginName = '@autoanki/plugin-source-markdown';
 
   private markdownParseCache: Record<
     string,
     { ast: Root; yamlBlocks: Code[] }
   > = {};
 
-  private yamlPlugin = new yamlPlugin.source!();
+  private yamlPlugin;
+
+  constructor(api: AutoankiPluginApi) {
+    this.yamlPlugin = new yamlPlugin.source!(api);
+  }
 
   async writeBackToInput(
     inputKey: string,

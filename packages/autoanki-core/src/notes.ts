@@ -17,10 +17,21 @@ import type { ReadonlyDeep } from 'type-fest';
 
 import type { NoteTypes, MediaTypes } from '@autoanki/anki-connect';
 
-import { SourcePlugin, TransformerPlugin } from './plugin.js';
 import { Config } from './config.js';
-import type { Equals, AssertTrue } from './utils/type.js';
+import {
+  AutoankiMediaFile,
+  autoankiMediaFileSchema,
+  AutoankiScriptMediaFile,
+} from './media.js';
+import {
+  SourcePlugin,
+  TransformerPlugin,
+  getPluginName,
+  SourcePluginParsingOutput,
+} from './plugin.js';
 import { loadPlugin } from './plugin-loader.js';
+import type { Equals, AssertTrue } from './utils/type.js';
+import { tagSchema } from './utils.js';
 
 const ankiConnectMediaFileSchema = z
   .object({
@@ -86,7 +97,7 @@ const ankiConnectNewNoteSchema = z
       })
       .strict()
       .optional(),
-    tags: z.string().array(),
+    tags: tagSchema.array(),
     audio: newNoteMediasSchema,
     video: newNoteMediasSchema,
     picture: newNoteMediasSchema,
@@ -97,14 +108,6 @@ type AnkiConnectNewNote = z.infer<typeof ankiConnectNewNoteSchema>;
 type NewNoteSchemaMatchesInterface = AssertTrue<
   Equals<NoteTypes.NewNote, AnkiConnectNewNote>
 >;
-
-const autoankiMediaFileSchema = z
-  .object({
-    filename: z.string(),
-    base64Content: z.string(),
-  })
-  .strict();
-export type AutoankiMediaFile = z.infer<typeof autoankiMediaFileSchema>;
 
 const parsedNoteSchema = ankiConnectNewNoteSchema
   .omit({
@@ -131,17 +134,15 @@ const parsedNoteSchema = ankiConnectNewNoteSchema
     id: z.string().uuid().optional(),
     deleted: z.boolean().optional(),
     /*
+     * In @autoanki/core, make the `deck` field optional so that plugins
+     * can produce notes with no deck.
+     */
+    deckName: z.string().optional(),
+    /*
      * In @autoanki/core, make the `tags` field optional so that plugins
      * can produce notes with no tags.
      */
-    tags: z
-      .string()
-      .min(1)
-      .refine((tag) => !tag.includes(' '), {
-        message: 'Anki tags must not contain spaces',
-      })
-      .array()
-      .optional(),
+    tags: tagSchema.array().optional(),
   });
 
 /**
@@ -149,24 +150,14 @@ const parsedNoteSchema = ankiConnectNewNoteSchema
  */
 export type ParsedNote = z.infer<typeof parsedNoteSchema>;
 
-interface AutoankiMediaFileFromPlugin {
-  fromPlugin: SourcePlugin | TransformerPlugin;
-  /**
-   * Medias returned from plugins are immutable.
-   * As long as two media files are referentially equal, we consider
-   * them to have the same content.
-   */
-  media: Readonly<AutoankiMediaFile>;
-}
-
 /**
  * Core Anki note type used throughout the Autoanki system
  */
 export interface AutoankiNote
   extends Omit<AnkiConnectNewNote, 'id' | 'audio' | 'video' | 'picture'> {
-  mediaFiles: Readonly<AutoankiMediaFileFromPlugin>[];
-  styleFiles: Readonly<AutoankiMediaFileFromPlugin>[];
-  scriptFiles: Readonly<AutoankiMediaFileFromPlugin>[];
+  mediaFiles: AutoankiMediaFile[];
+  styleFiles: AutoankiMediaFile[];
+  scriptFiles: AutoankiScriptMediaFile[];
   /**
    * All the data relevant to the Autoanki system are contained
    * in the `autoanki` property.
@@ -229,23 +220,14 @@ export interface AutoankiNote
  */
 export const AUTOANKI_NOTES_DEFAULT_TAG = 'autoanki' as const;
 
-function convertMedia(
-  media: AutoankiMediaFile,
-  plugin: AutoankiMediaFileFromPlugin['fromPlugin']
-): AutoankiMediaFileFromPlugin {
-  return Object.freeze({
-    fromPlugin: plugin,
-    media: Object.freeze(media),
-  });
-}
-
-function parsedNoteToAutoankiNote(
-  note: ParsedNote,
-  sourcePluginParsingMetadata: unknown,
+function sourcePluginOutputToAutoankiNote(
+  output: SourcePluginParsingOutput,
   sourcePlugin: SourcePlugin,
   transformerPlugins: TransformerPlugin[],
-  input: NoteInput
+  input: NoteInput,
+  config: Config
 ): AutoankiNote {
+  const note = output.note;
   const {
     id,
     deleted,
@@ -255,20 +237,19 @@ function parsedNoteToAutoankiNote(
     ...presentAlsoInAutoankiNote
   } = note;
 
-  const tags = note.tags ? [...note.tags] : [];
-  if (!tags.includes(AUTOANKI_NOTES_DEFAULT_TAG)) {
-    tags.push(AUTOANKI_NOTES_DEFAULT_TAG);
+  const tags: Set<string> = new Set(note.tags);
+  tags.add(AUTOANKI_NOTES_DEFAULT_TAG);
+  for (const tag of config.tags ?? []) {
+    tags.add(tag);
   }
-  const wrap = (media: AutoankiMediaFile) => {
-    return convertMedia(media, sourcePlugin);
-  };
 
   const coreAnkiNote: AutoankiNote = {
     ...presentAlsoInAutoankiNote,
-    mediaFiles: mediaFiles ? mediaFiles.map((media) => wrap(media)) : [],
-    styleFiles: styleFiles ? styleFiles.map((media) => wrap(media)) : [],
-    scriptFiles: scriptFiles ? scriptFiles.map((media) => wrap(media)) : [],
-    tags,
+    mediaFiles: mediaFiles ?? [],
+    styleFiles: styleFiles ?? [],
+    scriptFiles: scriptFiles ?? [],
+    deckName: note.deckName ?? config.defaultDeck ?? 'Default',
+    tags: Array.from(tags),
     autoanki: {
       uuid: id,
       deleted: deleted,
@@ -280,7 +261,7 @@ function parsedNoteToAutoankiNote(
         transformerPlugins,
       },
       pluginMetadata: {
-        [sourcePlugin.name]: sourcePluginParsingMetadata,
+        [getPluginName(sourcePlugin)]: output.metadata,
       },
     },
   };
@@ -371,19 +352,17 @@ export async function transformAutoankiNote(
       await plugin.transform(currentNote);
     currentNote = transformedNote;
     // add new metadata, but ensure that it is indeed readonly
-    Object.defineProperty(currentNote.autoanki.pluginMetadata, plugin.name, {
-      enumerable: true,
-      value: metadata,
-    });
-    for (const media of scriptFiles ?? []) {
-      currentNote.scriptFiles.push(convertMedia(media, plugin));
-    }
-    for (const media of styleFiles ?? []) {
-      currentNote.styleFiles.push(convertMedia(media, plugin));
-    }
-    for (const media of mediaFiles ?? []) {
-      currentNote.mediaFiles.push(convertMedia(media, plugin));
-    }
+    Object.defineProperty(
+      currentNote.autoanki.pluginMetadata,
+      getPluginName(plugin),
+      {
+        enumerable: true,
+        value: metadata,
+      }
+    );
+    currentNote.scriptFiles = currentNote.scriptFiles.concat(scriptFiles ?? []);
+    currentNote.styleFiles = currentNote.styleFiles.concat(styleFiles ?? []);
+    currentNote.mediaFiles = currentNote.mediaFiles.concat(mediaFiles ?? []);
   }
   return currentNote;
 }
@@ -409,91 +388,81 @@ export async function extractAutoankiNotes(
     ? inputs.keys
     : inputs.map((input) => input.key);
 
-  const notesPerPipeline = await Promise.all(
-    config.pipelines.map(async (pipeline) => {
-      const processableInputKeys: NoteInputKey[] = noteInputKeys.filter(
-        (inputKey) => {
-          return pipeline.test instanceof RegExp
-            ? pipeline.test.test(inputKey)
-            : inputKey.startsWith(pipeline.test);
-        }
-      );
-      if (processableInputKeys.length === 0) {
-        return [];
-      }
+  const pipeline = config.pipeline;
+  const processableInputKeys: NoteInputKey[] = noteInputKeys;
+  if (processableInputKeys.length === 0) {
+    return [];
+  }
 
-      if (isLazyNoteInputs(inputs)) {
-        await Promise.all(
-          processableInputKeys
-            .filter((inputKey) => !loadedNoteInputs[inputKey])
-            .map(async (inputKey) => {
-              /*
-               * Create immediately this item, so that any other concurrent
-               * code that is executing this same piece of code knows that this
-               * input is being loaded that doesn't try to re-load it again.
-               *
-               * If we're willing to sacrifice type correctness, we could also
-               * not create the throw-away `ArrayBuffer(1)`.
-               */
-              loadedNoteInputs[inputKey] = {
-                key: inputKey,
-                content: new ArrayBuffer(1),
-              };
-              loadedNoteInputs[inputKey].content = await inputs.contentLoader(
-                inputKey
-              );
-            })
-        );
-      }
-
-      const processableInput = processableInputKeys.map(
-        (inputKey) => loadedNoteInputs[inputKey]
-      );
-
-      const sourcePlugin = await loadPlugin(pipeline.source, 'source');
-      let transformerPlugins =
-        pipeline.transformers !== undefined
-          ? await Promise.all(
-              pipeline.transformers.map((transformer) =>
-                loadPlugin(transformer, 'transformer')
-              )
-            )
-          : [];
-
-      const notesPerInput = await Promise.all(
-        processableInput.map(async (input) => {
-          const outputs = await sourcePlugin.parseFromInput!(
-            input.key,
-            input.content
-          );
-
+  if (isLazyNoteInputs(inputs)) {
+    await Promise.all(
+      processableInputKeys
+        .filter((inputKey) => !loadedNoteInputs[inputKey])
+        .map(async (inputKey) => {
           /*
-           * Not all the plugins are under our control.
-           * In principle, we should treat plugin outputs are inputs from
-           * the external world, and thus we need to validate them.
+           * Create immediately this item, so that any other concurrent
+           * code that is executing this same piece of code knows that this
+           * input is being loaded that doesn't try to re-load it again.
+           *
+           * If we're willing to sacrifice type correctness, we could also
+           * not create the throw-away `ArrayBuffer(1)`.
            */
-          for (const output of outputs) {
-            output.note = parsedNoteSchema.parse(output.note);
-          }
-
-          return Promise.all(
-            outputs.map(async (output) => {
-              const note = parsedNoteToAutoankiNote(
-                output.note,
-                output.metadata,
-                sourcePlugin,
-                transformerPlugins,
-                input
-              );
-              return transformAutoankiNote(note);
-            })
+          loadedNoteInputs[inputKey] = {
+            key: inputKey,
+            content: new ArrayBuffer(1),
+          };
+          loadedNoteInputs[inputKey].content = await inputs.contentLoader(
+            inputKey
           );
         })
+    );
+  }
+
+  const processableInput = processableInputKeys.map(
+    (inputKey) => loadedNoteInputs[inputKey]
+  );
+
+  const sourcePlugin = await loadPlugin(pipeline.source, 'source');
+  let transformerPlugins =
+    pipeline.transformers !== undefined
+      ? await Promise.all(
+          pipeline.transformers.map((transformer) =>
+            loadPlugin(transformer, 'transformer')
+          )
+        )
+      : [];
+
+  const notesPerInput = await Promise.all(
+    processableInput.map(async (input) => {
+      const outputs = await sourcePlugin.parseFromInput!(
+        input.key,
+        input.content
       );
-      return notesPerInput.flat();
+
+      /*
+       * Not all the plugins are under our control.
+       * In principle, we should treat plugin outputs are inputs from
+       * the external world, and thus we need to validate them.
+       */
+      for (const output of outputs) {
+        output.note = parsedNoteSchema.parse(output.note);
+      }
+
+      return Promise.all(
+        outputs.map(async (output) => {
+          const note = sourcePluginOutputToAutoankiNote(
+            output,
+            sourcePlugin,
+            transformerPlugins,
+            input,
+            config
+          );
+          return transformAutoankiNote(note);
+        })
+      );
     })
   );
-  return notesPerPipeline.flat();
+  return notesPerInput.flat();
 }
 
 /**
@@ -568,7 +537,7 @@ export async function writeBackAutoankiNoteUpdates(
             note: autoankiNoteToParsedNote(note),
             metadata:
               note.autoanki.pluginMetadata[
-                note.autoanki.metadata.sourcePlugin.name
+                getPluginName(note.autoanki.metadata.sourcePlugin)
               ],
           };
         })

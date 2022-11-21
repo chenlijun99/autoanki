@@ -1,10 +1,7 @@
 import type { CommandModule } from 'yargs';
 
-import type {
-  AutoankiNote,
-  SourcePlugin,
-  TransformerPlugin,
-} from '@autoanki/core';
+import type { AutoankiMediaFile } from '@autoanki/core';
+import { getPluginName, isPlugin } from '@autoanki/core';
 
 import { extractAnkiNotesFromFiles } from '../utils/index.js';
 
@@ -12,32 +9,20 @@ interface Args {
   inputs: string[];
 }
 
-function isPlugin(value: any): value is SourcePlugin | TransformerPlugin {
-  if (value && value.name) {
-    const v = value as SourcePlugin & TransformerPlugin;
-    return !!(v.parseFromInput || v.writeBackToInput || v.transform);
-  }
-  return false;
-}
-
-function isAutoankiMediaFile(
-  value: any
-): value is AutoankiNote['mediaFiles'][number] {
-  return value && value.fromPlugin && isPlugin(value.fromPlugin);
+function isAutoankiMediaFile(value: any): value is AutoankiMediaFile {
+  return value && value.filename && value.base64Content;
 }
 
 function replacer(key: string, value: any): any {
   if (isAutoankiMediaFile(value)) {
     return {
-      fromPlugin: value.fromPlugin.name,
-      media: {
-        filename: value.media.filename,
-        content: '[Media content not shown...]',
-      },
+      filename: value.filename,
+      base64Content: '[Media content not shown...]',
+      metadata: value.metadata,
     };
   }
   if (isPlugin(value)) {
-    return value.name;
+    return getPluginName(value);
   }
   return value;
 }
