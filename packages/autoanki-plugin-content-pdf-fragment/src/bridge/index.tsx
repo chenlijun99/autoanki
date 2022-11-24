@@ -8,7 +8,7 @@ import type {
   AnkiBridgePluginApi,
 } from '@autoanki/anki-bridge';
 
-import PdfFragment from './pdf-fragment.js';
+import PdfViewer from './pdf-viewer/index.js';
 import { DOMConstants } from '@autoanki/plugin-content-local-media-extractor/api/constants.js';
 
 export interface PluginArgs {
@@ -71,7 +71,7 @@ class PdfRenderPlugin implements AnkiBridgePlugin {
 
         const pdfUrl =
           this.api.misc.getMediaFileUrlForXHR(dataUrl) + query + hash;
-        root.render(<PdfFragment pdfUrl={pdfUrl} />);
+        root.render(<PdfViewer pdfUrl={pdfUrl} />);
       }
     });
   }

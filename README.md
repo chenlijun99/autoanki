@@ -10,10 +10,11 @@ Set of tools that streamline the learning experience with Anki.
 
 ## Features
 
-- Ability to write Anki notes in multiple "source file" formats
+- Ability to write Anki notes in multiple "source file" formats.
   - Writing Anki notes in source files rather than creating them with the Anki GUI interface has the following advantages:
     - For plain text source formats, we can use our favorite text editor.
     - Especially for plain text source formats, it is easy to make collaborative Anki notes, similar to (and probably easier than) [CrowdAnki](https://github.com/Stvad/CrowdAnki).
+      - One additional potential benefit comes when dealing with collaborative Anki notes of copyrighted materials. E.g. imagine the case of a class working together to make cards of a textbook. Instead of distributing the Anki notes as a shared deck, which entails distributing portion of the copyrighted materials, it could be possible to distribute the note sources, which contain links to the copyrighted materials. Everyone who owns the copyrighted materials can generate the Anki notes using their own copy.
     - We structure our information via note taking. We isolate pieces of information and then learn them via spaced-repetition using Anki. By extracting Anki notes from source files (which could be our structured notes), we have best of both worlds: structure + spaced-repetition.
   - List of supported source file formats:
     - YAML

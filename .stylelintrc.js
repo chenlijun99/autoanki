@@ -5,5 +5,7 @@ module.exports = {
     'value-keyword-case': null,
     'selector-type-no-unknown': null,
     'selector-type-case': null,
+    'rule-empty-line-before': null,
+    'selector-class-pattern': null,
   },
 };
