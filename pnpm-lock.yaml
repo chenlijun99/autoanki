@@ -268,6 +268,7 @@ importers:
       react-sizeme: ^3.0.2
       react-use: ^17.4.0
       storybook: ^7.0.0-alpha.52
+      use-resize-observer: ^9.1.0
       vite: ^3.2.4
     dependencies:
       '@autoanki/plugin-content-local-media-extractor': link:../autoanki-plugin-content-local-media-extractor
@@ -284,6 +285,7 @@ importers:
       react-pdf: 6.1.1_biqbaboplfbrettd7655fr4n2y
       react-sizeme: 3.0.2
       react-use: 17.4.0_biqbaboplfbrettd7655fr4n2y
+      use-resize-observer: 9.1.0_biqbaboplfbrettd7655fr4n2y
     devDependencies:
       '@autoanki/anki-bridge': link:../autoanki-anki-bridge
       '@autoanki/core': link:../autoanki-core
@@ -2651,6 +2653,10 @@ packages:
       '@jridgewell/resolve-uri': 3.1.0
       '@jridgewell/sourcemap-codec': 1.4.14
     dev: true
+
+  /@juggle/resize-observer/3.4.0:
+    resolution: {integrity: sha512-dfLbk+PwWvFzSxwk3n5ySL0hfBog779o8h68wK/7/APo/7cgyWp5jcXockbxdk5kFRkbeXWm4Fbi9FrdN381sA==}
+    dev: false
 
   /@lerna/add/6.0.3:
     resolution: {integrity: sha512-EM9hJExG6bV4Hg+XpHTg5nGCuZl3pUEdbYLtyXfMUj/7fpCrUkxB0oESIVhFINVbxHm2pdnUfOxPDHwFSyWBig==}
@@ -16740,6 +16746,17 @@ packages:
       querystringify: 2.2.0
       requires-port: 1.0.0
     dev: true
+
+  /use-resize-observer/9.1.0_biqbaboplfbrettd7655fr4n2y:
+    resolution: {integrity: sha512-R25VqO9Wb3asSD4eqtcxk8sJalvIOYBqS8MNZlpDSQ4l4xMQxC/J7Id9HoTqPq8FwULIn0PVW+OAqF2dyYbjow==}
+    peerDependencies:
+      react: 16.8.0 - 18
+      react-dom: 16.8.0 - 18
+    dependencies:
+      '@juggle/resize-observer': 3.4.0
+      react: 18.2.0
+      react-dom: 18.2.0_react@18.2.0
+    dev: false
 
   /use/3.1.1:
     resolution: {integrity: sha512-cwESVXlO3url9YWlFW/TA9cshCEhtu7IKJ/p5soJ/gGpj7vbvFrAY/eIioQ6Dw23KjZhYgiIo8HOs1nQ2vr/oQ==}

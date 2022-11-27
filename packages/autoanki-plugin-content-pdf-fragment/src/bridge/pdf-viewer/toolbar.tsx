@@ -20,12 +20,13 @@ function ElevationScroll(props: ElevationScrollProps) {
 
 interface CustomAppBarProps extends AppBarProps {
   children: React.ReactElement;
+  className?: string;
 }
 
 function CustomAppBar(props: CustomAppBarProps) {
   const { children, ...forward } = props;
   return (
-    <AppBar position="sticky" color="default" elevation={0} {...forward}>
+    <AppBar color="default" elevation={0} {...forward}>
       <Toolbar variant="dense">{children}</Toolbar>
     </AppBar>
   );

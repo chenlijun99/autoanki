@@ -109,6 +109,7 @@ module.exports = {
     'unicorn/prefer-spread': 'off',
     'unicorn/no-empty-file': 'off',
     'unicorn/prefer-ternary': ['warn', 'only-single-line'],
+    'unicorn/no-useless-undefined': 'off',
     /**
      * We already have TypeScript to check for us
      */

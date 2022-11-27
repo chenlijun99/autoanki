@@ -70,7 +70,18 @@ const pageOperations = {
   } as PageOperation<void>,
   nextPage: {
     allowed: (currentValue, constrains) => {
-      if (!constrains.numPages || currentValue >= constrains.numPages) {
+      if (
+        !constrains.numPages ||
+        /*
+         * Don't stop "nextPage" action when reaching final page if
+         * `constrains.allowedPages` is defined, because there
+         * may be additional items in the `allowedPages` array that refer
+         * to previous page.
+         *
+         * E.g. a PDF has 5 pages and `allowedPages = [1, 5, 3]`.
+         */
+        (!constrains.allowedPages && currentValue >= constrains.numPages)
+      ) {
         return false;
       }
       if (

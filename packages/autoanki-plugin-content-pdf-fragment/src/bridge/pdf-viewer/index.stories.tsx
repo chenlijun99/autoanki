@@ -1,8 +1,9 @@
-import { CSSProperties } from 'react';
+import { css } from '@mui/material';
 
 import type { Meta, StoryObj } from '@storybook/react';
 
-import PdfViewer from './index.js';
+import PdfFragment, { PdfFragmentProps } from './index.js';
+import { CSS_CUSTOM_PROPERTIES } from '../constants.js';
 
 import { pdfjs } from 'react-pdf';
 
@@ -10,30 +11,60 @@ pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/b
 import 'react-pdf/dist/esm/Page/TextLayer.css';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 
-const DEFAULT_PDF =
-  'https://mozilla.github.io/pdf.js/web/compressed.tracemonkey-pldi-09.pdf';
+const Pdfs = {
+  'Research Article (https://mozilla.github.io/pdf.js/web/compressed.tracemonkey-pldi-09.pdf)':
+    'https://mozilla.github.io/pdf.js/web/compressed.tracemonkey-pldi-09.pdf',
+  'Slides (https://stg-tud.github.io/ctbd/2017/CTBD_02_intro.pdf)':
+    'https://stg-tud.github.io/ctbd/2017/CTBD_02_intro.pdf',
+};
+
+interface StoryProps extends Omit<PdfFragmentProps, 'pdfUrl'> {
+  pdfFileUrl: string;
+  openParameters?: string;
+}
+
+function StoryPdfFragment(props: StoryProps) {
+  const { openParameters, pdfFileUrl, ...forwarded } = props;
+  const pdfUrl = pdfFileUrl + (openParameters ?? '');
+  return (
+    <>
+      <div style={{ marginBottom: '16px' }}>
+        Actual props:{' '}
+        {JSON.stringify(
+          {
+            ...forwarded,
+            pdfUrl,
+          },
+          undefined,
+          2
+        )}
+      </div>
+      <PdfFragment {...forwarded} pdfUrl={pdfUrl} />
+    </>
+  );
+}
 
 export default {
-  component: PdfViewer,
+  component: StoryPdfFragment,
+  title: 'PDF fragment',
   args: {
-    pdfUrl: DEFAULT_PDF,
-    pages: undefined,
+    pdfFileUrl: Object.values(Pdfs)[0],
   },
   argTypes: {
-    pages: {},
+    pdfFileUrl: {
+      options: Pdfs,
+      control: { type: 'select' },
+    },
+    pages: {
+      control: { type: 'array' },
+    },
   },
-} as Meta<typeof PdfViewer>;
+} as Meta<typeof StoryPdfFragment>;
 
-type Story = StoryObj<typeof PdfViewer>;
+type Story = StoryObj<typeof StoryPdfFragment>;
 
 export const SinglePage: Story = {
   args: {},
-};
-
-export const PageOpenParameter: Story = {
-  args: {
-    pdfUrl: DEFAULT_PDF + '#page=2&zoom=100',
-  },
 };
 
 export const WithToolbar: Story = {
@@ -44,11 +75,7 @@ export const WithToolbar: Story = {
 
 export const ToolbarIsSticky: Story = {
   render: (props) => {
-    return (
-      <div style={{ height: '500px' }}>
-        <PdfViewer {...props} />
-      </div>
-    );
+    return <StoryPdfFragment css={{ height: '500px' }} {...props} />;
   },
   args: {
     enableToolbar: true,
@@ -57,45 +84,95 @@ export const ToolbarIsSticky: Story = {
 
 export const SubsetOfPages: Story = {
   args: {
-    pages: [2, 3, 5, 14],
+    pages: [2, 3, 5, 14, 6, 7],
     enableToolbar: true,
+  },
+};
+
+export const PageOpenParameter: Story = {
+  args: {
+    enableToolbar: true,
+  },
+  argTypes: {
+    openParameters: {
+      control: { type: 'text' },
+    },
+  },
+};
+
+export const ExplicitSizeToAvoidLayoutShift: Story = {
+  render: (props) => {
+    return (
+      <>
+        <StoryPdfFragment {...props} />
+      </>
+    );
+  },
+  args: {
+    width: 612,
+    height: 792,
+  },
+};
+
+export const AutomaticHeight: Story = {
+  render: (props) => {
+    return (
+      <>
+        <StoryPdfFragment
+          css={{ maxWidth: '100%', [CSS_CUSTOM_PROPERTIES.HEIGHT]: 'auto' }}
+          {...props}
+        />
+      </>
+    );
+  },
+};
+
+export const AutomaticWidth: Story = {
+  render: (props) => {
+    return (
+      <>
+        <StoryPdfFragment
+          css={{ maxHeight: '100vh', [CSS_CUSTOM_PROPERTIES.WIDTH]: 'auto' }}
+          {...props}
+        />
+      </>
+    );
   },
 };
 
 export const InsideACard: Story = {
   render: (props) => {
-    const cardStyle: CSSProperties = {
-      height: '80vh',
+    const cardStyle = css({
       padding: '16px',
       display: 'flex',
       flexDirection: 'column',
-    };
-    const pdfReaderStyle: CSSProperties = {
-      // dunno why, but necessary so that PdfViewer doesn't exceed its parent's height
-      minHeight: 0,
-      width: '80%',
-      margin: '0 auto',
-    };
+      '.autoanki-pdf-fragment': {
+        /*
+         * Typical styles used in Anki cards
+         */
+        // Don't overflow width
+        maxWidth: '100%',
+        // Scale the PDF to fit the width
+        [CSS_CUSTOM_PROPERTIES.HEIGHT]: 'auto',
+        // Center PDF fragment horizontally
+        margin: '0 auto',
+      },
+    });
 
     return (
       <>
-        <section style={cardStyle}>
+        <section css={cardStyle}>
           <h3>Question at page 1</h3>
-          <PdfViewer
-            {...props}
-            pdfUrl={DEFAULT_PDF + '#page=1&zoom=100'}
-            style={pdfReaderStyle}
-          />
+          <StoryPdfFragment {...props} openParameters="#page=1" />
         </section>
         <hr style={{ margin: '32px 0' }} />
-        <section style={cardStyle}>
+        <section css={cardStyle}>
           <h3>Answer at page 2 and 5</h3>
-          <PdfViewer
+          <StoryPdfFragment
             {...props}
             enableToolbar={true}
             pages={[2, 5]}
-            pdfUrl={DEFAULT_PDF + '#page=2&zoom=120'}
-            style={pdfReaderStyle}
+            openParameters="#page=2&zoom=120"
           />
         </section>
       </>
