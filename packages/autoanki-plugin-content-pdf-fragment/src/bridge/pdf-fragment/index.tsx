@@ -151,6 +151,11 @@ function Loader(props: LoaderProps) {
   );
 }
 
+type PdfFragmentSize = {
+  width: number;
+  height: number;
+};
+
 export default function PdfFragment(props: PdfFragmentProps) {
   const [numPages, setNumPages] = useState<number>();
 
@@ -158,9 +163,31 @@ export default function PdfFragment(props: PdfFragmentProps) {
     props.pages ? props.pages[0] : 1
   );
   const [scale, setScale] = useState<number>(1);
+  const [userSetScale, setUserSetScale] = useState<number | undefined>();
   const [currentPage, setCurrentPage] = useState<PDFPageProxy>();
   const [pdfView, setPdfView] = useState<PdfView>();
   const [pdfRect, setPdfRect] = useState<PdfRect>();
+  const [renderingPending, setRenderingPending] = useState<boolean>(true);
+
+  const onPageLoadSuccess = useCallback(
+    ((page) => {
+      setCurrentPage(page);
+    }) as NonNullable<Page['props']['onLoadSuccess']>,
+    []
+  );
+  const onRenderSuccess = useCallback(
+    (() => {
+      setRenderingPending(false);
+    }) as NonNullable<Page['props']['onRenderSuccess']>,
+    []
+  );
+
+  /*
+   * On page change, set rendering to pending
+   */
+  useEffect(() => {
+    setRenderingPending(true);
+  }, [currentPage]);
 
   /**
    * Extract open parameters from the URL of the PDF
@@ -182,6 +209,7 @@ export default function PdfFragment(props: PdfFragmentProps) {
       const value = Number.parseInt(newScale);
       if (value !== Number.NaN) {
         setScale(value / 100);
+        setUserSetScale(value / 100);
       }
     } else {
       setScale(1);
@@ -231,18 +259,9 @@ export default function PdfFragment(props: PdfFragmentProps) {
     setNumPages(pdf.numPages);
   };
 
-  const onPageLoadSuccess: Page['props']['onLoadSuccess'] = (page) => {
-    setCurrentPage(page);
-  };
-
   const pdfFragmentRef = useRef<HTMLDivElement | null>(null);
 
-  const currentPdfFragmentSize:
-    | {
-        width: number;
-        height: number;
-      }
-    | undefined = useMemo(() => {
+  const currentPdfFragmentSize: PdfFragmentSize | undefined = useMemo(() => {
     if (pdfRect || currentPage) {
       const width = (pdfRect?.width ??
         (currentPage && currentPage.view[2] - currentPage.view[0])) as number;
@@ -263,6 +282,16 @@ export default function PdfFragment(props: PdfFragmentProps) {
       };
     }
   }, [currentPage, pdfRect]);
+
+  const userDesiredSize: PdfFragmentSize | undefined = useMemo(() => {
+    if (currentPdfFragmentSize && userSetScale) {
+      return {
+        width: currentPdfFragmentSize.width * userSetScale,
+        height: currentPdfFragmentSize.height * userSetScale,
+      };
+    }
+    return currentPdfFragmentSize;
+  }, [currentPdfFragmentSize, userSetScale]);
 
   /**
    * Handle view fitting the parent container
@@ -339,7 +368,11 @@ export default function PdfFragment(props: PdfFragmentProps) {
     if (
       !!pdfAutoscaleAxis &&
       pdfFragmentDivSize.width &&
-      currentPdfFragmentSize
+      currentPdfFragmentSize &&
+      /*
+       * Only start autoscaling when the PDF rendering has finished
+       */
+      !renderingPending
     ) {
       let scaling: number = 1;
       if (pdfAutoscaleAxis === 'height') {
@@ -350,7 +383,12 @@ export default function PdfFragment(props: PdfFragmentProps) {
       }
       setScale(scaling);
     }
-  }, [pdfAutoscaleAxis, pdfFragmentDivSize, currentPdfFragmentSize]);
+  }, [
+    pdfAutoscaleAxis,
+    pdfFragmentDivSize,
+    currentPdfFragmentSize,
+    renderingPending,
+  ]);
 
   /**
    * Handle viewrect
@@ -453,11 +491,11 @@ export default function PdfFragment(props: PdfFragmentProps) {
                */
               width:
                 pdfAutoscaleAxis === 'height'
-                  ? currentPdfFragmentSize?.width ?? 'fit-content'
+                  ? userDesiredSize?.width ?? 'fit-content'
                   : 'fit-content',
               height:
                 pdfAutoscaleAxis === 'width'
-                  ? currentPdfFragmentSize?.height ?? 'fit-content'
+                  ? userDesiredSize?.height ?? 'fit-content'
                   : 'fit-content',
             }}
             style={{
@@ -516,7 +554,10 @@ export default function PdfFragment(props: PdfFragmentProps) {
                   />
                   <ZoomControl
                     zoom={scale * 100}
-                    onZoomChanged={(newZoom) => setScale(newZoom / 100)}
+                    onZoomChanged={(newZoom) => {
+                      setScale(newZoom / 100);
+                      setUserSetScale(newZoom / 100);
+                    }}
                   />
                 </div>
               </Toolbar>
@@ -543,6 +584,7 @@ export default function PdfFragment(props: PdfFragmentProps) {
                     loading={<SizedLoader />}
                     scale={scale}
                     onLoadSuccess={onPageLoadSuccess}
+                    onRenderSuccess={onRenderSuccess}
                     renderInteractiveForms={false}
                     pageNumber={pageNumber}
                   />

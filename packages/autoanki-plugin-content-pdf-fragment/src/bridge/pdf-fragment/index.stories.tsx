@@ -127,7 +127,10 @@ export const AutomaticHeight: Story = {
     return (
       <>
         <StoryPdfFragment
-          css={{ maxWidth: '100%', [CSS_CUSTOM_PROPERTIES.HEIGHT]: 'auto' }}
+          css={{
+            maxWidth: '100%',
+            [CSS_CUSTOM_PROPERTIES.HEIGHT]: 'auto',
+          }}
           {...props}
         />
       </>
