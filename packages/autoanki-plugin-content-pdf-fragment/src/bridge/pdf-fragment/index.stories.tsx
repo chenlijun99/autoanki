@@ -11,11 +11,19 @@ pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/b
 import 'react-pdf/dist/esm/Page/TextLayer.css';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 
+/**
+ * Get PDF files that we uplaoded to Git-LFS
+ * See https://stackoverflow.com/a/58245093
+ */
 const Pdfs = {
-  'Research Article (https://mozilla.github.io/pdf.js/web/compressed.tracemonkey-pldi-09.pdf)':
-    'https://mozilla.github.io/pdf.js/web/compressed.tracemonkey-pldi-09.pdf',
-  'Slides (https://stg-tud.github.io/ctbd/2017/CTBD_02_intro.pdf)':
-    'https://stg-tud.github.io/ctbd/2017/CTBD_02_intro.pdf',
+  'Research Article 0 (compressed.tracemonkey-pldi-09.pdf)':
+    'https://media.githubusercontent.com/media/chenlijun99/autoanki/dev/assets/compressed.tracemonkey-pldi-09.pdf',
+  'Research Article 1 (mapreduce-osdi04.pdf)':
+    'https://media.githubusercontent.com/media/chenlijun99/autoanki/dev/assets/mapreduce-osdi04.pdf',
+  'Slides 0 (pssj.pdf, with CJK, default rotated 90°)':
+    'https://media.githubusercontent.com/media/chenlijun99/autoanki/dev/assets/pssj.pdf',
+  'Slides 1 (A_2020_Vision_of_Linear_Algebra.pdf)':
+    'https://media.githubusercontent.com/media/chenlijun99/autoanki/dev/assets/A_2020_Vision_of_Linear_Algebra.pdf',
 };
 
 interface StoryProps extends Omit<PdfFragmentProps, 'pdfUrl'> {
@@ -125,6 +133,9 @@ export const AutomaticHeight: Story = {
       </>
     );
   },
+  args: {
+    enableToolbar: false,
+  },
 };
 
 export const AutomaticWidth: Story = {
@@ -137,6 +148,9 @@ export const AutomaticWidth: Story = {
         />
       </>
     );
+  },
+  args: {
+    enableToolbar: false,
   },
 };
 

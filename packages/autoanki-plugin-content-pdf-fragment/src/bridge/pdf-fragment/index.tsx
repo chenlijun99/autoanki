@@ -62,6 +62,24 @@ const pdfDocumentStyle = css({
   '.react-pdf__Page__textContent.textLayer span::selection': {
     backgroundColor: '#bccbff',
   },
+  /*
+   * When the PDF is rotated, the annotation layer is not rotated.
+   * Not sure whether it is a feature or bug of react-pdf.
+   * Anyway, when the PDF is rotated, the `data-main-rotation` attribute on the
+   * annotation layer element is updated. Based on the attribute's value PDF.js
+   * as used in Firefox applies the following styles.
+   */
+  '.react-pdf__Page__annotations.annotationLayer': {
+    '&[data-main-rotation="90"]': {
+      transform: 'rotate(90deg) translateY(-100%)',
+    },
+    '&[data-main-rotation="180"]': {
+      transform: 'rotate(180deg) translate(-100%, -100%)',
+    },
+    '&[data-main-rotation="270"]': {
+      transform: 'rotate(270deg) translateX(-100%)',
+    },
+  },
 });
 
 /**
@@ -226,14 +244,22 @@ export default function PdfFragment(props: PdfFragmentProps) {
       }
     | undefined = useMemo(() => {
     if (pdfRect || currentPage) {
+      const width = (pdfRect?.width ??
+        (currentPage && currentPage.view[2] - currentPage.view[0])) as number;
+      /*
+       * TODO: should we consider the toolbar height as part of the PDF fragment?
+       */
+      const height = (pdfRect?.height ??
+        (currentPage && currentPage.view[3] - currentPage.view[1])) as number;
+      let rotateSwapsAxis = false;
+
+      // handle PDF default rotation
+      if (currentPage?.rotate) {
+        rotateSwapsAxis = (currentPage.rotate / 90) % 2 !== 0;
+      }
       return {
-        width: (pdfRect?.width ??
-          (currentPage && currentPage.view[2] - currentPage.view[0])) as number,
-        /*
-         * TODO: should we consider the toolbar height as part of the PDF fragment?
-         */
-        height: (pdfRect?.height ??
-          (currentPage && currentPage.view[3] - currentPage.view[1])) as number,
+        width: rotateSwapsAxis ? height : width,
+        height: rotateSwapsAxis ? width : height,
       };
     }
   }, [currentPage, pdfRect]);
