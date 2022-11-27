@@ -1,6 +1,7 @@
 import ReactDOM from 'react-dom/client';
 
 import { pdfjs } from 'react-pdf';
+import rangeParser from 'parse-numeric-range';
 
 import type {
   AnkiBridgeModule,
@@ -8,13 +9,21 @@ import type {
   AnkiBridgePluginApi,
 } from '@autoanki/anki-bridge';
 
-import PdfViewer from './pdf-viewer/index.js';
+import PdfViewer, { PdfFragmentProps } from './pdf-viewer/index.js';
 import { DOMConstants } from '@autoanki/plugin-content-local-media-extractor/api/constants.js';
 
 export interface PluginArgs {
   pdfFilesToRender: string[];
   pdfjsWorkerSrc: string;
 }
+
+const pdfFragmentPropsToDataAttributesMap: Record<
+  keyof Pick<PdfFragmentProps, 'enableToolbar' | 'pages'>,
+  string
+> = {
+  enableToolbar: 'data-autoanki-pdf-enable-toolbar',
+  pages: 'data-autoanki-pdf-pages',
+} as const;
 
 const CLASS_NAME = 'autoanki-pdf-fragment-root';
 
@@ -69,9 +78,28 @@ class PdfRenderPlugin implements AnkiBridgePlugin {
         const root = ReactDOM.createRoot(div);
         this.reactRoots.set(div, root);
 
-        const pdfUrl =
-          this.api.misc.getMediaFileUrlForXHR(dataUrl) + query + hash;
-        root.render(<PdfViewer pdfUrl={pdfUrl} />);
+        let pages: PdfFragmentProps['pages'] = undefined;
+        {
+          const p = objEl.getAttribute(
+            pdfFragmentPropsToDataAttributesMap.pages
+          );
+          if (p) {
+            const ranges = rangeParser(p);
+            if (ranges.length > 0) {
+              pages = ranges;
+            }
+          }
+        }
+
+        const props: PdfFragmentProps = {
+          pdfUrl: this.api.misc.getMediaFileUrlForXHR(dataUrl) + query + hash,
+          enableToolbar:
+            objEl.getAttribute(
+              pdfFragmentPropsToDataAttributesMap.enableToolbar
+            ) === 'true' || (pages?.length ?? 0) > 1,
+          pages,
+        };
+        root.render(<PdfViewer {...props} />);
       }
     });
   }

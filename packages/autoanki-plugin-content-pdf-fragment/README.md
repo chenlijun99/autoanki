@@ -52,6 +52,7 @@ Source https://datatracker.ietf.org/doc/html/rfc8118
 Additionally, you can also pass the following `data-*` attributes:
 
 - `data-autoanki-pdf-pages`: an numeric range of pages to be rendered. Note that order matters. `data-autoanki-pdf-pages="2-4"` and `data-autoanki-pdf-pages="4-2"` are different. With the first pressing the next button you'll go through the pages 2, 3 and 4, while with the latter you'll go through the pages 4,3,2.
+- `data-autoanki-pdf-enable-toolbar`: pass `true` in order to force the toolbar to be shown. Pass `false` to force it to not be shown. By default, if there is need to switch pages (because of `data-autoanki-pdf-pages`), the toolbar will be shown.
 
 So a complete example could be:
 
