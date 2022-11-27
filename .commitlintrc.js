@@ -42,6 +42,11 @@ module.exports = {
          */
         'infra',
         /**
+         * Changes concerning the package manager and dependencies that dont't
+         * impact users
+         */
+        'deps',
+        /**
          * Documentation related changes
          */
         'docs',
