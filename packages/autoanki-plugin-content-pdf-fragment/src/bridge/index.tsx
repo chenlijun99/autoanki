@@ -9,7 +9,7 @@ import type {
   AnkiBridgePluginApi,
 } from '@autoanki/anki-bridge';
 
-import PdfViewer, { PdfFragmentProps } from './pdf-viewer/index.js';
+import PdfFragment, { PdfFragmentProps } from './pdf-fragment/index.js';
 import { DOMConstants } from '@autoanki/plugin-content-local-media-extractor/api/constants.js';
 
 export interface PluginArgs {
@@ -99,7 +99,7 @@ class PdfRenderPlugin implements AnkiBridgePlugin {
             ) === 'true' || (pages?.length ?? 0) > 1,
           pages,
         };
-        root.render(<PdfViewer {...props} />);
+        root.render(<PdfFragment {...props} />);
       }
     });
   }
