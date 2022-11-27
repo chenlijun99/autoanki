@@ -485,7 +485,15 @@ export default function PdfFragment(props: PdfFragmentProps) {
                      */
                     display: 'flex',
                     width: '100%',
-                    '& > *:first-child': {
+                    /*
+                     * Why not use first-child? To suppress warning from
+                     * emotion.js.
+                     *
+                     * > The pseudo class ":first-child" is potentially unsafe
+                     * > when doing server-side rendering.
+                     * > Try changing it to ":first-of-type".
+                     */
+                    '& > div:first-of-type': {
                       flex: 1,
                       display: 'flex',
                       justifyContent: 'flex-start',
