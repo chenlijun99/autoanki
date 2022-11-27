@@ -3,6 +3,7 @@ import React, {
   useRef,
   useState,
   useMemo,
+  useCallback,
   CSSProperties,
 } from 'react';
 
@@ -18,7 +19,13 @@ import ZoomControl from './zoom-control.js';
 import PageControl from './page-control.js';
 
 export interface PdfFragmentProps {
+  /**
+   * The URL of the PDF. Can contain PDF open parameters.
+   */
   pdfUrl: string;
+  /**
+   * Whether to show the toolbar
+   */
   enableToolbar?: boolean;
   /**
    * The instrinsict width of the PDF fragment what will be shown.
@@ -262,12 +269,12 @@ export default function PdfFragment(props: PdfFragmentProps) {
   useEffect(() => {
     if (pdfFragmentRef.current) {
       const pdfFragmentDiv = pdfFragmentRef.current;
-      const heightValue = getComputedStyle(pdfFragmentDiv).getPropertyValue(
-        CSS_CUSTOM_PROPERTIES.HEIGHT
-      );
-      const widthValue = getComputedStyle(pdfFragmentDiv).getPropertyValue(
-        CSS_CUSTOM_PROPERTIES.WIDTH
-      );
+      const heightValue = getComputedStyle(pdfFragmentDiv)
+        .getPropertyValue(CSS_CUSTOM_PROPERTIES.HEIGHT)
+        .trim();
+      const widthValue = getComputedStyle(pdfFragmentDiv)
+        .getPropertyValue(CSS_CUSTOM_PROPERTIES.WIDTH)
+        .trim();
 
       let enabled = false;
       if (heightValue === 'auto' && widthValue === 'auto') {
@@ -332,6 +339,20 @@ export default function PdfFragment(props: PdfFragmentProps) {
       div.scrollTo(pdfRect.x * scale, pdfRect.y * scale);
     }
   }, [currentPage, pdfRect, scale]);
+
+  const SizedLoader = useCallback(() => {
+    /*
+     * We assume all the pages of a PDF have the same size.
+     * If this assumption is true, sizing the loader with `currentPdfFragmentSize`
+     * let's us avoid layout shift when loading new pages.
+     */
+    return (
+      <Loader
+        width={currentPdfFragmentSize?.width ?? props.width}
+        height={currentPdfFragmentSize?.width ?? props.height}
+      />
+    );
+  }, [props.width, props.height, currentPdfFragmentSize]);
 
   return (
     <>
@@ -468,7 +489,7 @@ export default function PdfFragment(props: PdfFragmentProps) {
             ) : undefined}
             <div css={pdfDocumentStyle}>
               <Document
-                loading={<Loader width={props.width} height={props.height} />}
+                loading={<SizedLoader />}
                 file={pdfUrl}
                 onLoadSuccess={onDocumentLoadSuccess}
                 imageResourcesPath={`https://unpkg.com/pdfjs-dist@${pdfjs.version}/web/images/`}
@@ -485,9 +506,7 @@ export default function PdfFragment(props: PdfFragmentProps) {
                   )}
                 >
                   <Page
-                    loading={
-                      <Loader width={props.width} height={props.height} />
-                    }
+                    loading={<SizedLoader />}
                     scale={scale}
                     onLoadSuccess={onPageLoadSuccess}
                     renderInteractiveForms={false}
