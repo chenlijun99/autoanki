@@ -183,6 +183,17 @@ importers:
       '@types/uuid': 8.3.4
       type-fest: 3.2.0
 
+  packages/autoanki-plugin-content-css:
+    specifiers:
+      '@autoanki/core': workspace:^
+      '@autoanki/utils': workspace:^0.1.0
+      zod: ^3.19.1
+    dependencies:
+      '@autoanki/utils': link:../autoanki-utils
+      zod: 3.19.1
+    devDependencies:
+      '@autoanki/core': link:../autoanki-core
+
   packages/autoanki-plugin-content-local-media-extractor:
     specifiers:
       '@autoanki/core': workspace:^
@@ -381,9 +392,11 @@ importers:
     specifiers:
       '@types/crypto-js': ^4.1.1
       crypto-js: ^4.1.1
+      js-base64: ^3.7.3
     dependencies:
       '@types/crypto-js': 4.1.1
       crypto-js: 4.1.1
+      js-base64: 3.7.3
 
 packages:
 
@@ -11534,6 +11547,10 @@ packages:
       - supports-color
       - ts-node
     dev: true
+
+  /js-base64/3.7.3:
+    resolution: {integrity: sha512-PAr6Xg2jvd7MCR6Ld9Jg3BmTcjYsHEBx1VlwEwULb/qowPf5VD9kEMagj23Gm7JRnSvE/Da/57nChZjnvL8v6A==}
+    dev: false
 
   /js-cookie/2.2.1:
     resolution: {integrity: sha512-HvdH2LzI/EAZcUwA8+0nKNtWHqS+ZmijLA30RwZA0bo7ToCckjK5MkGhjED9KoRcXO6BaGI3I9UIzSA1FKFPOQ==}

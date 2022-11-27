@@ -25,6 +25,13 @@
       "@autoanki/sync": ["./autoanki-sync/src/index.ts"],
       "@autoanki/config": ["./autoanki-config/src/index.ts"],
       "@autoanki/anki-bridge": ["./autoanki-anki-bridge/src/index.ts"],
+      "@autoanki/utils/webcrypto.js": [
+        "./autoanki-utils/src/webcrypto.browser.ts"
+      ],
+      "@autoanki/utils/hash-sync.js": [
+        "./autoanki-utils/src/hash-sync.default.ts"
+      ],
+      "@autoanki/utils/base64.js": ["./autoanki-utils/src/base64.default.ts"],
       "@autoanki/utils/*": ["./autoanki-utils/src/*"],
       "@autoanki/plugin-source-yaml": [
         "./autoanki-plugin-source-yaml/src/index.ts"

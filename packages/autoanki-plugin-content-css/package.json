@@ -1,0 +1,57 @@
+{
+  "name": "@autoanki/plugin-content-css",
+  "version": "0.1.0",
+  "description": "Plugin to apply CSS to notes",
+  "keywords": [
+    "anki",
+    "autoanki",
+    "autoanki-content-plugin"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/chenlijun99/autoanki.git",
+    "directory": "packages/autoanki-pluginc-content-css"
+  },
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=16.16.0"
+  },
+  "type": "module",
+  "module": "./dist/index.js",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    },
+    "./api/*.js": {
+      "types": "./dist/api/*.d.ts",
+      "default": "./dist/api/*.js"
+    }
+  },
+  "files": [
+    "./dist/*",
+    "./src/*"
+  ],
+  "scripts": {
+    "update-config": "node config.mjs",
+    "prepublishOnly": "pnpm run build:prod",
+    "clean": "rimraf ./dist/ ./tsconfig.build.tsbuildinfo",
+    "typegen": "tsc --project tsconfig.build.json --emitDeclarationOnly --declaration --declarationDir dist/ --declarationMap",
+    "prebuild:dev": "pnpm run clean",
+    "prebuild:prod": "pnpm run clean && pnpm run typegen",
+    "build:dev": "swc --config-file ../swcrc ./src -d dist/ --source-maps",
+    "build:prod": "swc --config-file ../swcrc ./src -d dist/ --source-maps"
+  },
+  "dependencies": {
+    "@autoanki/utils": "workspace:^",
+    "zod": "^3.19.1"
+  },
+  "devDependencies": {
+    "@autoanki/core": "workspace:^"
+  }
+}
