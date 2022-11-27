@@ -186,7 +186,7 @@ importers:
   packages/autoanki-plugin-content-css:
     specifiers:
       '@autoanki/core': workspace:^
-      '@autoanki/utils': workspace:^0.1.0
+      '@autoanki/utils': workspace:^
       zod: ^3.19.1
     dependencies:
       '@autoanki/utils': link:../autoanki-utils
