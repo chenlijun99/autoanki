@@ -104,7 +104,7 @@ export async function getAnkiNoteField(
    * This should prevent normal users from accidentally making changes
    * to the final content of a note.
    */
-  return `<${AUTOANKI_HTML_CONSTANTS.SOURCE_CONTENT_TAG} hidden>
+  return `<${AUTOANKI_HTML_CONSTANTS.SOURCE_CONTENT_TAG}>
 ${escape(sourceContent)}
 </${AUTOANKI_HTML_CONSTANTS.SOURCE_CONTENT_TAG}>
 
@@ -113,8 +113,7 @@ ${escape(sourceContent)}
  data-autoanki-note-type="${note.modelName}"
  data-autoanki-tags="${note.tags}"
  data-autoanki-source-content-hash="${sourceContentDigest}"
- data-autoanki-final-content-hash="${finalContentDigest}"
- hidden>
+ data-autoanki-final-content-hash="${finalContentDigest}">
  ${getMediaTags(note)}
 </${AUTOANKI_HTML_CONSTANTS.METADATA_TAG}>
 
@@ -127,13 +126,13 @@ const autoankiNoteFieldSchema = z.object({
   [AUTOANKI_HTML_CONSTANTS.SOURCE_CONTENT_TAG]: z
     .object({
       // can contain whatever attributes
-      '@_attributes': z.object({}),
+      '@_attributes': z.object({}).optional(),
       '#text': z.string(),
     })
     .strict(),
   [AUTOANKI_HTML_CONSTANTS.FINAL_CONTENT_TAG]: z.object({
     // can contain whatever attributes
-    '@_attributes': z.object({}),
+    '@_attributes': z.object({}).optional(),
     '#text': z.string(),
   }),
   [AUTOANKI_HTML_CONSTANTS.METADATA_TAG]: z.object({

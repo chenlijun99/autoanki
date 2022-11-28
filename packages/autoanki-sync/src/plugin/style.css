@@ -1,8 +1,25 @@
-/*
- * When inside the Anki note editor, we reduce the opacity to give a
- * visual hint that the field is non-editable.
- */
+autoanki-source-content,
+autoanki-metadata {
+  /*
+   * By default hide source content and metadata content
+   */
+  display: none;
+}
 anki-editable autoanki-final-content {
-  display: block;
-  opacity: 0.7;
+  /*
+   * When inside the Anki note editor, hide final content
+   */
+  display: none;
+}
+
+anki-editable autoanki-source-content {
+  /*
+   * When inside the Anki note editor, show source content, so that the user
+   * can edit it.
+   */
+  display: initial;
+  /**
+   * Render white spaces and new line characters (`\n`).
+   */
+  white-space: pre;
 }
