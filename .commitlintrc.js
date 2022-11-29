@@ -80,6 +80,7 @@ module.exports = {
          * Generic improvement to the code
          */
         'improvement',
+        'chore',
       ],
     ],
     'scope-enum': (ctx) =>
