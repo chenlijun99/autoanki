@@ -93,6 +93,7 @@ module.exports = {
            * additional scopes.
            */
           [
+            'release',
             /*
              * Big changes that affect many packages
              */
