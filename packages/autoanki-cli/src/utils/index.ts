@@ -3,6 +3,7 @@ import path from 'node:path';
 
 import type { AutoankiNote, ConfigPluginInstance } from '@autoanki/core';
 import { extractAutoankiNotes } from '@autoanki/core';
+import { groupByMap } from '@autoanki/utils/array.js';
 
 import { getConfig } from '../middlewares/config.js';
 import { getLogger } from '../middlewares/log.js';
@@ -19,25 +20,36 @@ export async function extractAnkiNotesFromFiles(
   extraTansformerPlugins?: ConfigPluginInstance[]
 ): Promise<AutoankiNote[]> {
   const configManager = getConfig();
-  const groupedByConfig = configManager.getFilesGroupedByConfig(inputs);
+  const groupedByConfig = groupByMap(
+    inputs,
+    (input) => configManager.getFileConfig(input)['@autoanki/core']
+  );
   const logger = getLogger();
   logger.logLazy((print) => {
+    const str = Array.from(groupedByConfig.entries())
+      .map(([config, inputsWithConfig]) => {
+        return JSON.stringify(
+          {
+            config,
+            inputs: inputsWithConfig,
+          },
+          undefined,
+          2
+        );
+      })
+      .join('\n');
     print(
-      `Extracting Anki notes from note sources, with the following configuration groups:\n${JSON.stringify(
-        groupedByConfig,
-        undefined,
-        2
-      )}`
+      `Extracting Anki notes from note sources, with the following configuration groups:\n${str}`
     );
   });
 
   const notes = await Promise.all(
-    groupedByConfig.map(({ files, config }) => {
-      const pipeline = config['@autoanki/core'].pipeline;
+    Array.from(groupedByConfig.entries()).map(([config, files]) => {
+      const pipeline = config.pipeline;
       pipeline.transformers = (pipeline.transformers ?? []).concat(
         extraTansformerPlugins ?? []
       );
-      return extractAutoankiNotes(config['@autoanki/core'], {
+      return extractAutoankiNotes(config, {
         keys: uniqueArray(
           files.map((inputPath) => {
             return path.resolve(inputPath);

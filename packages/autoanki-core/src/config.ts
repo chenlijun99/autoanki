@@ -9,8 +9,8 @@ const preloadedLoadedPluginSchema = z.tuple([
 ]);
 
 const dynamicallyLoadedPluginSchema = z.union([
-  z.string(),
-  z.tuple([z.string(), z.unknown()]),
+  z.string().min(1),
+  z.tuple([z.string().min(1), z.unknown()]),
 ]);
 
 const configPluginInstanceSchema = z.union([
@@ -32,7 +32,7 @@ const pipelineSchema = z
 
 export const configSchema = z
   .object({
-    defaultDeck: z.string().optional(),
+    defaultDeck: z.string().min(1).optional(),
     tags: tagSchema.array().optional(),
     pipeline: pipelineSchema,
   })

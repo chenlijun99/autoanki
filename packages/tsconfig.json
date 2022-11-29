@@ -14,6 +14,8 @@
 
   "compilerOptions": {
     "types": ["jest"],
+    // We also use ts-jest to transpile some JS files in node_modules
+    "allowJs": true,
     // Mapping between typescript import path and the actual package in the monorepo.
     // Using this, we don't need to build the type declaration of the packages
     // during development.

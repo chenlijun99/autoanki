@@ -64,3 +64,4 @@ packages/joplin-plugin/api/*
 packages/*/jest.config.ts
 packages/*/assets/
 **/vite.config.ts
+__mocks__/

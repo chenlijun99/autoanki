@@ -10,12 +10,26 @@ const tsconfigPathMaps = pathsToModuleNameMapper(compilerOptions.paths, {
 });
 delete tsconfigPathMaps['^@autoanki/utils/(.*)$'];
 
+/*
+ * List of modules that ship ESM-only packages, which need to be transpiled
+ */
+const esModules = ['unified'].join('|');
+
 function projectConfig(packageName) {
   return {
     displayName: packageName,
     extensionsToTreatAsEsm: ['.ts'],
     modulePaths: ['<rootDir>/packages/'],
     moduleNameMapper: {
+      /*
+       * Map .bundled.js (used extensively in this project) and other non-JS
+       * modules to mock modules.
+       *
+       * See https://jestjs.io/docs/webpack
+       */
+      '\\.bundled.js$': '<rootDir>/__mocks__/bundledFileMock.js',
+      '\\.(css|less)$': '<rootDir>/__mocks__/cssFileMock.js',
+
       ...tsconfigPathMaps,
       '^@autoanki/utils/webcrypto\\.js$':
         '<rootDir>/packages//autoanki-utils/src/webcrypto.node',
@@ -30,7 +44,7 @@ function projectConfig(packageName) {
     transform: {
       // '^.+\\.[tj]sx?$' to process js/ts with `ts-jest`
       // '^.+\\.m?[tj]sx?$' to process js/ts/mjs/mts with `ts-jest`
-      '^.+\\.tsx?$': [
+      '^.+\\.m?[tj]sx?$': [
         'ts-jest',
         {
           tsconfig: '<rootDir>/packages/tsconfig.json',
@@ -39,6 +53,8 @@ function projectConfig(packageName) {
         },
       ],
     },
+    // some node_modules need also to be transformed
+    transformIgnorePatterns: [`node_modules/(?!(${esModules}))/`],
     testEnvironment: 'node',
     testMatch: [
       `<rootDir>/packages/${packageName}/**/?(*.)+(spec|test).[t]s?(x)`,
@@ -52,6 +68,7 @@ module.exports = {
     projectConfig('autoanki-sync'),
     projectConfig('autoanki-core'),
     projectConfig('autoanki-utils'),
+    projectConfig('autoanki-config'),
     projectConfig('autoanki-plugin-content-local-media-extractor'),
   ],
 };
