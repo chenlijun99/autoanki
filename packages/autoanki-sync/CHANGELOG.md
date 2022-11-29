@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.1.3](https://github.com/chenlijun99/autoanki/compare/@autoanki/sync@0.1.2...@autoanki/sync@0.1.3) (2022-11-29)
+
+### Bug Fixes
+
+- **sync:** handle class name minification and correctly validate config schema ([8b6174b](https://github.com/chenlijun99/autoanki/commit/8b6174b31b2321bc97653b09fd326ebade0189ee))
+
 ## [0.1.2](https://github.com/chenlijun99/autoanki/compare/@autoanki/sync@0.1.1...@autoanki/sync@0.1.2) (2022-11-29)
 
 ### Features

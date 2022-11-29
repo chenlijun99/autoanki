@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.1.3](https://github.com/chenlijun99/autoanki/compare/@autoanki/cli@0.1.2...@autoanki/cli@0.1.3) (2022-11-29)
+
+### Bug Fixes
+
+- **cli:** handle exception ([7837ba5](https://github.com/chenlijun99/autoanki/commit/7837ba53fdab8e3a248c6acbef57e005a3c1eda5))
+- **cli:** readline was wrongly closed ([b035f4d](https://github.com/chenlijun99/autoanki/commit/b035f4d27da6687ad25c76356de0cf1fdfd71c50))
+- **config:** reject incomplete configuration ([37f36d1](https://github.com/chenlijun99/autoanki/commit/37f36d1ab2657e6d6f203d7a5fb03be165cb2a8e))
+- **sync:** handle class name minification and correctly validate config schema ([8b6174b](https://github.com/chenlijun99/autoanki/commit/8b6174b31b2321bc97653b09fd326ebade0189ee))
+
 ## [0.1.2](https://github.com/chenlijun99/autoanki/compare/@autoanki/cli@0.1.1...@autoanki/cli@0.1.2) (2022-11-29)
 
 ### Code Refactoring

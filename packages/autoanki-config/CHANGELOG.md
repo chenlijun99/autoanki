@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.0.4](https://github.com/chenlijun99/autoanki/compare/@autoanki/config@0.0.3...@autoanki/config@0.0.4) (2022-11-29)
+
+### Bug Fixes
+
+- **config:** reject incomplete configuration ([37f36d1](https://github.com/chenlijun99/autoanki/commit/37f36d1ab2657e6d6f203d7a5fb03be165cb2a8e))
+
 ## [0.0.3](https://github.com/chenlijun99/autoanki/compare/@autoanki/config@0.0.2...@autoanki/config@0.0.3) (2022-11-29)
 
 ### Code Refactoring
