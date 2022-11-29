@@ -53,7 +53,7 @@
   },
   "devDependencies": {
     "@autoanki/anki-bridge": "workspace:^",
-    "@autoanki/core": "workspace:^0.1.1",
+    "@autoanki/core": "workspace:^",
     "@storybook/addon-essentials": "^7.0.0-alpha.52",
     "@storybook/addon-interactions": "^7.0.0-alpha.52",
     "@storybook/addon-links": "^7.0.0-alpha.52",

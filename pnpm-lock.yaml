@@ -263,7 +263,7 @@ importers:
   packages/autoanki-plugin-content-pdf-fragment:
     specifiers:
       '@autoanki/anki-bridge': workspace:^
-      '@autoanki/core': workspace:^0.1.1
+      '@autoanki/core': workspace:^
       '@autoanki/plugin-content-local-media-extractor': workspace:^
       '@emotion/react': ^11.10.5
       '@emotion/styled': ^11.10.5
