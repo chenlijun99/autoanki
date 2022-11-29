@@ -39,7 +39,8 @@
     // such as `TextEncoder` which are provided in "dom".
     "lib": ["ES2020", "dom"],
 
-    // module is not so useful because we don't use `tsc` to emit JS.
+    // We don't use `tsc` to emit JS.
+    // Only used for tsc type-checking
     "module": "ES2020",
     // mimic Node.js's ECMAScript module resolution
     // (which follows "exports" in package.json)

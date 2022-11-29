@@ -114,5 +114,10 @@ module.exports = {
      * We already have TypeScript to check for us
      */
     'import/named': 'off',
+    /*
+     * top-level-await is not so supported by the tools we use
+     * and by the targets we want to support
+     */
+    'unicorn/prefer-top-level-await': 'off',
   },
 };
