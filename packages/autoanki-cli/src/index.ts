@@ -6,7 +6,6 @@ import syncCommand from './commands/sync/index.js';
 
 import { initLog } from './middlewares/log.js';
 import { initConfig } from './middlewares/config.js';
-import { closeReadline } from './utils/readline.js';
 
 export interface GlobalArgs {
   verbose: boolean;
@@ -51,15 +50,11 @@ try {
       }
     }).argv;
 
-  Promise.resolve(argv)
-    .catch((error) => {
-      console.error(error);
-    })
-    .finally(() => {
-      closeReadline();
-    });
+  Promise.resolve(argv).catch((error) => {
+    // print errors that occured inside commands
+    console.error(error);
+  });
 } catch (error) {
+  // print errors that occured in middleware execution
   console.error(error);
-} finally {
-  closeReadline();
 }

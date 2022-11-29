@@ -217,7 +217,7 @@ async function handler(argv: Args) {
 
     if (!argv['dry-run'] && sync.syncActions.length > 0) {
       const response = await question(
-        'Proceed (y)es/(n)o/(m)odify decisions? '
+        '\nProceed? (y)es/(n)o/(m)odify decisions '
       );
       if (response === 'y') {
         logger.info('Syncing...');
