@@ -3,6 +3,21 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.1.2](https://github.com/chenlijun99/autoanki/compare/@autoanki/utils@0.1.1...@autoanki/utils@0.1.2) (2022-11-29)
+
+### Code Refactoring
+
+- **config:** drastic changes ([c825856](https://github.com/chenlijun99/autoanki/commit/c8258566e1354c8959135543c659eb9e09bba79c))
+
+### Features
+
+- **plugin-content-css:** introduce this new plugin ([2b41c49](https://github.com/chenlijun99/autoanki/commit/2b41c491716b301c0d576358a86e5fed4329e719))
+
+### BREAKING CHANGES
+
+- **config:** some fields in the configuration have been renamed
+  ("files" -> "inputs")
+
 ## [0.1.1](https://github.com/chenlijun99/autoanki/compare/@autoanki/utils@0.1.0...@autoanki/utils@0.1.1) (2022-11-21)
 
 ### Code Refactoring

@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.1.3](https://github.com/chenlijun99/autoanki/compare/@autoanki/plugin-content-markdown@0.1.2...@autoanki/plugin-content-markdown@0.1.3) (2022-11-29)
+
+### Bug Fixes
+
+- **plugin-content-markdown:** dark theme not working ([ce02bc2](https://github.com/chenlijun99/autoanki/commit/ce02bc27a2424be7c11c2d1f0a62f5e2afb068bd))
+
 ## [0.1.2](https://github.com/chenlijun99/autoanki/compare/@autoanki/plugin-content-markdown@0.1.1...@autoanki/plugin-content-markdown@0.1.2) (2022-11-21)
 
 ### Code Refactoring

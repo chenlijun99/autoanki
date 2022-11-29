@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.1.2](https://github.com/chenlijun99/autoanki/compare/@autoanki/sync@0.1.1...@autoanki/sync@0.1.2) (2022-11-29)
+
+### Features
+
+- **sync:** allow default choices to be configured for manual actions ([3a1d35a](https://github.com/chenlijun99/autoanki/commit/3a1d35ab5c0bdb05c96eaa940b16e295e7ffefab))
+- **sync:** support editing the note source content in Anki Desktop's note editor ([7788a9f](https://github.com/chenlijun99/autoanki/commit/7788a9f6c7c9682634d522f7dd9d6df8db0ccf0a))
+
 ## [0.1.1](https://github.com/chenlijun99/autoanki/compare/@autoanki/sync@0.1.0...@autoanki/sync@0.1.1) (2022-11-21)
 
 ### Bug Fixes

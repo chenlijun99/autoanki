@@ -1,6 +1,6 @@
 {
   "name": "@autoanki/plugin-content-local-media-extractor",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Plugin to extract media files from the local file system",
   "keywords": [
     "anki",

@@ -3,6 +3,37 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 0.1.2 (2022-11-29)
+
+### Bug Fixes
+
+- ignore complains of TypeScript ([12baa73](https://github.com/chenlijun99/autoanki/commit/12baa73f8c0978317ad6049de2879dce618b00bd))
+- make esbuild work with emotion ([ba908b3](https://github.com/chenlijun99/autoanki/commit/ba908b3137463bfaecfa20df4f7a91583a110b5b))
+- make typescript happy ([c55276b](https://github.com/chenlijun99/autoanki/commit/c55276b20a80f1e34f723f8a07d6a78c88317b0a))
+- **plugin-content-pdf-fragment:** correctly handle rotated PDF ([eef5416](https://github.com/chenlijun99/autoanki/commit/eef54160db1f07cdc4cef920dcf680d59f8882b8))
+
+### Code Refactoring
+
+- **plugin-content-pdf-fragment:** use consistent package name ([3b5db62](https://github.com/chenlijun99/autoanki/commit/3b5db62b24dd0e38e7358da8fc124a1dad823106))
+
+### Features
+
+- **autoanki-plugin-content-pdf-fragment:** fine tune PDF rendering ([17e548c](https://github.com/chenlijun99/autoanki/commit/17e548c40886d6d97a9c9c7e21d18ac5fb69b92d))
+- **pdf:** fine tune PDF rendering ([6f9ae11](https://github.com/chenlijun99/autoanki/commit/6f9ae11b8143d1d5e9ff358fd995987ed6c4f492))
+- **pdf:** support legacy CJK PDFs and PDFs that require standard fonts ([2c8aae2](https://github.com/chenlijun99/autoanki/commit/2c8aae28e98e0fd907862347d49e58f18bdf14cc))
+- **pdf:** support rendering PDFs on Anki-Android ([daa7382](https://github.com/chenlijun99/autoanki/commit/daa7382b7f620d06ac09cdceaf2aa7520e74454e))
+- **plugin-content-pdf-fragment:** allow users to control PDF zoom when autoscaling is enabled ([21af853](https://github.com/chenlijun99/autoanki/commit/21af8539528b73d2a613cf48b24a53a829b43c84))
+- **plugin-content-pdf-fragment:** more configurable PDF rendering ([480b6e2](https://github.com/chenlijun99/autoanki/commit/480b6e2ba4cb6662a507945f86b8bc24b23ddd93))
+- support #page PDF open parameter ([379af29](https://github.com/chenlijun99/autoanki/commit/379af2927eee53df0bb8d007cda0813308c2c111))
+- support rendering PDFs inside Autoanki notes ([08c602c](https://github.com/chenlijun99/autoanki/commit/08c602cb836c647c3b2b47daeea84e4a89c73674))
+
+### BREAKING CHANGES
+
+- **plugin-content-pdf-fragment:** the package name has been changed from
+  `@autoanki/autoanki-plugin-content-pdf-fragment`
+  to
+  `@autoanki/plugin-content-pdf-fragment`.
+
 ## [0.1.1](https://github.com/chenlijun99/autoanki/compare/@autoanki/autoanki-plugin-content-pdf-fragment@0.1.0...@autoanki/autoanki-plugin-content-pdf-fragment@0.1.1) (2022-11-21)
 
 ### Bug Fixes
