@@ -292,12 +292,58 @@ describe('ConfigManager', () => {
             }
           }
         }
-      ),
-      {
-        seed: -990_764_017,
-        path: '0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:1:1',
-        endOnFailure: true,
-      }
+      )
     );
+  });
+
+  it('returns undefined if a complete and valid configuration cannot be constructed for a note input', () => {
+    interface Test {
+      config: Config;
+      valid: boolean;
+      input: string;
+    }
+    const examples: Test[] = [
+      {
+        valid: true,
+        input: 'a.md',
+        config: {
+          noteInputsConfig: [
+            {
+              inputs: ['*'],
+              '@autoanki/core': {
+                pipeline: {
+                  source: 'plugin',
+                },
+              },
+            },
+          ],
+        },
+      },
+      {
+        /*
+         * Only @autoanki/sync is not enough
+         */
+        valid: false,
+        input: 'a.md',
+        config: {
+          noteInputsConfig: [
+            {
+              inputs: ['*'],
+              '@autoanki/sync': {},
+            },
+          ],
+        },
+      },
+    ];
+
+    for (const test of examples) {
+      const manager = new ConfigManager(test.config);
+      const config = manager.getFileConfig(test.input);
+      if (test.valid) {
+        expect(config).not.toBeUndefined();
+      } else {
+        expect(config).toBeUndefined();
+      }
+    }
   });
 });

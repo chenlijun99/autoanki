@@ -110,9 +110,11 @@ export class ConfigManager {
     '@autoanki/core': new Map(),
   };
 
-  private finalConfigMergeCache: Map<string, NoteInputConfig> = new Map();
+  private finalConfigMergeCache: Map<string, NoteInputConfig | undefined> =
+    new Map();
 
-  private noteInputKeyToConfigCache: Map<string, NoteInputConfig> = new Map();
+  private noteInputKeyToConfigCache: Map<string, NoteInputConfig | undefined> =
+    new Map();
 
   private rawConfig: Config;
 
@@ -134,7 +136,9 @@ export class ConfigManager {
     return Array.from(digests).join('');
   }
 
-  private mergeConfigs(configs: NoteInputsConfig[]): NoteInputConfig {
+  private mergeConfigs(
+    configs: NoteInputsConfig[]
+  ): NoteInputConfig | undefined {
     const merged: Partial<NoteInputConfig> = {};
 
     let finalDigest = '';
@@ -158,13 +162,27 @@ export class ConfigManager {
 
     const cached = this.finalConfigMergeCache.get(finalDigest);
     if (!cached) {
-      this.finalConfigMergeCache.set(finalDigest, merged as NoteInputConfig);
-      return merged as NoteInputConfig;
+      const result = noteInputConfigSchema.safeParse(merged);
+      if (result.success) {
+        this.finalConfigMergeCache.set(finalDigest, merged as NoteInputConfig);
+        return merged as NoteInputConfig;
+      } else {
+        this.finalConfigMergeCache.set(finalDigest, undefined);
+        return undefined;
+      }
     }
     return cached;
   }
 
-  getFileConfig(noteInputKey: string): NoteInputConfig {
+  /**
+   * Get the configuration for the given note input
+   *
+   * @returns a valid configuration for the given note input or undefined if a
+   * valid configuration couldn't be constructed, which happens typically
+   * when the given note input didn't match any configuration or didn't
+   * match enough "partial configs" to build a complete config.
+   */
+  getFileConfig(noteInputKey: string): NoteInputConfig | undefined {
     const cached = this.noteInputKeyToConfigCache.get(noteInputKey);
     if (cached) {
       return cached;

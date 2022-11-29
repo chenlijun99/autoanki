@@ -21,8 +21,8 @@ export async function extractAnkiNotesFromFiles(
 ): Promise<AutoankiNote[]> {
   const configManager = getConfig();
   const groupedByConfig = groupByMap(
-    inputs,
-    (input) => configManager.getFileConfig(input)['@autoanki/core']
+    inputs.filter((input) => !!configManager.getFileConfig(input)),
+    (input) => configManager.getFileConfig(input)!['@autoanki/core']
   );
   const logger = getLogger();
   logger.logLazy((print) => {

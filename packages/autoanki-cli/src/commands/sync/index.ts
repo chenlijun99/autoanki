@@ -165,7 +165,7 @@ async function handler(argv: Args) {
   const groupedByConfig = groupByMap(
     allNotes,
     (note) =>
-      configManager.getFileConfig(note.autoanki.metadata.input.key)[
+      configManager.getFileConfig(note.autoanki.metadata.input.key)![
         '@autoanki/sync'
       ]
   );
