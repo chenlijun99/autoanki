@@ -121,24 +121,31 @@ export class YamlSourcePlugin implements SourcePlugin {
     };
     const currentInputCache = this.yamlParseCache[inputKey];
 
-    return (
-      (parsedYaml as any[])
+    const outputs: SourcePluginParsingOutput[] = [];
+    for (const [i, yamlItem] of (parsedYaml as unknown[]).entries()) {
+      if (yamlItem === null) {
         /*
          * Some inputs may generated a parsed item that is `null`.
          * E.g. a file that contains only YAML comments.
          * Filter them out.
          */
-        .filter((item) => item !== null)
-        .map((item, i) => {
-          const parsedItem = yamlAnkiNoteSchema.parse(item);
-          currentInputCache.parsed.push(parsedItem);
-          const note: ParsedNote = yamlAnkiNoteToParsedNote(parsedItem);
-          return {
-            note,
-            metadata: { index: i } as Metadata,
-          } as SourcePluginParsingOutput;
-        })
-    );
+        continue;
+      }
+      const parseResult = yamlAnkiNoteSchema.safeParse(yamlItem);
+      if (parseResult.success) {
+        currentInputCache.parsed.push(parseResult.data);
+        const note: ParsedNote = yamlAnkiNoteToParsedNote(parseResult.data);
+        outputs.push({
+          note,
+          metadata: { index: i } as Metadata,
+        });
+      } else {
+        this.coreApi.logger.warn(
+          `Item ${i} in "${inputKey}" is invalid: ${parseResult.error}`
+        );
+      }
+    }
+    return outputs;
   }
 }
 
