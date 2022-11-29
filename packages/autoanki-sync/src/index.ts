@@ -91,26 +91,31 @@ export interface Class<T> extends Function {
   new (...args: any[]): T;
 }
 export abstract class ManualSyncAction extends SyncAction {
-  private static _manualSyncActions: Record<
-    string,
-    ManualSyncActionClassWithStaticChoices
-  > = {};
+  private static _manualSyncActions: Record<string, ManualSyncActionClass> = {};
+
+  static getActionName(action: ManualSyncAction): string {
+    return (action.constructor as ManualSyncActionClass).actionName;
+  }
 
   static get manualSyncActions(): Readonly<
-    Record<string, ManualSyncActionClassWithStaticChoices>
+    Record<string, ManualSyncActionClass>
   > {
     return ManualSyncAction._manualSyncActions;
   }
 
-  static registerManualSyncAction(
-    actionClass: ManualSyncActionClassWithStaticChoices
-  ): void {
-    this._manualSyncActions[actionClass.name] = actionClass;
+  static registerManualSyncAction(actionClass: ManualSyncActionClass): void {
+    this._manualSyncActions[actionClass.actionName] = actionClass;
   }
 }
 
-interface ManualSyncActionClassWithStaticChoices
-  extends Class<ManualSyncAction> {
+interface ManualSyncActionClass extends Class<ManualSyncAction> {
+  /**
+   * We could rely on the class name, but it is subject to change due to
+   * minification.
+   * We could configure the minification tool to keep the class names,
+   * but that's another tooling complexity that we'd like to avoid.
+   */
+  actionName: string;
   choices: string[];
 }
 
@@ -496,6 +501,18 @@ export class SyncActionHandleNotesOnlyInSource extends ManualSyncAction {
     super(...args);
   }
 
+  /**
+   * Name of this action
+   *
+   * @public
+   */
+  static actionName = 'SyncActionHandleNotesOnlyInSource';
+
+  /**
+   * Choices of this action
+   *
+   * @public
+   */
   static choices = Object.values(HandleNotesOnlyInSourceChoice);
 
   async execute(
@@ -557,6 +574,18 @@ export class SyncActionHandleNotesOnlyInAnki extends ManualSyncAction {
     super(...args);
   }
 
+  /**
+   * Name of this action
+   *
+   * @public
+   */
+  static actionName = 'SyncActionHandleNotesOnlyInAnki';
+
+  /**
+   * Choices of this action
+   *
+   * @public
+   */
   static choices = Object.values(HandleNotesOnlyInAnkiChoice);
 
   async execute(
@@ -602,6 +631,18 @@ export class SyncActionHandleNotesUpdateConflict extends ManualSyncAction {
     super(...args);
   }
 
+  /**
+   * Name of this action
+   *
+   * @public
+   */
+  static actionName = 'SyncActionHandleNotesUpdateConflict';
+
+  /**
+   * Choices of this action
+   *
+   * @public
+   */
   static choices = Object.values(HandleUpdateConflictChoice);
 
   async execute(
@@ -629,23 +670,22 @@ const strictSyncConfigSchema = z
     moreAccurateFinalContentChangeDetection: z.boolean(),
     manualActionDefaultChoices: z
       .record(
-        z.string().refine(
-          (syncActionName) => {
-            return !!ManualSyncAction.manualSyncActions[syncActionName];
-          },
-          {
-            message: 'Invalid sync action name',
+        z.string().superRefine((syncActionName, context) => {
+          if (!ManualSyncAction.manualSyncActions[syncActionName]) {
+            context.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: context.path,
+              message: `Invalid sync action name "${syncActionName}"`,
+            });
           }
-        ),
+        }),
         z.string()
       )
       .superRefine((data, context) => {
         for (const [actionClassName, defaultChoice] of Object.entries(data)) {
-          if (
-            !ManualSyncAction.manualSyncActions[
-              actionClassName
-            ].choices.includes(defaultChoice)
-          ) {
+          const actionClass =
+            ManualSyncAction.manualSyncActions[actionClassName];
+          if (actionClass && !actionClass.choices.includes(defaultChoice)) {
             context.addIssue({
               code: z.ZodIssueCode.custom,
               path: context.path.concat([actionClassName]),
@@ -917,10 +957,14 @@ export class SyncProcedure {
       }
       if (
         action instanceof ManualSyncAction &&
-        !!this._config.manualActionDefaultChoices[action.constructor.name]
+        !!this._config.manualActionDefaultChoices[
+          ManualSyncAction.getActionName(action)
+        ]
       ) {
         const defaultChoice =
-          this._config.manualActionDefaultChoices[action.constructor.name];
+          this._config.manualActionDefaultChoices[
+            ManualSyncAction.getActionName(action)
+          ];
         const buildDefaultChoicesArray = <T>(
           choice: T,
           length: number

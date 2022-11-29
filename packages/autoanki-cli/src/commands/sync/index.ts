@@ -41,7 +41,9 @@ function syncActionToString(procedure: SyncProcedure, action: SyncAction) {
     str += '- [A] ';
   } else if (action instanceof ManualSyncAction) {
     const defaultChoice =
-      procedure.config.manualActionDefaultChoices[action.constructor.name];
+      procedure.config.manualActionDefaultChoices[
+        ManualSyncAction.getActionName(action)
+      ];
     str += defaultChoice ? `- [M, default: "${defaultChoice}"] ` : '- [M] ';
   }
 
