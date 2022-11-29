@@ -109,9 +109,9 @@ function syncActionToString(procedure: SyncProcedure, action: SyncAction) {
   ) {
     str += `Update injected scripts in note templates: [${action.noteTypesThatRequireInstrumentation.join(
       ', '
-    )}]`;
+    )}]\n`;
   } else if (action instanceof SyncActionCreateDecks) {
-    str += `Create decks: [${action.decks.join(', ')}]`;
+    str += `Create decks: [${action.decks.join(', ')}]\n`;
   } else if (action instanceof SyncActionHandleNotesUpdateConflict) {
     str += 'Handle update conflict\n';
 
@@ -204,7 +204,11 @@ async function handler(argv: Args) {
     await sync.start();
 
     for (const action of sync.syncActions) {
-      console.log(syncActionToString(sync, action));
+      /*
+       * unlike of console.log, process.stdout.write doesn't append a trailing
+       * newline
+       */
+      process.stdout.write(syncActionToString(sync, action));
     }
 
     if (sync.syncActions.length === 0) {
