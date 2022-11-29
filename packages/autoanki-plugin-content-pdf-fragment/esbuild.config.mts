@@ -44,6 +44,12 @@ const config: BuildOptions = {
     pluginLoadPdfWorkerAsBase64,
     configPluginBundledBridgePluginAsBase64('src/bridge/index.tsx'),
   ],
+  jsx: 'automatic',
+  /*
+   * So that emotion.js works
+   * See https://github.com/emotion-js/emotion/issues/2474
+   */
+  jsxImportSource: '@emotion/react',
 };
 
 esbuild

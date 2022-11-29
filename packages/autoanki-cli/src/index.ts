@@ -6,6 +6,7 @@ import syncCommand from './commands/sync/index.js';
 
 import { initLog } from './middlewares/log.js';
 import { initConfig } from './middlewares/config.js';
+import { closeReadline } from './utils/readline.js';
 
 export interface GlobalArgs {
   verbose: boolean;
@@ -48,3 +49,11 @@ const argv = yargs(process.argv.slice(2))
       aYargs.showHelp();
     }
   }).argv;
+
+Promise.resolve(argv)
+  .then(() => {
+    closeReadline();
+  })
+  .catch((error) => {
+    throw error;
+  });

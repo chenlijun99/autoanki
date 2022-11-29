@@ -109,9 +109,15 @@ module.exports = {
     'unicorn/prefer-spread': 'off',
     'unicorn/no-empty-file': 'off',
     'unicorn/prefer-ternary': ['warn', 'only-single-line'],
+    'unicorn/no-useless-undefined': 'off',
     /**
      * We already have TypeScript to check for us
      */
     'import/named': 'off',
+    /*
+     * top-level-await is not so supported by the tools we use
+     * and by the targets we want to support
+     */
+    'unicorn/prefer-top-level-await': 'off',
   },
 };

@@ -103,37 +103,46 @@ export async function getAnkiNoteField(
    * so that it is not ediable even if it is inside the Anki's note editor.
    * This should prevent normal users from accidentally making changes
    * to the final content of a note.
+   *
+   * NOTE: we intentionally don't insert spaces or new lines between
+   * open tag and closing tag of AUTOANKI_HTML_CONSTANTS.SOURCE_CONTENT_TAG .
+   * Same for AUTOANKI_HTML_CONSTANTS.FINAL_CONTENT_TAG.
+   * This way, we're sure that the XML parser gives us exactly
+   * our content and doesn't have initial and final spaces or new lines.
+   * We can also be sure that Anki will render the content as is and not
+   * have additional spaces and newlines that it may render.
    */
-  return `<${AUTOANKI_HTML_CONSTANTS.SOURCE_CONTENT_TAG} hidden>
-${escape(sourceContent)}
-</${AUTOANKI_HTML_CONSTANTS.SOURCE_CONTENT_TAG}>
+  return `<${AUTOANKI_HTML_CONSTANTS.SOURCE_CONTENT_TAG}>${escape(
+    sourceContent
+  )}</${AUTOANKI_HTML_CONSTANTS.SOURCE_CONTENT_TAG}>
 
 <${AUTOANKI_HTML_CONSTANTS.METADATA_TAG}
  data-autoanki-uuid="${note.autoanki.uuid}"
  data-autoanki-note-type="${note.modelName}"
  data-autoanki-tags="${note.tags}"
  data-autoanki-source-content-hash="${sourceContentDigest}"
- data-autoanki-final-content-hash="${finalContentDigest}"
- hidden>
+ data-autoanki-final-content-hash="${finalContentDigest}">
  ${getMediaTags(note)}
 </${AUTOANKI_HTML_CONSTANTS.METADATA_TAG}>
 
-<${AUTOANKI_HTML_CONSTANTS.FINAL_CONTENT_TAG} contenteditable="false">
-${finalContent}
-</${AUTOANKI_HTML_CONSTANTS.FINAL_CONTENT_TAG}>`;
+<${
+    AUTOANKI_HTML_CONSTANTS.FINAL_CONTENT_TAG
+  } contenteditable="false">${finalContent}</${
+    AUTOANKI_HTML_CONSTANTS.FINAL_CONTENT_TAG
+  }>`;
 }
 
 const autoankiNoteFieldSchema = z.object({
   [AUTOANKI_HTML_CONSTANTS.SOURCE_CONTENT_TAG]: z
     .object({
       // can contain whatever attributes
-      '@_attributes': z.object({}),
+      '@_attributes': z.object({}).optional(),
       '#text': z.string(),
     })
     .strict(),
   [AUTOANKI_HTML_CONSTANTS.FINAL_CONTENT_TAG]: z.object({
     // can contain whatever attributes
-    '@_attributes': z.object({}),
+    '@_attributes': z.object({}).optional(),
     '#text': z.string(),
   }),
   [AUTOANKI_HTML_CONSTANTS.METADATA_TAG]: z.object({
@@ -224,18 +233,6 @@ const parser = new XMLParser({
   ],
 });
 
-function getOriginalContent(contentFromHTML: string): string {
-  /*
-   * Depending on how the content is inserted in the HTML in the function
-   * `getAnkiNoteField`, the XML parser may give us some additional characters
-   * to the original content, which we need to remove, in order to get the
-   * original content.
-   *
-   * * Remove the initial and final "\n".
-   */
-  return contentFromHTML.slice(1, -1);
-}
-
 /**
  * Given an Anki note field's content, parse it and derive the corresponding
  * Autoanki note field.
@@ -295,8 +292,8 @@ Reason: ${error.toString()}`
       field[AUTOANKI_HTML_CONSTANTS.METADATA_TAG]['@_attributes'][
         'data-autoanki-source-content-hash'
       ],
-    content: getOriginalContent(
-      unescape(field[AUTOANKI_HTML_CONSTANTS.SOURCE_CONTENT_TAG]['#text'])
+    content: unescape(
+      field[AUTOANKI_HTML_CONSTANTS.SOURCE_CONTENT_TAG]['#text']
     ),
     computedHash: '',
     fieldChanged: false,
@@ -310,9 +307,7 @@ Reason: ${error.toString()}`
       field[AUTOANKI_HTML_CONSTANTS.METADATA_TAG]['@_attributes'][
         'data-autoanki-final-content-hash'
       ],
-    content: getOriginalContent(
-      field[AUTOANKI_HTML_CONSTANTS.FINAL_CONTENT_TAG]['#text']
-    ),
+    content: field[AUTOANKI_HTML_CONSTANTS.FINAL_CONTENT_TAG]['#text'],
     computedHash: '',
     fieldChanged: false,
   };

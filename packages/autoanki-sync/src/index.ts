@@ -87,7 +87,32 @@ export abstract class AutomaticSyncAction extends SyncAction {
   public abstract execute(): Promise<SyncActionResult>;
 }
 
-export abstract class ManualSyncAction extends SyncAction {}
+export interface Class<T> extends Function {
+  new (...args: any[]): T;
+}
+export abstract class ManualSyncAction extends SyncAction {
+  private static _manualSyncActions: Record<
+    string,
+    ManualSyncActionClassWithStaticChoices
+  > = {};
+
+  static get manualSyncActions(): Readonly<
+    Record<string, ManualSyncActionClassWithStaticChoices>
+  > {
+    return ManualSyncAction._manualSyncActions;
+  }
+
+  static registerManualSyncAction(
+    actionClass: ManualSyncActionClassWithStaticChoices
+  ): void {
+    this._manualSyncActions[actionClass.name] = actionClass;
+  }
+}
+
+interface ManualSyncActionClassWithStaticChoices
+  extends Class<ManualSyncAction> {
+  choices: string[];
+}
 
 export class SyncActionCreateDecks extends AutomaticSyncAction {
   constructor(
@@ -417,7 +442,7 @@ export class SyncActionUpdateNotesInSource extends AutomaticSyncAction {
 
 export class SyncActionRemoveNotesFromAnki extends AutomaticSyncAction {
   constructor(
-    public notesToBeRemoved: ExistingNoteWithComputedChanges[],
+    public concernedNotes: AutoankiNoteFromAnki[],
     ...args: ConstructorParameters<typeof AutomaticSyncAction>
   ) {
     super(...args);
@@ -427,7 +452,7 @@ export class SyncActionRemoveNotesFromAnki extends AutomaticSyncAction {
     await this.syncProcedure._invoke({
       action: 'deleteNotes',
       request: {
-        notes: this.notesToBeRemoved.map((note) => note.note.fromAnki.id),
+        notes: this.concernedNotes.map((note) => note.id),
       },
     });
 
@@ -457,20 +482,127 @@ export class SyncActionRemoveNotesFromSource extends AutomaticSyncAction {
   }
 }
 
-enum HandleUpdateConflictChoice {
-  PICK_SOURCE,
-  PICK_ANKI,
-  MERGE,
-  IGNORE,
+enum HandleNotesOnlyInSourceChoice {
+  DELETE_FROM_SOURCE = 'DELETE_FROM_SOURCE',
+  ADD_TO_ANKI = 'ADD_TO_ANKI',
+  IGNORE = 'IGNORE',
 }
 
-export class SyncActionHandleNotesUpdateConflict extends ManualSyncAction {
+export class SyncActionHandleNotesOnlyInSource extends ManualSyncAction {
   constructor(
-    public conflictNotes: ExistingNoteWithComputedChanges[],
+    public concernedNotes: AutoankiNote[],
     ...args: ConstructorParameters<typeof ManualSyncAction>
   ) {
     super(...args);
   }
+
+  static choices = Object.values(HandleNotesOnlyInSourceChoice);
+
+  async execute(
+    choices: HandleNotesOnlyInSourceChoice[]
+  ): Promise<SyncActionResult> {
+    assert(this.concernedNotes.length === choices.length);
+
+    const furtherActions: SyncAction[] = [];
+    const newNotes: AutoankiNote[] = [];
+    const notesToBeDeletedFromSource: AutoankiNote[] = [];
+    for (const [i, choice] of choices.entries()) {
+      if (choice === HandleNotesOnlyInSourceChoice.ADD_TO_ANKI) {
+        newNotes.push(this.concernedNotes[i]);
+      }
+      if (choice === HandleNotesOnlyInSourceChoice.DELETE_FROM_SOURCE) {
+        notesToBeDeletedFromSource.push(this.concernedNotes[i]);
+      }
+    }
+
+    if (newNotes.length > 0) {
+      furtherActions.push(
+        new SyncActionCreateNotesInAnki(newNotes, this.syncProcedure)
+      );
+    }
+    if (notesToBeDeletedFromSource.length > 0) {
+      furtherActions.push(
+        new SyncActionRemoveNotesFromSource(
+          notesToBeDeletedFromSource,
+          this.syncProcedure
+        )
+      );
+    }
+
+    return {
+      furtherActions,
+      sourcesToUpdate: [],
+    };
+  }
+}
+ManualSyncAction.registerManualSyncAction(SyncActionHandleNotesOnlyInSource);
+
+/**
+ * Possible actions when a note is found only in Anki.
+ *
+ * A note is only in Anki could mean:
+ *  * the note source has been entirely removed (use `DELETE_FROM_ANKI`)
+ *  * that the note source has not been parsed this time (use `IGNORE`).
+ */
+enum HandleNotesOnlyInAnkiChoice {
+  DELETE_FROM_ANKI = 'DELETE',
+  IGNORE = 'IGNORE',
+}
+
+export class SyncActionHandleNotesOnlyInAnki extends ManualSyncAction {
+  constructor(
+    public concernedNotes: AutoankiNoteFromAnki[],
+    ...args: ConstructorParameters<typeof ManualSyncAction>
+  ) {
+    super(...args);
+  }
+
+  static choices = Object.values(HandleNotesOnlyInAnkiChoice);
+
+  async execute(
+    choices: HandleNotesOnlyInAnkiChoice[]
+  ): Promise<SyncActionResult> {
+    assert(this.concernedNotes.length === choices.length);
+
+    const furtherActions: SyncAction[] = [];
+    const notesToBeDeletedFromAnki: AutoankiNoteFromAnki[] = [];
+    for (const [i, choice] of choices.entries()) {
+      if (choice === HandleNotesOnlyInAnkiChoice.DELETE_FROM_ANKI) {
+        notesToBeDeletedFromAnki.push(this.concernedNotes[i]);
+      }
+    }
+
+    if (notesToBeDeletedFromAnki.length > 0) {
+      furtherActions.push(
+        new SyncActionRemoveNotesFromAnki(
+          notesToBeDeletedFromAnki,
+          this.syncProcedure
+        )
+      );
+    }
+    return {
+      furtherActions,
+      sourcesToUpdate: [],
+    };
+  }
+}
+ManualSyncAction.registerManualSyncAction(SyncActionHandleNotesOnlyInAnki);
+
+enum HandleUpdateConflictChoice {
+  PICK_SOURCE = 'PICK_SOURCE',
+  PICK_ANKI = 'PICK_ANKI',
+  IGNORE = 'IGNORE',
+}
+
+export class SyncActionHandleNotesUpdateConflict extends ManualSyncAction {
+  constructor(
+    public concernedNotes: ExistingNoteWithComputedChanges[],
+    ...args: ConstructorParameters<typeof ManualSyncAction>
+  ) {
+    super(...args);
+  }
+
+  static choices = Object.values(HandleUpdateConflictChoice);
 
   async execute(
     choices: HandleUpdateConflictChoice[]
@@ -481,6 +613,7 @@ export class SyncActionHandleNotesUpdateConflict extends ManualSyncAction {
     };
   }
 }
+ManualSyncAction.registerManualSyncAction(SyncActionHandleNotesUpdateConflict);
 
 type MediaDigestMap = Record<
   AutoankiMediaFileMetadata['digest'],
@@ -491,20 +624,52 @@ type MediaDigestMap = Record<
  * This packages doesn't use it, but it is provided as comodity for packages
  * that make use of @autoanki/sync.
  */
-export const syncConfigSchema = z.object({
-  moreAccurateFinalContentChangeDetection: z.boolean(),
-  origin: z.union([z.string(), z.number()]).optional() as z.ZodType<
-    ApiOrigin | undefined
-  >,
-});
+const strictSyncConfigSchema = z
+  .object({
+    moreAccurateFinalContentChangeDetection: z.boolean(),
+    manualActionDefaultChoices: z
+      .record(
+        z.string().refine(
+          (syncActionName) => {
+            return !!ManualSyncAction.manualSyncActions[syncActionName];
+          },
+          {
+            message: 'Invalid sync action name',
+          }
+        ),
+        z.string()
+      )
+      .superRefine((data, context) => {
+        for (const [actionClassName, defaultChoice] of Object.entries(data)) {
+          if (
+            !ManualSyncAction.manualSyncActions[
+              actionClassName
+            ].choices.includes(defaultChoice)
+          ) {
+            context.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: context.path.concat([actionClassName]),
+              message: `Invalid choice ${defaultChoice} for action ${actionClassName}`,
+            });
+          }
+        }
+      }),
+    origin: z.union([z.string(), z.number()]).optional() as z.ZodType<
+      ApiOrigin | undefined
+    >,
+  })
+  .strict();
+
+export const configSchema = strictSyncConfigSchema.partial();
 
 /**
  * Sync config
  */
-export type SyncConfig = z.infer<typeof syncConfigSchema>;
+export type Config = z.infer<typeof strictSyncConfigSchema>;
 
-const DEFAULT_CONFIG: SyncConfig = {
+const DEFAULT_CONFIG: Config = {
   moreAccurateFinalContentChangeDetection: true,
+  manualActionDefaultChoices: {},
 };
 
 /**
@@ -513,16 +678,20 @@ const DEFAULT_CONFIG: SyncConfig = {
 export class SyncProcedure {
   constructor(
     private notesToBeSynced: AutoankiNote[],
-    config: Partial<SyncConfig>,
+    config: Partial<Config>,
     public _logger: Logger = consoleLogger
   ) {
-    this.config = {
+    this._config = strictSyncConfigSchema.parse({
       ...DEFAULT_CONFIG,
       ...config,
-    };
+    });
   }
 
-  private config: SyncConfig;
+  get config(): Readonly<Config> {
+    return this._config;
+  }
+
+  private _config: Config;
 
   private pendingSyncActions: Set<SyncAction> = new Set();
 
@@ -663,20 +832,10 @@ export class SyncProcedure {
       }
     }
     if (onlyInSource.length > 0) {
-      /*
-       * Notes that only exist in the source => they have been deleted from
-       * Anki.
-       */
-      actions.push(new SyncActionRemoveNotesFromSource(onlyInSource, this));
+      actions.push(new SyncActionHandleNotesOnlyInSource(onlyInSource, this));
     }
     if (onlyInAnki.length > 0) {
-      /*
-       * Notes that only exist in Anki =>
-       *
-       * * the note in Anki is from a source that has not been processed this
-       * time or
-       * * the note has been entirely removed from source (not marked as deleted)
-       */
+      actions.push(new SyncActionHandleNotesOnlyInAnki(onlyInAnki, this));
     }
 
     {
@@ -688,7 +847,7 @@ export class SyncProcedure {
               changes: await computeNoteChanges(
                 existingNote.fromSource!,
                 existingNote.fromAnki!,
-                this.config.moreAccurateFinalContentChangeDetection
+                this._config.moreAccurateFinalContentChangeDetection
               ),
             } as ExistingNoteWithComputedChanges;
           })
@@ -704,7 +863,9 @@ export class SyncProcedure {
         if (
           note.changes.finalContentFieldsOverallChanges & ConcernedSide.Anki
         ) {
-          throw new Error('Not handled');
+          this._logger.warn(
+            `The final content of the note ${note.note.fromAnki.id} has been changd in Anki. This will be ignored`
+          );
         }
 
         if (note.note.fromSource.autoanki.deleted) {
@@ -723,7 +884,10 @@ export class SyncProcedure {
 
       if (newlyMarkedAsDeletedInSource.length > 0) {
         actions.push(
-          new SyncActionRemoveNotesFromAnki(newlyMarkedAsDeletedInSource, this)
+          new SyncActionRemoveNotesFromAnki(
+            newlyMarkedAsDeletedInSource.map((note) => note.note.fromAnki),
+            this
+          )
         );
       }
       if (bothUpdated.length > 0) {
@@ -751,6 +915,46 @@ export class SyncProcedure {
       if (action instanceof AutomaticSyncAction) {
         await this.runAction(action);
       }
+      if (
+        action instanceof ManualSyncAction &&
+        !!this._config.manualActionDefaultChoices[action.constructor.name]
+      ) {
+        const defaultChoice =
+          this._config.manualActionDefaultChoices[action.constructor.name];
+        const buildDefaultChoicesArray = <T>(
+          choice: T,
+          length: number
+        ): T[] => {
+          return Array.from({ length }).fill(choice) as T[];
+        };
+        if (action instanceof SyncActionHandleNotesOnlyInSource) {
+          await this.runAction(
+            action,
+            buildDefaultChoicesArray(
+              defaultChoice as HandleNotesOnlyInSourceChoice,
+              action.concernedNotes.length
+            )
+          );
+        }
+        if (action instanceof SyncActionHandleNotesOnlyInAnki) {
+          await this.runAction(
+            action,
+            buildDefaultChoicesArray(
+              defaultChoice as HandleNotesOnlyInAnkiChoice,
+              action.concernedNotes.length
+            )
+          );
+        }
+        if (action instanceof SyncActionHandleNotesUpdateConflict) {
+          await this.runAction(
+            action,
+            buildDefaultChoicesArray(
+              defaultChoice as HandleUpdateConflictChoice,
+              action.concernedNotes.length
+            )
+          );
+        }
+      }
     }
   }
 
@@ -761,17 +965,12 @@ export class SyncProcedure {
     this.pendingSyncActions.delete(action);
 
     const result = await action.execute(...args);
+
     this.sourcesToWriteBack.push(...result.sourcesToUpdate);
 
     const furtherActions: SyncAction[] = result.furtherActions;
     for (const a of furtherActions) {
-      if (a instanceof AutomaticSyncAction) {
-        const res = await a.execute();
-        furtherActions.push.apply(res.furtherActions);
-        this.sourcesToWriteBack.push(...result.sourcesToUpdate);
-      } else if (a instanceof ManualSyncAction) {
-        this.pendingSyncActions.add(a);
-      }
+      this.pendingSyncActions.add(a);
     }
   }
 
@@ -787,7 +986,7 @@ export class SyncProcedure {
     return invoke({
       ...args,
       version: 6,
-      origin: this.config.origin,
+      origin: this._config.origin,
     });
   }
 

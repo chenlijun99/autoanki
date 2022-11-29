@@ -31,6 +31,11 @@
       "node": "./dist/hash-sync.node.js",
       "default": "./dist/hash-sync.default.js"
     },
+    "./base64.js": {
+      "types": "./dist/base64.default.d.ts",
+      "node": "./dist/base64.node.js",
+      "default": "./dist/base64.default.js"
+    },
     "./*.js": {
       "types": "./dist/*.d.ts",
       "default": "./dist/*.js"
@@ -50,7 +55,8 @@
   ],
   "dependencies": {
     "@types/crypto-js": "^4.1.1",
-    "crypto-js": "^4.1.1"
+    "crypto-js": "^4.1.1",
+    "js-base64": "^3.7.3"
   },
   "scripts": {
     "update-config": "node config.mjs",

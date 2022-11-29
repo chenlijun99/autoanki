@@ -95,7 +95,7 @@ export class MarkdownContentPlugin implements TransformerPlugin {
         finalConfig.assetsBaseUrl
       ),
       this.getHighlightMediaFile(
-        finalConfig.highlight.lightTheme.name,
+        finalConfig.highlight.darkTheme.name,
         'dark',
         finalConfig.assetsBaseUrl
       ),

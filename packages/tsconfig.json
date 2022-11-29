@@ -14,6 +14,8 @@
 
   "compilerOptions": {
     "types": ["jest"],
+    // We also use ts-jest to transpile some JS files in node_modules
+    "allowJs": true,
     // Mapping between typescript import path and the actual package in the monorepo.
     // Using this, we don't need to build the type declaration of the packages
     // during development.
@@ -25,6 +27,13 @@
       "@autoanki/sync": ["./autoanki-sync/src/index.ts"],
       "@autoanki/config": ["./autoanki-config/src/index.ts"],
       "@autoanki/anki-bridge": ["./autoanki-anki-bridge/src/index.ts"],
+      "@autoanki/utils/webcrypto.js": [
+        "./autoanki-utils/src/webcrypto.browser.ts"
+      ],
+      "@autoanki/utils/hash-sync.js": [
+        "./autoanki-utils/src/hash-sync.default.ts"
+      ],
+      "@autoanki/utils/base64.js": ["./autoanki-utils/src/base64.default.ts"],
       "@autoanki/utils/*": ["./autoanki-utils/src/*"],
       "@autoanki/plugin-source-yaml": [
         "./autoanki-plugin-source-yaml/src/index.ts"
