@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.1.4](https://github.com/chenlijun99/autoanki/compare/@autoanki/plugin-source-yaml@0.1.3...@autoanki/plugin-source-yaml@0.1.4) (2022-11-30)
+
+**Note:** Version bump only for package @autoanki/plugin-source-yaml
+
 ## [0.1.3](https://github.com/chenlijun99/autoanki/compare/@autoanki/plugin-source-yaml@0.1.2...@autoanki/plugin-source-yaml@0.1.3) (2022-11-29)
 
 ### Features

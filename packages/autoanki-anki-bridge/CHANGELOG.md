@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.0.4](https://github.com/chenlijun99/autoanki/compare/@autoanki/anki-bridge@0.0.3...@autoanki/anki-bridge@0.0.4) (2022-11-30)
+
+**Note:** Version bump only for package @autoanki/anki-bridge
+
 ## [0.0.3](https://github.com/chenlijun99/autoanki/compare/@autoanki/anki-bridge@0.0.2...@autoanki/anki-bridge@0.0.3) (2022-11-29)
 
 **Note:** Version bump only for package @autoanki/anki-bridge

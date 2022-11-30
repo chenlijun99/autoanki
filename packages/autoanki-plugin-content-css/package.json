@@ -1,6 +1,6 @@
 {
   "name": "@autoanki/plugin-content-css",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Plugin to apply CSS to notes",
   "keywords": [
     "anki",

@@ -1,6 +1,6 @@
 {
   "name": "@autoanki/anki-bridge",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Dynamic JavaScript loading bridge inside Anki",
   "keywords": [
     "anki",

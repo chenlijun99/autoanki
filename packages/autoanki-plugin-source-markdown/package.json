@@ -1,6 +1,6 @@
 {
   "name": "@autoanki/plugin-source-markdown",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Extract Anki cards from Markdown files",
   "keywords": [
     "anki",
