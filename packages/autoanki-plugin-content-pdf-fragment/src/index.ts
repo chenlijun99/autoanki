@@ -31,9 +31,9 @@ export class PdfContentPlugin implements TransformerPlugin {
   private mediaFilesComputingPromise: Promise<PluginMediaFiles> | undefined;
 
   async transform(note: AutoankiNote): Promise<TransformerPluginOutput> {
-    const pdfsToRender = note.mediaFiles.filter((file) =>
-      file.filename.endsWith('.pdf')
-    );
+    const pdfsToRender = note.mediaFiles.filter((file) => {
+      return file.filename.endsWith('.pdf') || file.mime === 'application/pdf';
+    });
 
     if (pdfsToRender.length > 0) {
       this.coreApi.logger.log(

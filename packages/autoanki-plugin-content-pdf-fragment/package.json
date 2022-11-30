@@ -36,6 +36,7 @@
   ],
   "dependencies": {
     "@autoanki/plugin-content-local-media-extractor": "workspace:^",
+    "@autoanki/utils": "workspace:^",
     "@emotion/react": "^11.10.5",
     "@emotion/styled": "^11.10.5",
     "@mui/icons-material": "^5.10.14",

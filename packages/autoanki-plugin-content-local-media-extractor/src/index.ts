@@ -19,9 +19,9 @@ import type {
   AutoankiMediaFile,
   AutoankiPluginApi,
 } from '@autoanki/core';
+import { MEDIA_URL_DATA_ATTRIBUTES } from '@autoanki/utils/plugins/media.js';
 
 import { urlToFilePath } from './utils.js';
-import { DOMConstants } from './api/constants.js';
 
 export const resolverSchema = z.union([
   z.object({
@@ -112,8 +112,8 @@ function addOriginalQueryStringAndHash(node: Element, url: string): void {
   // Given a random base if it is a relative url.
   const u = new URL(url, 'http://hello');
 
-  node.properties![DOMConstants.dataAttributeOriginalQueryString] = u.search;
-  node.properties![DOMConstants.dataAttributeOriginalHash] = u.hash;
+  node.properties![MEDIA_URL_DATA_ATTRIBUTES.queryString] = u.search;
+  node.properties![MEDIA_URL_DATA_ATTRIBUTES.hash] = u.hash;
 }
 
 const rehypeExtractMediaFilesAndRename: Plugin<[RehypePluginOptions]> = (

@@ -23,6 +23,7 @@
     // Generally, all the packages in the monorepo should be addd here.
     "paths": {
       "@autoanki/anki-connect": ["./anki-connect/src/index.ts"],
+      "@autoanki/zotero-bbt-rpc": ["./zotero-bbt-rpc/src/index.ts"],
       "@autoanki/core": ["./autoanki-core/src/index.ts"],
       "@autoanki/sync": ["./autoanki-sync/src/index.ts"],
       "@autoanki/config": ["./autoanki-config/src/index.ts"],

@@ -1,16 +1,17 @@
 {
-  "name": "@autoanki/plugin-content-local-media-extractor",
-  "version": "0.1.2",
-  "description": "Plugin to extract media files from the local file system",
+  "name": "@autoanki/plugin-content-zotero",
+  "version": "0.1.0",
+  "description": "Plugin to work with zotero",
   "keywords": [
     "anki",
     "autoanki",
-    "autoanki-content-plugin"
+    "autoanki-content-plugin",
+    "zotero"
   ],
   "repository": {
     "type": "git",
     "url": "https://github.com/chenlijun99/autoanki.git",
-    "directory": "packages/autoanki-plugin-content-local-media-extractor"
+    "directory": "packages/autoanki-plugin-content-zotero"
   },
   "license": "MIT",
   "publishConfig": {
@@ -39,6 +40,8 @@
   ],
   "dependencies": {
     "@autoanki/utils": "workspace:^",
+    "@autoanki/zotero-bbt-rpc": "workspace:^",
+    "path-to-regexp": "^6.2.1",
     "rehype-parse": "^8.0.4",
     "rehype-stringify": "^9.0.3",
     "unified": "^10.1.2",
@@ -52,12 +55,12 @@
   },
   "scripts": {
     "update-config": "node config.mjs",
+    "prepublishOnly": "pnpm run build:prod",
     "clean": "rimraf ./dist/ ./tsconfig.build.tsbuildinfo",
     "typegen": "tsc --project tsconfig.build.json --emitDeclarationOnly --declaration --declarationDir dist/ --declarationMap",
     "prebuild:dev": "pnpm run clean",
     "prebuild:prod": "pnpm run clean && pnpm run typegen",
     "build:dev": "swc --config-file ../swcrc ./src -d dist/ --source-maps",
-    "build:prod": "swc --config-file ../swcrc ./src -d dist/ --source-maps",
-    "prepublishOnly": "pnpm run build:prod"
+    "build:prod": "swc --config-file ../swcrc ./src -d dist/ --source-maps"
   }
 }

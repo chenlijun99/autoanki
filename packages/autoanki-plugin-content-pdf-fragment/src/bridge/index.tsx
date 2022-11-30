@@ -10,7 +10,7 @@ import type {
 } from '@autoanki/anki-bridge';
 
 import PdfFragment, { PdfFragmentProps } from './pdf-fragment/index.js';
-import { DOMConstants } from '@autoanki/plugin-content-local-media-extractor/api/constants.js';
+import { MEDIA_URL_DATA_ATTRIBUTES } from '@autoanki/utils/plugins/media.js';
 
 export interface PluginArgs {
   pdfFilesToRender: string[];
@@ -66,11 +66,9 @@ class PdfRenderPlugin implements AnkiBridgePlugin {
       const dataUrlDecoded = decodeURI(dataUrl);
       if (args.pdfFilesToRender.includes(dataUrlDecoded)) {
         console.log('Rendering', objEl);
-        const hash =
-          objEl.getAttribute(DOMConstants.dataAttributeOriginalHash) ?? '';
+        const hash = objEl.getAttribute(MEDIA_URL_DATA_ATTRIBUTES.hash) ?? '';
         const query =
-          objEl.getAttribute(DOMConstants.dataAttributeOriginalQueryString) ??
-          '';
+          objEl.getAttribute(MEDIA_URL_DATA_ATTRIBUTES.queryString) ?? '';
 
         const div = document.createElement('div');
         div.classList.add(CLASS_NAME);
