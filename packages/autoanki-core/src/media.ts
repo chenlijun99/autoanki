@@ -178,6 +178,7 @@ export const rawAutoankiMediaFileSchema = z
   .object({
     filename: z.string(),
     base64Content: z.string(),
+    mime: z.string().optional(),
   })
   .strict();
 export type RawAutoankiMediaFile = z.infer<typeof rawAutoankiMediaFileSchema>;
