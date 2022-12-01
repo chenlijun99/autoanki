@@ -15,10 +15,12 @@ import bundledBridgePluginPdfjsWorkerBase64 from 'bridge/pdf.worker.bundled.js';
 import reactPdfTextLayerCssBase64 from 'react-pdf/dist/esm/Page/TextLayer.css';
 import reactPdfAnnotationLayerCssBase64 from 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 
+const BRIDGE_PLUGIN_FILENAME = 'pdf_render.js';
+
 type PluginMediaFiles = {
   media: AutoankiMediaFile[];
   styles: AutoankiMediaFile[];
-  scripts: AutoankiMediaFile[];
+  scripts: AutoankiScriptMediaFile[];
 };
 
 export class PdfContentPlugin implements TransformerPlugin {
@@ -60,13 +62,10 @@ export class PdfContentPlugin implements TransformerPlugin {
                 const bridgePlugin =
                   await this.coreApi.media.computeAutoankiMediaFileFromRaw({
                     base64Content: bundledBridgePluginBase64,
-                    filename: 'pdf_render.js',
+                    filename: BRIDGE_PLUGIN_FILENAME,
                   });
                 ((bridgePlugin as AutoankiScriptMediaFile)
-                  .scriptArgs as PluginArgs) = {
-                  pdfFilesToRender: pdfsToRender.map(
-                    (pdf) => pdf.metadata.storedFilename
-                  ),
+                  .scriptArgs as Partial<PluginArgs>) = {
                   pdfjsWorkerSrc: pdfWorker.metadata.storedFilename,
                 };
                 return {
@@ -88,7 +87,20 @@ export class PdfContentPlugin implements TransformerPlugin {
         transformedNote: note,
         styleFiles: this.cachedMediaFiles!.styles,
         mediaFiles: this.cachedMediaFiles!.media,
-        scriptFiles: this.cachedMediaFiles!.scripts,
+        scriptFiles: this.cachedMediaFiles!.scripts.map((script) => {
+          if (script.filename === BRIDGE_PLUGIN_FILENAME) {
+            return {
+              ...script,
+              scriptArgs: {
+                ...(script.scriptArgs as Partial<PluginArgs>),
+                pdfFilesToRender: pdfsToRender.map(
+                  (pdf) => pdf.metadata.storedFilename
+                ),
+              } as PluginArgs,
+            } as AutoankiScriptMediaFile;
+          }
+          return script;
+        }),
       };
     }
 
