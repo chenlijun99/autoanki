@@ -4,7 +4,8 @@ import { z } from 'zod';
 import { match } from 'path-to-regexp';
 
 import { AutoankiPluginApi } from '@autoanki/core';
-import { invoke } from '@autoanki/zotero-bbt-rpc';
+import { invoke, ItemTypes } from '@autoanki/zotero-bbt-rpc';
+import assert from '@autoanki/utils/assert.js';
 
 type Route<T extends z.ZodTypeAny> = {
   path: string;
@@ -21,7 +22,7 @@ function defineRoute<T extends z.ZodTypeAny>(route: Route<T>): Route<T> {
 
 const routes = [
   defineRoute({
-    path: 'citeKey/:citeKey/:index?',
+    path: 'pdf/byCiteKey/:citeKey/:index?',
     paramSchema: z
       .object({
         citeKey: z.string(),
@@ -37,7 +38,7 @@ const routes = [
     handler: async (api, params) => {
       const { citeKey, index } = params;
 
-      let attachments = [];
+      let attachments: ItemTypes.AttachementResponse[] = [];
       try {
         attachments = await invoke({
           method: 'item.attachments',
@@ -50,6 +51,10 @@ const routes = [
         return;
       }
 
+      attachments = attachments.filter((att) => {
+        return att.path !== false && !!att.annotations;
+      });
+
       if (attachments.length === 0) {
         api.logger.warn(
           `The item referenced by cite key "${citeKey}" has no attachments`
@@ -59,8 +64,9 @@ const routes = [
           `Invalid attachement index "${index}". The item referenced by cite key ${citeKey} has ${attachments.length} attachments.`
         );
       } else {
-        const attachement = attachments[index];
-        const buffer = await fs.promises.readFile(attachement.path);
+        const attachment = attachments[index];
+        assert(typeof attachment.path === 'string');
+        const buffer = await fs.promises.readFile(attachment.path);
         return buffer.toString('base64');
       }
     },

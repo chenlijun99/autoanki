@@ -1,7 +1,17 @@
-interface AttachementResponse {
+export interface AttachementResponse {
+  /**
+   * Open URL for this attachment
+   */
   open: string;
-  path: string;
-  annotations: unknown[];
+  /**
+   * If string, it's the path to the attachment in the local file system.
+   * If false, probably it is not an attachment (it could be a note).
+   */
+  path: string | false;
+  /**
+   * If the attachment is a PDF, then this field is also present.
+   */
+  annotations?: unknown[];
 }
 
 export type MethodToTypeMap = {
