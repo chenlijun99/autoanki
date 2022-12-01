@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.1.2](https://github.com/chenlijun99/autoanki/compare/@autoanki/plugin-content-zotero@0.1.1...@autoanki/plugin-content-zotero@0.1.2) (2022-12-01)
+
+### Bug Fixes
+
+- **plugin-content-zotero:** handle non-PDF attachments ([3d8ba3d](https://github.com/chenlijun99/autoanki/commit/3d8ba3d08c68bd98cdf620855edaf73c0e5c304e))
+
+### BREAKING CHANGES
+
+- **plugin-content-zotero:** the endpoint has been changed from `citeKey/:citeKey/:index?`
+  to `pdf/byCiteKey/:citeKey/:index?`
+
 ## 0.1.1 (2022-11-30)
 
 ### Features

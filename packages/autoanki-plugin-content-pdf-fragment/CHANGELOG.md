@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.1.4](https://github.com/chenlijun99/autoanki/compare/@autoanki/plugin-content-pdf-fragment@0.1.3...@autoanki/plugin-content-pdf-fragment@0.1.4) (2022-12-01)
+
+### Bug Fixes
+
+- **plugin-content-pdf-fragment:** only PDFs inside a single note were rendered ([277a7d1](https://github.com/chenlijun99/autoanki/commit/277a7d19ee3c19871278c088f3bafd2beac74e47))
+
 ## [0.1.3](https://github.com/chenlijun99/autoanki/compare/@autoanki/plugin-content-pdf-fragment@0.1.2...@autoanki/plugin-content-pdf-fragment@0.1.3) (2022-11-30)
 
 ### Features
