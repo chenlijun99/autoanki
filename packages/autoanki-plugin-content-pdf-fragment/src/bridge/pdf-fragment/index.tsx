@@ -187,7 +187,7 @@ export default function PdfFragment(props: PdfFragmentProps) {
    */
   useEffect(() => {
     setRenderingPending(true);
-  }, [currentPage]);
+  }, [pageNumber]);
 
   /**
    * Extract open parameters from the URL of the PDF
@@ -395,14 +395,21 @@ export default function PdfFragment(props: PdfFragmentProps) {
    */
   const clipContainerRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
-    if (pdfRect && clipContainerRef.current) {
+    if (clipContainerRef.current) {
       const div = clipContainerRef.current;
-      div.style.height = `${pdfRect.height * scale}px`;
-      div.style.width = `${pdfRect.width * scale}px`;
-      div.style.overflow = 'hidden';
-      div.scrollTo(pdfRect.x * scale, pdfRect.y * scale);
+      if (pdfRect) {
+        div.style.height = `${pdfRect.height * scale}px`;
+        div.style.width = `${pdfRect.width * scale}px`;
+        div.style.overflow = 'hidden';
+        div.scrollTo(pdfRect.x * scale, pdfRect.y * scale);
+      } else {
+        // set default style
+        div.style.height = `auto`;
+        div.style.width = `auto`;
+        div.style.overflow = 'visible';
+      }
     }
-  }, [currentPage, pdfRect, scale]);
+  }, [pdfRect, scale]);
 
   const SizedLoader = useCallback(() => {
     /*
@@ -574,12 +581,7 @@ export default function PdfFragment(props: PdfFragmentProps) {
                   standardFontDataUrl: `https://unpkg.com/pdfjs-dist@${pdfjs.version}/standard_fonts`,
                 }}
               >
-                <ConditionalWrapper
-                  condition={pdfRect !== undefined}
-                  wrapper={({ children }) => (
-                    <div ref={clipContainerRef}>{children}</div>
-                  )}
-                >
+                <div ref={clipContainerRef}>
                   <Page
                     loading={<SizedLoader />}
                     scale={scale}
@@ -588,7 +590,7 @@ export default function PdfFragment(props: PdfFragmentProps) {
                     renderInteractiveForms={false}
                     pageNumber={pageNumber}
                   />
-                </ConditionalWrapper>
+                </div>
               </Document>
             </div>
           </Card>

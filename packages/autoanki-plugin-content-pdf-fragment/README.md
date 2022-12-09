@@ -89,6 +89,7 @@ Docs may be outdated, for the source of truth see constants in the `CSS_CLASSES`
   - Spare media folder storage space. Most often having many screenshots of a PDF takes more space than having the full PDF stored in Anki and then having a PDF rendered dynamically show the specified fragment of the PDF.
   - No need to take screenshots manually, thanks to [@autoanki/sync](../autoanki-sync).
     - Sync updates to the PDF via [@autoanki/sync](../autoanki-sync). For example you are a heavy user of PDF annotations. After you update an annotation, just resync and the up-to-date PDF will be copied to Anki and next time the cards will render the PDF fragments with your new annotations.
+  - Possibility to interactively open/close annotations.
   - Working with copyrighted materials.
 
 ### Consequences of the image analogy
