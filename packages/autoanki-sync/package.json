@@ -1,6 +1,6 @@
 {
   "name": "@autoanki/sync",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Automatic anki toolkit - sync via Anki-connect",
   "keywords": [
     "anki",
