@@ -22,12 +22,12 @@ import syncPlugin, {
   SyncActionHandleNotesOnlyInSource,
   ManualSyncAction,
 } from '@autoanki/sync';
+import { groupByMap } from '@autoanki/utils/array.js';
 
 import { extractAnkiNotesFromFiles } from '../../utils/index.js';
 import { question } from '../../utils/readline.js';
 import { createChildLogger, getLogger } from '../../middlewares/log.js';
 import { getConfig } from '../../middlewares/config.js';
-import { groupByMap } from '@autoanki/utils/array.js';
 
 interface Args {
   inputs: string[];

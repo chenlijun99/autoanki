@@ -52,8 +52,8 @@ export async function invoke<MethodName extends MethodNames>(
     `${origin}/better-bibtex/json-rpc`,
     {
       jsonrpc: JSON_RPC_VERSION,
-      method: method,
-      params: params,
+      method,
+      params,
     },
     {
       headers: {

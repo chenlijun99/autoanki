@@ -47,11 +47,15 @@ function configBuilder(
   function* insertionIndicies() {
     let start = 0;
     let end = 0;
-    for (let i = 0, length = matchedConfig.decomposed.length; i < length; ++i) {
+    for (
+      let i = 0, length = matchedConfig.decomposed.length;
+      i < length;
+      i += 1
+    ) {
       yield [i, start];
       start += 2;
 
-      ++i;
+      i += 1;
       if (i < length) {
         yield [i, noteInputsConfig.length + end];
         end -= 2;
@@ -68,7 +72,7 @@ function configBuilder(
     });
   }
   return {
-    noteInputsConfig: noteInputsConfig,
+    noteInputsConfig,
   };
 }
 

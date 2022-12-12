@@ -20,7 +20,7 @@ interface PageControlProps {
 }
 
 function coerceToInt(value: string | number): number {
-  return typeof value === 'string' ? Number.parseInt(value) : value;
+  return typeof value === 'string' ? Number.parseInt(value, 10) : value;
 }
 
 type PageOperationConstraint = Pick<
@@ -150,7 +150,7 @@ function PageControlInput(props: PageControlProps) {
         const newPage = pageOperations.setPage.trigger(
           props.page,
           props,
-          Number.parseInt(inputPageNumber)
+          Number.parseInt(inputPageNumber, 10)
         );
         if (newPage) {
           props.onPageChanged(newPage);

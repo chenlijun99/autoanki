@@ -8,12 +8,11 @@ import type {
   AutoankiScriptMediaFile,
 } from '@autoanki/core';
 
-import type { PluginArgs } from './bridge/index.js';
-
 import bundledBridgePluginBase64 from 'bridge/index.bundled.js';
 import bundledBridgePluginPdfjsWorkerBase64 from 'bridge/pdf.worker.bundled.js';
 import reactPdfTextLayerCssBase64 from 'react-pdf/dist/esm/Page/TextLayer.css';
 import reactPdfAnnotationLayerCssBase64 from 'react-pdf/dist/esm/Page/AnnotationLayer.css';
+import type { PluginArgs } from './bridge/index.js';
 
 const BRIDGE_PLUGIN_FILENAME = 'pdf_render.js';
 

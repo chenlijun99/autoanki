@@ -31,7 +31,7 @@ const routes = [
           .optional()
           .default('0')
           .transform((str) => {
-            return Number.parseInt(str);
+            return Number.parseInt(str, 10);
           }),
       })
       .strict(),

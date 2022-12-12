@@ -2,9 +2,15 @@ module.exports = {
   root: true,
   extends: [
     /**
-     * Use eslint-config-airbnb-typescript as base config
+     * Use airbnb preset as base config
      */
-    'airbnb-typescript/base',
+    'airbnb',
+    'airbnb/hooks',
+    'airbnb-typescript',
+    /*
+     * See https://github.com/jsx-eslint/eslint-plugin-react/blob/master/docs/rules/react-in-jsx-scope.md#when-not-to-use-it
+     */
+    'plugin:react/jsx-runtime',
     /*
      * From package eslint-config-prettier
      *
@@ -119,5 +125,77 @@ module.exports = {
      * and by the targets we want to support
      */
     'unicorn/prefer-top-level-await': 'off',
+    /*
+     * I do use bitwise operator.
+     */
+    'no-bitwise': 'off',
+    /*
+     * Yeah, usually it is better the use `Promise.all(arr.map(...))`.
+     * But let's treat is as a warning, since usually await in loop at worst
+     * cause performance degradation, but don't impact correctness.
+     */
+    'no-await-in-loop': 'warn',
+    /*
+     * Override the airbnb config. Allow for..of loops
+     */
+    'no-restricted-syntax': [
+      'error',
+      {
+        selector: 'ForInStatement',
+        message:
+          'for..in loops iterate over the entire prototype chain, which is virtually never what you want. Use Object.{keys,values,entries}, and iterate over the resulting array.',
+      },
+      {
+        selector: 'LabeledStatement',
+        message:
+          'Labels are a form of GOTO; using them makes code confusing and hard to maintain and understand.',
+      },
+      {
+        selector: 'WithStatement',
+        message:
+          '`with` is disallowed in strict mode because it makes code impossible to predict and optimize.',
+      },
+    ],
+    /*
+     * IMHO accessing props explicitly often makes code more readable.
+     * I know immediately: "Oh, this is a prop".
+     */
+    'react/destructuring-assignment': 'off',
+    /*
+     * A fragment is innocuous.
+     */
+    'react/jsx-no-useless-fragment': 'off',
+    'no-continue': 'off',
+    'no-inner-declarations': 'off',
+    'max-classes-per-file': 'off',
+    'default-case': 'off',
+    'no-else-return': 'off',
+    'no-restricted-exports': 'off',
+    'no-undef-init': 'off',
+    /*
+     * TypeScript is enough to ensure that the correct type is returned.
+     */
+    'consistent-return': 'off',
+    /*
+     * One of the things I like about react is exactly props spreading
+     * Compared to angular it is so easy create wrapper components.
+     * Furthermore, TypeScript should already error/warn (not sure) when
+     * passing unaccpeted props.
+     */
+    'react/jsx-props-no-spreading': 'off',
+    'new-cap': 'off',
+    'prefer-template': 'off',
+    /*
+     * We use emotion.js, which allows a css props also on DOM elements.
+     */
+    'react/no-unknown-property': ['error', { ignore: ['css'] }],
+    /*
+     * Not useful
+     */
+    'react/function-component-definition': 'off',
+    /*
+     * There is some IMHO false positive. Not important anyway. So just disable.
+     */
+    'react/no-unused-prop-types': 'off',
   },
 };

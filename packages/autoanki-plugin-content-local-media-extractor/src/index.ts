@@ -191,7 +191,7 @@ const rehypeExtractMediaFilesAndRename: Plugin<[RehypePluginOptions]> = (
           ).extractedMediaFiles.push(autoankiMediaFile);
           media.mediaPathUpdater(autoankiMediaFile.metadata.storedFilename);
         } else {
-          let reasons: string[] = [];
+          const reasons: string[] = [];
           if (result.errorCodes.size === 1 && result.errorCodes.has('ENOENT')) {
             reasons.push('Not found');
           } else if (result.errorCodes.size > 0) {

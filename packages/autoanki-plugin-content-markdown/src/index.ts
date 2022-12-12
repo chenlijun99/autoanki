@@ -13,8 +13,6 @@ import rehypeStringify from 'rehype-stringify';
 import { z } from 'zod';
 
 import katexBundledBase64 from 'katex/dist/katex.min.css';
-import styleBundledBase64 from './style.css';
-
 import type {
   AutoankiNote,
   AutoankiPlugin,
@@ -24,6 +22,8 @@ import type {
   RawAutoankiMediaFile,
   AutoankiPluginApi,
 } from '@autoanki/core';
+
+import styleBundledBase64 from './style.css';
 
 import { builtinThemes, ThemeModule } from './builtin-themes.js';
 

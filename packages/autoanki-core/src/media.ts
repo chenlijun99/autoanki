@@ -75,7 +75,7 @@ function stripUnmatchedSurrogates(str: string): string {
   return str.replace(/[\u{D800}-\u{DFFF}]/gu, '');
 }
 
-var filenameMetadataPrefixRegex = new RegExp(
+const filenameMetadataPrefixRegex = new RegExp(
   `^_?(${AUTOANKI_MEDIA_PREFIX})_([0-9a-fA-F]{40})_(.*)$`
 );
 

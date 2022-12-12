@@ -9,8 +9,8 @@ import type {
   AnkiBridgePluginApi,
 } from '@autoanki/anki-bridge';
 
-import PdfFragment, { PdfFragmentProps } from './pdf-fragment/index.js';
 import { MEDIA_URL_DATA_ATTRIBUTES } from '@autoanki/utils/plugins/media.js';
+import PdfFragment, { PdfFragmentProps } from './pdf-fragment/index.js';
 
 export interface PluginArgs {
   pdfFilesToRender: string[];

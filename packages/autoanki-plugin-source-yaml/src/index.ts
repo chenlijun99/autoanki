@@ -100,7 +100,7 @@ export class YamlSourcePlugin implements SourcePlugin {
     inputKey: string,
     inputContent: ArrayBufferLike
   ): Promise<SourcePluginParsingOutput[]> {
-    var enc = new TextDecoder('utf8');
+    const enc = new TextDecoder('utf8');
     const input = enc.decode(inputContent);
     let parsedYaml;
     try {

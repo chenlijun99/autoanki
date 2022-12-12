@@ -9,7 +9,7 @@ import assert from '@autoanki/utils/assert.js';
 
 import { getLogger } from './log.js';
 
-let defaultConfig: Config = {
+const defaultConfig: Config = {
   noteInputsConfig: [],
 };
 
