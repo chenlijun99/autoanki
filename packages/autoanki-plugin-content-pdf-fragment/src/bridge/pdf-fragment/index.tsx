@@ -114,8 +114,8 @@ function parsePdfViewRect(viewRect: string): PdfRect | undefined {
   }
   const coerced = [];
   for (const item of items) {
-    const num = Number.parseInt(item);
-    if (num === Number.NaN) {
+    const num = Number.parseInt(item, 10);
+    if (Number.isNaN(num)) {
       return;
     }
     coerced.push(num);
@@ -138,7 +138,7 @@ function Loader(props: LoaderProps) {
   return (
     <Box sx={{ width: props.width ?? '100%', height: props.height }}>
       <Fade
-        in={true}
+        in
         style={{
           // delay appearance of loader by 500ms
           transitionDelay: '500ms',
@@ -169,12 +169,14 @@ export default function PdfFragment(props: PdfFragmentProps) {
   const [pdfRect, setPdfRect] = useState<PdfRect>();
   const [renderingPending, setRenderingPending] = useState<boolean>(true);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const onPageLoadSuccess = useCallback(
     ((page) => {
       setCurrentPage(page);
     }) as NonNullable<Page['props']['onLoadSuccess']>,
     []
   );
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const onRenderSuccess = useCallback(
     (() => {
       setRenderingPending(false);
@@ -196,8 +198,8 @@ export default function PdfFragment(props: PdfFragmentProps) {
     const params = new URLSearchParams(new URL(props.pdfUrl).hash.slice(1));
     const page = params.get('page');
     if (page) {
-      const value = Number.parseInt(page);
-      if (value !== Number.NaN) {
+      const value = Number.parseInt(page, 10);
+      if (!Number.isNaN(value)) {
         setPageNumber(value);
       }
     } else {
@@ -206,8 +208,8 @@ export default function PdfFragment(props: PdfFragmentProps) {
 
     const newScale = params.get('zoom');
     if (newScale) {
-      const value = Number.parseInt(newScale);
-      if (value !== Number.NaN) {
+      const value = Number.parseInt(newScale, 10);
+      if (!Number.isNaN(value)) {
         setScale(value / 100);
         setUserSetScale(value / 100);
       }
@@ -242,6 +244,8 @@ export default function PdfFragment(props: PdfFragmentProps) {
     } else {
       setPdfRect(newPdfRect);
     }
+    // pdfRect is intentionally omitted and it should ok given the logic of this effect
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.pdfUrl]);
 
   /*
@@ -299,8 +303,8 @@ export default function PdfFragment(props: PdfFragmentProps) {
   const [divWithContainerSizeRef, containerSize] = useMeasure();
   useEffect(() => {
     if (pdfView && currentPdfFragmentSize) {
-      let xScaling = containerSize.width / currentPdfFragmentSize.width;
-      let yScaling = containerSize.height / currentPdfFragmentSize.height;
+      const xScaling = containerSize.width / currentPdfFragmentSize.width;
+      const yScaling = containerSize.height / currentPdfFragmentSize.height;
 
       if (pdfView === 'FitH' || pdfView === 'FitBH') {
         setScale(xScaling);
@@ -363,7 +367,7 @@ export default function PdfFragment(props: PdfFragmentProps) {
         pdfFragmentDivRefSetterForMeasure(undefined);
       }
     }
-  }, [pdfFragmentRef]);
+  }, [pdfFragmentRef, pdfFragmentDivRefSetterForMeasure]);
   useEffect(() => {
     if (
       !!pdfAutoscaleAxis &&
@@ -441,6 +445,8 @@ export default function PdfFragment(props: PdfFragmentProps) {
          */}
         <ConditionalWrapper
           condition={pdfView !== undefined}
+          // TODO: revisit this eslint disable
+          // eslint-disable-next-line react/no-unstable-nested-components
           wrapper={({ children }) => (
             <div
               /* @ts-ignore */

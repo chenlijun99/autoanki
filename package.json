@@ -6,9 +6,9 @@
   "scripts": {
     "update-config": "lerna run update-config",
     "lint": "eslint . --cache --ext .js,.jsx,.ts,.tsx",
-    "lint-fix": "yarn run lint --fix",
+    "lint-fix": "pnpm run lint --fix",
     "lint-styles": "stylelint --allow-empty-input '**/*.*(css|scss|jsx|tsx)'",
-    "lint-styles-fix": "yarn run lint-styles --allow-empty-input --fix",
+    "lint-styles-fix": "pnpm run lint-styles --allow-empty-input --fix",
     "prettier": "prettier --check  .",
     "prettier-fix": "prettier --write .",
     "prepare": "husky install",

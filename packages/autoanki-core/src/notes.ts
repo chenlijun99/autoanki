@@ -252,7 +252,7 @@ function sourcePluginOutputToAutoankiNote(
     tags: Array.from(tags),
     autoanki: {
       uuid: id,
-      deleted: deleted,
+      deleted,
       sourceContentFields: { ...note.fields },
       metadata: {
         parsedNote: note,
@@ -423,7 +423,7 @@ export async function extractAutoankiNotes(
   );
 
   const sourcePlugin = await loadPlugin(pipeline.source, 'source');
-  let transformerPlugins =
+  const transformerPlugins =
     pipeline.transformers !== undefined
       ? await Promise.all(
           pipeline.transformers.map((transformer) =>
@@ -481,7 +481,7 @@ export function groupAutoankiNotesBySourcePluginAndInput<T>(
   items: T[],
   getAutoankiNote?: (item: T) => AutoankiNote
 ): Map<SourcePlugin, Map<NoteInput, T[]>> {
-  let groupedBySourcePluginAndInput: Map<
+  const groupedBySourcePluginAndInput: Map<
     AutoankiNote['autoanki']['metadata']['sourcePlugin'],
     Map<AutoankiNote['autoanki']['metadata']['input'], T[]>
   > = new Map();
@@ -522,10 +522,10 @@ export function groupAutoankiNotesBySourcePluginAndInput<T>(
 export async function writeBackAutoankiNoteUpdates(
   notes: AutoankiNote[]
 ): Promise<NoteInput[]> {
-  let groupedBySourcePluginAndInput =
+  const groupedBySourcePluginAndInput =
     groupAutoankiNotesBySourcePluginAndInput(notes);
 
-  let updatedContents: Record<NoteInput['key'], ArrayBufferLike[]> = {};
+  const updatedContents: Record<NoteInput['key'], ArrayBufferLike[]> = {};
 
   for (const [sourcePlugin, groupedByInputs] of groupedBySourcePluginAndInput) {
     for (const [input, ankiNotes] of groupedByInputs) {

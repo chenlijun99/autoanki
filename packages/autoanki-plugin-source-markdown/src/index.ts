@@ -52,7 +52,7 @@ export class MarkdownSourcePlugin implements SourcePlugin {
     const modifiedMarkdownBlocks = await Promise.all(
       Object.entries(notesPerYamlBlock).map(
         async ([i, notesOfThisYamlBlock]) => {
-          const ithBlock = Number.parseInt(i);
+          const ithBlock = Number.parseInt(i, 10);
           const newContent = await this.yamlPlugin.writeBackToInput(
             `${inputKey}-${i}`,
             encoder.encode(thisFileCache.yamlBlocks[ithBlock].value),
@@ -79,7 +79,7 @@ export class MarkdownSourcePlugin implements SourcePlugin {
   }
 
   async parseFromInput(inputKey: string, inputContent: ArrayBufferLike) {
-    var enc = new TextDecoder('utf8');
+    const enc = new TextDecoder('utf8');
     const input = enc.decode(inputContent);
     if (!this.markdownParseCache[inputKey]) {
       this.markdownParseCache[inputKey] = {

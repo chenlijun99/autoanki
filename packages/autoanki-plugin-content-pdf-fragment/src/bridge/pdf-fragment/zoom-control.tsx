@@ -20,7 +20,8 @@ interface ZoomControlProps {
 const ZOOM_LEVELS = [50, 75, 100, 125, 150, 200, 300, 400];
 
 function coerceToInt(value: string | number): number {
-  return typeof value === 'string' ? Number.parseInt(value) : value;
+  // NOTE: we expect only decimal values.
+  return typeof value === 'string' ? Number.parseInt(value, 10) : value;
 }
 
 export default function ZoomControl(props: ZoomControlProps) {

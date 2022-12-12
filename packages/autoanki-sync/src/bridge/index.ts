@@ -1,7 +1,7 @@
-import { AUTOANKI_HTML_CONSTANTS } from '../common.js';
 import AnkiBridge, {
   encodeObjectDataUrlIfNecessary,
 } from '@autoanki/anki-bridge';
+import { AUTOANKI_HTML_CONSTANTS } from '../common.js';
 
 declare global {
   interface Window {

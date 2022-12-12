@@ -114,7 +114,7 @@ function arrayEqual<T>(a: T[], b: T[]): boolean {
   if (a.length !== b.length) {
     return false;
   }
-  for (let i = 0, length = a.length; i < length; ++i) {
+  for (let i = 0, length = a.length; i < length; i += 1) {
     if (a[i] !== b[i]) {
       return false;
     }
@@ -150,11 +150,11 @@ export async function ankiConnectNoteInfoToAutoankiNote(
 
   const sourceSubfields: AutoankiNoteFromAnki['fieldsSourceContent'] = {};
   const contentSubfields: AutoankiNoteFromAnki['fieldsFinalContent'] = {};
-  let uuid: string = autoankiNoteFields[0][1].uuid;
-  let tags: string = autoankiNoteFields[0][1].tags;
-  let modelName: string = autoankiNoteFields[0][1].modelName;
-  let scriptMediaFiles: string[] = autoankiNoteFields[0][1].scriptMediaFiles;
-  let styleMediaFiles: string[] = autoankiNoteFields[0][1].styleMediaFiles;
+  const uuid: string = autoankiNoteFields[0][1].uuid;
+  const tags: string = autoankiNoteFields[0][1].tags;
+  const modelName: string = autoankiNoteFields[0][1].modelName;
+  const scriptMediaFiles: string[] = autoankiNoteFields[0][1].scriptMediaFiles;
+  const styleMediaFiles: string[] = autoankiNoteFields[0][1].styleMediaFiles;
 
   for (const [i, [fieldName, field]] of autoankiNoteFields.entries()) {
     sourceSubfields[fieldName] = field.sourceContent;
@@ -186,7 +186,7 @@ export async function ankiConnectNoteInfoToAutoankiNote(
               value: check[1],
             },
             {
-              fieldName: fieldName,
+              fieldName,
               value: check[2],
             }
           );
@@ -283,7 +283,7 @@ export async function computeNoteChanges(
   let finalContentFieldsOverallChanges: ExistingNoteChanges['overallChanges'] =
     ConcernedSide.NoSide;
 
-  let fields: ExistingNoteChanges['fields'] = {};
+  const fields: ExistingNoteChanges['fields'] = {};
   for (const fieldName of [
     ...Object.keys(fromSource.autoanki.sourceContentFields),
     ...Object.keys(fromAnki.rawFields),

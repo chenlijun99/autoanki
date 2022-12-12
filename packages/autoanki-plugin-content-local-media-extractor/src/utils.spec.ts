@@ -43,7 +43,7 @@ describe('urlToFilePath', () => {
 
         const result = urlToFilePath(url);
 
-        let expected =
+        const expected =
           protocol.length === 0 || protocol === 'file://'
             ? decodeURI(path)
             : undefined;

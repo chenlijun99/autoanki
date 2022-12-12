@@ -156,7 +156,7 @@ export default class AnkiBridge {
           args
         );
 
-        this.currentLoadedPlugins.set(addedScript, { plugin, args: args });
+        this.currentLoadedPlugins.set(addedScript, { plugin, args });
       }
 
       for (const removedScript of removedScripts) {

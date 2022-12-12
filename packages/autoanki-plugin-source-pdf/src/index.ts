@@ -7,8 +7,8 @@ export default class PdfSource {
   }
 }
 
-let a = new PdfSource();
-let url = new URL(
+const a = new PdfSource();
+const url = new URL(
   'file:///home/lijun/Repositories/personal/autoanki/packages/autoanki-plugin-pdf-source/tests/pdfs/mapreduce-osdi04.pdf'
 );
 a.extractNotes(url);

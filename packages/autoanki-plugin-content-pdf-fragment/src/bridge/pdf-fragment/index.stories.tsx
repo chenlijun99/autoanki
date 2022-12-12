@@ -2,14 +2,14 @@ import { css } from '@mui/material';
 
 import type { Meta, StoryObj } from '@storybook/react';
 
+import { pdfjs } from 'react-pdf';
 import PdfFragment, { PdfFragmentProps } from './index.js';
 import { CSS_CUSTOM_PROPERTIES } from '../constants.js';
 
-import { pdfjs } from 'react-pdf';
-
-pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
 import 'react-pdf/dist/esm/Page/TextLayer.css';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
+
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
 
 /**
  * Get PDF files that we uplaoded to Git-LFS
@@ -187,7 +187,7 @@ export const InsideACard: Story = {
           <h3>Answer at page 2 and 5</h3>
           <StoryPdfFragment
             {...props}
-            enableToolbar={true}
+            enableToolbar
             pages={[2, 5]}
             openParameters="#page=2&zoom=120"
           />
