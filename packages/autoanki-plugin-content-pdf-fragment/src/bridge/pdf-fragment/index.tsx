@@ -396,11 +396,23 @@ export default function PdfFragment(props: PdfFragmentProps) {
 
   /**
    * Handle viewrect
+   *
+   * Why use callback ref + useState instead of just useRef?
+   * Well, we need to run the effect when the div is rendered.
+   * But we can't put ref.current in the useEffect dependency array.
+   *
+   * See https://stackoverflow.com/a/60476525
+   * and https://tkdodo.eu/blog/avoiding-use-effect-with-callback-refs
    */
-  const clipContainerRef = useRef<HTMLDivElement | null>(null);
+  const [clipContainerDiv, setClipContainerDiv] = useState<
+    HTMLDivElement | undefined
+  >();
+  const clipContainerRef = useCallback((node: HTMLDivElement) => {
+    setClipContainerDiv(node);
+  }, []);
   useEffect(() => {
-    if (clipContainerRef.current) {
-      const div = clipContainerRef.current;
+    if (clipContainerDiv && !renderingPending) {
+      const div = clipContainerDiv;
       if (pdfRect) {
         div.style.height = `${pdfRect.height * scale}px`;
         div.style.width = `${pdfRect.width * scale}px`;
@@ -413,7 +425,7 @@ export default function PdfFragment(props: PdfFragmentProps) {
         div.style.overflow = 'visible';
       }
     }
-  }, [pdfRect, scale]);
+  }, [pdfRect, scale, clipContainerDiv, renderingPending]);
 
   const SizedLoader = useCallback(() => {
     /*
