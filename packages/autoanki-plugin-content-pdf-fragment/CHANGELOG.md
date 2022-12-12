@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.1.6](https://github.com/chenlijun99/autoanki/compare/@autoanki/plugin-content-pdf-fragment@0.1.5...@autoanki/plugin-content-pdf-fragment@0.1.6) (2022-12-12)
+
+### Bug Fixes
+
+- **plugin-content-pdf-fragment:** sometimes viewrect doesn't work ([56ded97](https://github.com/chenlijun99/autoanki/commit/56ded976b45e2af3c4fe72d3740dd12e9db6f445))
+
 ## [0.1.5](https://github.com/chenlijun99/autoanki/compare/@autoanki/plugin-content-pdf-fragment@0.1.4...@autoanki/plugin-content-pdf-fragment@0.1.5) (2022-12-09)
 
 ### Bug Fixes
