@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.1.6](https://github.com/chenlijun99/autoanki/compare/@autoanki/plugin-content-markdown@0.1.5...@autoanki/plugin-content-markdown@0.1.6) (2022-12-31)
+
+### Features
+
+- **plugin-content-markdown:** add styling option ([8df5625](https://github.com/chenlijun99/autoanki/commit/8df562511ed2f8b5e2c9cc529db38e959e7b90a0))
+
 ## [0.1.5](https://github.com/chenlijun99/autoanki/compare/@autoanki/plugin-content-markdown@0.1.4...@autoanki/plugin-content-markdown@0.1.5) (2022-12-12)
 
 **Note:** Version bump only for package @autoanki/plugin-content-markdown
