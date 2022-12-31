@@ -1,6 +1,6 @@
 {
   "name": "@autoanki/zotero-bbt-rpc",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "TypeScript client for Zotero Better BibTeX RPC",
   "keywords": [
     "anki",

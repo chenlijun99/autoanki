@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.1.7](https://github.com/chenlijun99/autoanki/compare/@autoanki/plugin-content-pdf-fragment@0.1.6...@autoanki/plugin-content-pdf-fragment@0.1.7) (2022-12-31)
+
+### Bug Fixes
+
+- **plugin-content-pdf-fragment:** apply PDF open parameters only to first page ([4e60db1](https://github.com/chenlijun99/autoanki/commit/4e60db1322c205663cd4191197ee06e122cc6ae0))
+
 ## [0.1.6](https://github.com/chenlijun99/autoanki/compare/@autoanki/plugin-content-pdf-fragment@0.1.5...@autoanki/plugin-content-pdf-fragment@0.1.6) (2022-12-12)
 
 ### Bug Fixes
