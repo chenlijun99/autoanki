@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.0.10](https://github.com/chenlijun99/autoanki/compare/@autoanki/config@0.0.9...@autoanki/config@0.0.10) (2022-12-31)
+
+**Note:** Version bump only for package @autoanki/config
+
 ## [0.0.9](https://github.com/chenlijun99/autoanki/compare/@autoanki/config@0.0.8...@autoanki/config@0.0.9) (2022-12-31)
 
 **Note:** Version bump only for package @autoanki/config

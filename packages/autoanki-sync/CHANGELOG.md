@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.1.9](https://github.com/chenlijun99/autoanki/compare/@autoanki/sync@0.1.8...@autoanki/sync@0.1.9) (2022-12-31)
+
+### Bug Fixes
+
+- **sync:** properly handle `PICK_ANKI` and `PICK_SOURCE` choices for sync update conflict ([c1740d4](https://github.com/chenlijun99/autoanki/commit/c1740d4c142a85f1e03a837c8a5abf27b6184b1c))
+
 ## [0.1.8](https://github.com/chenlijun99/autoanki/compare/@autoanki/sync@0.1.7...@autoanki/sync@0.1.8) (2022-12-31)
 
 ### Bug Fixes
