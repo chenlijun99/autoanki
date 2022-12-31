@@ -648,8 +648,36 @@ export class SyncActionHandleNotesUpdateConflict extends ManualSyncAction {
   async execute(
     choices: HandleUpdateConflictChoice[]
   ): Promise<SyncActionResult> {
+    assert(this.concernedNotes.length === choices.length);
+
+    const furtherActions: SyncAction[] = [];
+    const notesToUpdateInSource: ExistingNoteWithComputedChanges[] = [];
+    const notesToUpdateInAnki: ExistingNoteWithComputedChanges[] = [];
+    for (const [i, choice] of choices.entries()) {
+      if (choice === HandleUpdateConflictChoice.PICK_ANKI) {
+        notesToUpdateInSource.push(this.concernedNotes[i]);
+      }
+      if (choice === HandleUpdateConflictChoice.PICK_SOURCE) {
+        notesToUpdateInAnki.push(this.concernedNotes[i]);
+      }
+    }
+
+    if (notesToUpdateInSource.length > 0) {
+      furtherActions.push(
+        new SyncActionUpdateNotesInSource(
+          notesToUpdateInSource,
+          this.syncProcedure
+        )
+      );
+    }
+    if (notesToUpdateInAnki.length > 0) {
+      furtherActions.push(
+        new SyncActionUpdateNotesInAnki(notesToUpdateInAnki, this.syncProcedure)
+      );
+    }
+
     return {
-      furtherActions: [],
+      furtherActions,
       sourcesToUpdate: [],
     };
   }
