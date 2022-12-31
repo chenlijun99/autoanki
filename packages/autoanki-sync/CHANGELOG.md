@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.1.11](https://github.com/chenlijun99/autoanki/compare/@autoanki/sync@0.1.10...@autoanki/sync@0.1.11) (2022-12-31)
+
+### Performance Improvements
+
+- **sync:** make updating a lot of Autoanki notes much faster ([91b6258](https://github.com/chenlijun99/autoanki/commit/91b62587c227d4418bdd77ae3e6f1eb2c1c4f30e))
+
 ## [0.1.10](https://github.com/chenlijun99/autoanki/compare/@autoanki/sync@0.1.9...@autoanki/sync@0.1.10) (2022-12-31)
 
 ### Bug Fixes
