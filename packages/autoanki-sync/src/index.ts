@@ -295,37 +295,35 @@ export class SyncActionUpdateNotesInAnki extends AutomaticSyncAction {
        * decided to do.
        */
       // assert(note.changes.overallChanges === ConcernedSide.Source);
-      if (note.changes.tagsChanges === ConcernedSide.Source) {
-        const { added, removed } = arrayChanges(
-          note.note.fromAnki.tags.actual,
-          note.note.fromSource.tags
+      const { added, removed } = arrayChanges(
+        note.note.fromAnki.tags.actual,
+        note.note.fromSource.tags
+      );
+      const ops = [];
+      if (added.length > 0) {
+        ops.push(
+          this.syncProcedure._invoke({
+            action: 'addTags',
+            request: {
+              tags: added.join(' '),
+              notes: [note.note.fromAnki.id],
+            },
+          })
         );
-        const ops = [];
-        if (added.length > 0) {
-          ops.push(
-            this.syncProcedure._invoke({
-              action: 'addTags',
-              request: {
-                tags: added.join(' '),
-                notes: [note.note.fromAnki.id],
-              },
-            })
-          );
-        }
-        if (removed.length > 0) {
-          ops.push(
-            this.syncProcedure._invoke({
-              action: 'removeTags',
-              request: {
-                tags: removed.join(' '),
-                notes: [note.note.fromAnki.id],
-              },
-            })
-          );
-        }
-        await Promise.all(ops);
       }
-      if (note.changes.modelNameChange === ConcernedSide.Source) {
+      if (removed.length > 0) {
+        ops.push(
+          this.syncProcedure._invoke({
+            action: 'removeTags',
+            request: {
+              tags: removed.join(' '),
+              notes: [note.note.fromAnki.id],
+            },
+          })
+        );
+      }
+      await Promise.all(ops);
+      if (note.changes.modelNameChange !== ConcernedSide.NoSide) {
         throw new Error('Unspported note type change');
       }
 
@@ -386,22 +384,11 @@ export class SyncActionUpdateNotesInSource extends AutomaticSyncAction {
          */
         // assert(note.changes.overallChanges === ConcernedSide.Anki);
 
-        if (note.changes.tagsChanges === ConcernedSide.Anki) {
-          updatedNote.tags = note.note.fromAnki.tags.actual;
-        }
-        if (note.changes.modelNameChange === ConcernedSide.Anki) {
-          updatedNote.modelName = note.note.fromAnki.modelName.actual;
-        }
-        if (note.changes.fieldsOverallChanges === ConcernedSide.Anki) {
-          for (const [fieldName, field] of Object.entries(
-            note.changes.fields
-          )) {
-            assert(field.finalContentChanges === ConcernedSide.NoSide);
-            if (field.sourceContentChanges === ConcernedSide.Anki) {
-              updatedNote.autoanki.sourceContentFields[fieldName] =
-                note.note.fromAnki.fieldsSourceContent[fieldName].content;
-            }
-          }
+        updatedNote.tags = note.note.fromAnki.tags.actual;
+        updatedNote.modelName = note.note.fromAnki.modelName.actual;
+        for (const fieldName of Object.keys(note.changes.fields)) {
+          updatedNote.autoanki.sourceContentFields[fieldName] =
+            note.note.fromAnki.fieldsSourceContent[fieldName].content;
         }
 
         /*
