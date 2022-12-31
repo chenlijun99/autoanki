@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.1.10](https://github.com/chenlijun99/autoanki/compare/@autoanki/cli@0.1.9...@autoanki/cli@0.1.10) (2022-12-31)
+
+**Note:** Version bump only for package @autoanki/cli
+
 ## [0.1.9](https://github.com/chenlijun99/autoanki/compare/@autoanki/cli@0.1.8...@autoanki/cli@0.1.9) (2022-12-31)
 
 **Note:** Version bump only for package @autoanki/cli

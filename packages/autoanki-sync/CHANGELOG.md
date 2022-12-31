@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.1.10](https://github.com/chenlijun99/autoanki/compare/@autoanki/sync@0.1.9...@autoanki/sync@0.1.10) (2022-12-31)
+
+### Bug Fixes
+
+- **sync:** wrap long lines in source content when editing it in Anki Desktop's rich editor ([558b12f](https://github.com/chenlijun99/autoanki/commit/558b12fea6fe5a3a1466e231cf7eaede78420bb0))
+
 ## [0.1.9](https://github.com/chenlijun99/autoanki/compare/@autoanki/sync@0.1.8...@autoanki/sync@0.1.9) (2022-12-31)
 
 ### Bug Fixes
