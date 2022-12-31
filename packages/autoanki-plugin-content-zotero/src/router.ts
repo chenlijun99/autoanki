@@ -7,13 +7,15 @@ import { AutoankiPluginApi } from '@autoanki/core';
 import { invoke, ItemTypes } from '@autoanki/zotero-bbt-rpc';
 import assert from '@autoanki/utils/assert.js';
 
+import type { Attachment } from './common.js';
+
 type Route<T extends z.ZodTypeAny> = {
   path: string;
   paramSchema: T;
   handler: (
     api: AutoankiPluginApi,
     params: z.infer<T>
-  ) => Promise<string | undefined>;
+  ) => Promise<Attachment | undefined>;
 };
 
 function defineRoute<T extends z.ZodTypeAny>(route: Route<T>): Route<T> {
@@ -67,7 +69,10 @@ const routes = [
         const attachment = attachments[index];
         assert(typeof attachment.path === 'string');
         const buffer = await fs.promises.readFile(attachment.path);
-        return buffer.toString('base64');
+        return {
+          base64Content: buffer.toString('base64'),
+          openUrl: attachment.open,
+        } as Attachment;
       }
     },
   }),
@@ -80,7 +85,7 @@ const routeMatcherToRoute = routes.map((route) => {
 export async function handleApiWithPath(
   api: AutoankiPluginApi,
   path: string
-): Promise<string | undefined> {
+): Promise<Attachment | undefined> {
   api.logger.log(`Resolving zotero attachement with path: ${path}`);
   for (const route of routeMatcherToRoute) {
     const result = route.matcher(path);

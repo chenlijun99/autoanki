@@ -21,4 +21,16 @@ export type MethodToTypeMap = {
     };
     response: AttachementResponse[];
   };
+  'item.bibliography': {
+    request: {
+      citekeys: string[];
+      format: {
+        id: string;
+        quickCopy?: boolean;
+        contentType?: 'html' | 'text';
+        locale?: string;
+      };
+    };
+    response: string;
+  };
 };

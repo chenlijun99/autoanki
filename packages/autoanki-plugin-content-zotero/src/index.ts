@@ -3,6 +3,7 @@ import { unified } from 'unified';
 import type { Plugin } from 'unified';
 import { visit } from 'unist-util-visit';
 import { Root, Element } from 'hast';
+import { h } from 'hastscript';
 import rehypeParse from 'rehype-parse';
 import rehypeStringify from 'rehype-stringify';
 
@@ -17,6 +18,7 @@ import type {
 import { MEDIA_URL_DATA_ATTRIBUTES } from '@autoanki/utils/plugins/media.js';
 
 import { handleApiWithPath } from './router.js';
+import { Attachment } from './common.js';
 
 const URL_PROTOCOL = 'autoanki-zotero:';
 
@@ -27,7 +29,7 @@ interface RehypePluginOptions {
 async function attemptToResolveZoteroAttachment(
   api: AutoankiPluginApi,
   urlStr: string
-): Promise<string | undefined> {
+): Promise<Attachment | undefined> {
   let url: URL | undefined = undefined;
   try {
     url = new URL(urlStr);
@@ -61,12 +63,12 @@ const rehypeExtractZoteroAttachmentsAndRename: Plugin<[RehypePluginOptions]> = (
   return async (tree, file) => {
     type ExtractedMedia = {
       mediaPath: string;
-      mediaPathUpdater: (newPath: string) => void;
+      mediaPathUpdater: (newPath: string, attachment: Attachment) => void;
     };
 
     const extractedMedias: ExtractedMedia[] = [];
 
-    visit(tree as Root, 'element', (node) => {
+    visit(tree as Root, 'element', (node, index, parent) => {
       if (
         node.tagName === 'object' &&
         node.properties?.data &&
@@ -74,12 +76,35 @@ const rehypeExtractZoteroAttachmentsAndRename: Plugin<[RehypePluginOptions]> = (
       ) {
         extractedMedias.push({
           mediaPath: node.properties.data,
-          mediaPathUpdater: (newPath) => {
-            addOriginalQueryStringAndHash(
-              node,
-              node.properties!.data as string
-            );
+          mediaPathUpdater: (newPath, attachment) => {
+            const originalUrl = node.properties!.data as string;
+            addOriginalQueryStringAndHash(node, originalUrl);
             node.properties!.data = newPath;
+
+            if (parent && index) {
+              /*
+               * PDF open parameters are specified in the hash, but the Zotero
+               * open URI accepts the page parameter as query parameter.
+               */
+              const url = new URL(originalUrl);
+              let query = '';
+              if (url.hash.includes('page')) {
+                // remove the initial '#' character in `url.hash`
+                query = `?${url.hash.slice(1)}`;
+              }
+              const figure = h('figure', [
+                h('figcaption', [
+                  h(
+                    'a',
+                    { href: `${attachment.openUrl}${query}` },
+                    'Open in Zotero'
+                  ),
+                ]),
+              ]);
+              figure.children.unshift(node);
+
+              parent.children[index] = figure;
+            }
           },
         });
       }
@@ -90,21 +115,24 @@ const rehypeExtractZoteroAttachmentsAndRename: Plugin<[RehypePluginOptions]> = (
     };
     await Promise.all(
       extractedMedias.map(async (media) => {
-        const fileContentBae64 = await attemptToResolveZoteroAttachment(
+        const attachment = await attemptToResolveZoteroAttachment(
           options.coreApi,
           media.mediaPath
         );
-        if (fileContentBae64) {
+        if (attachment) {
           const autoankiMediaFile =
             await options.coreApi.media.computeAutoankiMediaFileFromRaw({
               filename: media.mediaPath,
-              base64Content: fileContentBae64,
+              base64Content: attachment.base64Content,
               mime: 'application/pdf',
             });
           (
             file.data[rehypePluginDataKey] as RehypePluginData
           ).extractedMediaFiles.push(autoankiMediaFile);
-          media.mediaPathUpdater(autoankiMediaFile.metadata.storedFilename);
+          media.mediaPathUpdater(
+            autoankiMediaFile.metadata.storedFilename,
+            attachment
+          );
         }
       })
     );

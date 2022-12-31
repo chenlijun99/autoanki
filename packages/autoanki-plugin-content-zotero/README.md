@@ -16,8 +16,8 @@ Plugin that deals with note content containing "stuff" concerning Zotero.
 
 - `pdf/byCiteKey/:citeKey/:index?`
   - `citeKey` (string): attachments will be extracted from the Zotero item with this `citeKey`.
-  - `index` (non-negative integer): the zero-based index of the attachment, in case the Zotero item referenced by the given `citeKey` contains multiple PDF attachments.
-  - E.g. `autoanki-zotero://citeKey/axlerLinearAlgebraDone2015/2`
+  - `index` (non-negative integer, defaults to `0`): the zero-based index of the attachment, in case the Zotero item referenced by the given `citeKey` contains multiple PDF attachments.
+  - E.g. `autoanki-zotero://pdf/byCiteKey/axlerLinearAlgebraDone2015/2`: this URL references the third PDF attachment of the Zotero item that has `axlerLinearAlgebraDone2015` as cite key.
 
 ## Supported environments
 

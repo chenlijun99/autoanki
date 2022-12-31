@@ -41,6 +41,7 @@
   "dependencies": {
     "@autoanki/utils": "workspace:^",
     "@autoanki/zotero-bbt-rpc": "workspace:^",
+    "hastscript": "^7.1.0",
     "path-to-regexp": "^6.2.1",
     "rehype-parse": "^8.0.4",
     "rehype-stringify": "^9.0.3",
