@@ -288,7 +288,13 @@ export class SyncActionUpdateNotesInAnki extends AutomaticSyncAction {
         this.notesToUpdate.map((note) => note.note.fromSource)
       );
     const updateNotesPromise = this.notesToUpdate.map(async (note) => {
-      assert(note.changes.overallChanges === ConcernedSide.Source);
+      /*
+       * NOTE that in general the following assertion is not true.
+       * `SyncActionUpdateNotesInAnki` may also be used for notes
+       * updated in both directions, if that is what the user manually
+       * decided to do.
+       */
+      // assert(note.changes.overallChanges === ConcernedSide.Source);
       if (note.changes.tagsChanges === ConcernedSide.Source) {
         const { added, removed } = arrayChanges(
           note.note.fromAnki.tags.actual,
@@ -372,8 +378,14 @@ export class SyncActionUpdateNotesInSource extends AutomaticSyncAction {
     const updatedNoteWithRecomputedChanges = await Promise.all(
       this.notesToUpdate.map(async (note) => {
         const updatedNote = note.note.fromSource;
+        /*
+         * NOTE that in general the following assertion is not true.
+         * `SyncActionUpdateNotesInSource` may also be used for notes
+         * updated in both directions, if that is what the user manually
+         * decided to do.
+         */
+        // assert(note.changes.overallChanges === ConcernedSide.Anki);
 
-        assert(note.changes.overallChanges === ConcernedSide.Anki);
         if (note.changes.tagsChanges === ConcernedSide.Anki) {
           updatedNote.tags = note.note.fromAnki.tags.actual;
         }
@@ -412,7 +424,7 @@ export class SyncActionUpdateNotesInSource extends AutomaticSyncAction {
              * Maybe there is the difference between the updatedNote and the
              * note from Anki (only if the transformation produced the same
              * final content even though the source content changed).
-             * Force that there is some change from the source. At lesat we
+             * Force that there is some change from the source. At least we
              * must update the metadata in Anki.
              */
             overallChanges: ConcernedSide.Source,
