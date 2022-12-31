@@ -1,3 +1,10 @@
+/*
+ * We disable no-await-in-loop rule for this file because surprinsingly,
+ * performing Anki-connect requests one after another is much faster
+ * than performing all the requests concurrently.
+ */
+/* eslint-disable no-await-in-loop */
+
 import difference from 'lodash/difference.js';
 import differenceBy from 'lodash/differenceBy.js';
 import { z } from 'zod';
@@ -283,11 +290,10 @@ export class SyncActionUpdateNotesInAnki extends AutomaticSyncAction {
   }
 
   async execute() {
-    const sendMediaFilesPromise =
-      this.syncProcedure._sendNonExistingMediaFilesOfNotesToAnki(
-        this.notesToUpdate.map((note) => note.note.fromSource)
-      );
-    const updateNotesPromise = this.notesToUpdate.map(async (note) => {
+    await this.syncProcedure._sendNonExistingMediaFilesOfNotesToAnki(
+      this.notesToUpdate.map((note) => note.note.fromSource)
+    );
+    for (const note of this.notesToUpdate) {
       /*
        * NOTE that in general the following assertion is not true.
        * `SyncActionUpdateNotesInAnki` may also be used for notes
@@ -353,9 +359,7 @@ export class SyncActionUpdateNotesInAnki extends AutomaticSyncAction {
           },
         },
       });
-    });
-
-    await Promise.all([sendMediaFilesPromise].concat(updateNotesPromise));
+    }
 
     return {
       furtherActions: [],
