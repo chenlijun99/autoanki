@@ -20,6 +20,8 @@ anki-editable autoanki-source-content {
   display: initial;
   /**
    * Render white spaces and new line characters (`\n`).
+   * But with `pre` very long lines in the original source will be truncated
+   * (hidden) in Anki desktop's rich editor. Thus we use `pre-wrap`.
    */
-  white-space: pre;
+  white-space: pre-wrap;
 }
