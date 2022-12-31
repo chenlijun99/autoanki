@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.1.8](https://github.com/chenlijun99/autoanki/compare/@autoanki/sync@0.1.7...@autoanki/sync@0.1.8) (2022-12-31)
+
+### Bug Fixes
+
+- **sync:** fix assertion failure ([f676619](https://github.com/chenlijun99/autoanki/commit/f67661944fb288ce88303733fa8ddd964603a4eb))
+
 ## [0.1.7](https://github.com/chenlijun99/autoanki/compare/@autoanki/sync@0.1.6...@autoanki/sync@0.1.7) (2022-12-31)
 
 ### Features
