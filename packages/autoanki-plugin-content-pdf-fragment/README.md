@@ -51,10 +51,18 @@ Source https://datatracker.ietf.org/doc/html/rfc8118
 
 Additionally, you can also pass the following `data-*` attributes:
 
-- `data-autoanki-pdf-pages`: an numeric range of pages to be rendered. Note that order matters. `data-autoanki-pdf-pages="2-4"` and `data-autoanki-pdf-pages="4-2"` are different. With the first pressing the next button you'll go through the pages 2, 3 and 4, while with the latter you'll go through the pages 4,3,2.
+- `data-autoanki-pdf-pages`: an orderer list of numeric range of pages to be rendered. E.g.
+
+  - `2-4`: page 2 to page 4.
+  - `2,3,5-7`: page 2, page 3 and page 5 to page 7.
+
+  NOTE that order matters. `data-autoanki-pdf-pages="2-4"` and `data-autoanki-pdf-pages="4-2"` are different. With the first, pressing the next button you'll go through the pages 2, 3 and 4, while with the latter you'll go through the pages 4,3,2.
+
+  NOTE that the view parameters specified using PDF open parameters are applied only to the first page. All the remaining pages will be shown as full pages.
+
 - `data-autoanki-pdf-enable-toolbar`: pass `true` in order to force the toolbar to be shown. Pass `false` to force it to not be shown. By default, if there is need to switch pages (because of `data-autoanki-pdf-pages`), the toolbar will be shown.
 
-So a complete example could be:
+So a real example could be:
 
 ```html
 <object
@@ -85,12 +93,15 @@ Docs may be outdated, for the source of truth see constants in the `CSS_CLASSES`
 
 ## Design principles
 
-- By default, try to keep the rendered PDF as simple as possible. We rarely need a full-blown PDF reader in our card, using which we can scroll through pages, see the table of contents, the bookmarks, etc. What IMHO we need most often is to render some fragment of a PDF (often even a full page of a book is too much for an Anki card), just as if we had taken a screenshot of that fragment and copied it over Anki. The advantages that this plugin brings on the table are:
-  - Spare media folder storage space. Most often having many screenshots of a PDF takes more space than having the full PDF stored in Anki and then having a PDF rendered dynamically show the specified fragment of the PDF.
-  - No need to take screenshots manually, thanks to [@autoanki/sync](../autoanki-sync).
-    - Sync updates to the PDF via [@autoanki/sync](../autoanki-sync). For example you are a heavy user of PDF annotations. After you update an annotation, just resync and the up-to-date PDF will be copied to Anki and next time the cards will render the PDF fragments with your new annotations.
-  - Possibility to interactively open/close annotations.
-  - Working with copyrighted materials.
+- By default, try to keep the rendered PDF as simple as possible. We rarely need a full-blown PDF reader in our card, using which we can scroll through pages, see the table of contents, the bookmarks, etc. What IMHO we need most often is to render some fragment of a PDF (often even a full page of a book is too much for an Anki card), just as if we had taken a screenshot of that fragment and copied it over Anki.
+
+The advantages that this plugin brings on the table are:
+
+- Spare media folder storage space. Most often having many screenshots of a PDF takes more space than having the full PDF stored in Anki and then having a PDF renderer dynamically show the specified fragment of the PDF.
+- No need to take screenshots manually, thanks to [@autoanki/sync](../autoanki-sync).
+  - Sync updates to the PDF via [@autoanki/sync](../autoanki-sync). For example you are a heavy user of PDF annotations. After you update an annotation, just resync and the up-to-date PDF will be copied to Anki and next time the cards will render the PDF fragments with your new annotations.
+- Possibility to interactively open/close annotations.
+- Working with copyrighted materials.
 
 ### Consequences of the image analogy
 
@@ -122,4 +133,4 @@ For annotations such as "sticky notes", the PDF rendering engine needs to downlo
 
 ## Possible future work
 
-- Allow PDF fragments to be pre-rendered, meaning that what actually ends up in Anki are just images. Then it is truly as if we had taken a screenshot of the PDF fragment.
+- Allow PDF fragments to be pre-rendered, meaning that what actually ends up in Anki are just images. Then it is truly as if we had taken a screenshot of the PDF fragment. This is not a necessary better way to doing things. Whether to dynamically render PDFs or to statically generated images of portions of PDFs depends on the users' preference and usage pattern.

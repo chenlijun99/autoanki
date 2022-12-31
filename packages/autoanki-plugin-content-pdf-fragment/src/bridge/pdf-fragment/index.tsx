@@ -159,9 +159,9 @@ type PdfFragmentSize = {
 export default function PdfFragment(props: PdfFragmentProps) {
   const [numPages, setNumPages] = useState<number>();
 
-  const [pageNumber, setPageNumber] = useState<number>(
-    props.pages ? props.pages[0] : 1
-  );
+  const firstPage = props.pages ? props.pages[0] : 1;
+
+  const [currentPageNumber, setCurrentPageNumber] = useState<number>(firstPage);
   const [scale, setScale] = useState<number>(1);
   const [userSetScale, setUserSetScale] = useState<number | undefined>();
   const [currentPage, setCurrentPage] = useState<PDFPageProxy>();
@@ -189,7 +189,7 @@ export default function PdfFragment(props: PdfFragmentProps) {
    */
   useEffect(() => {
     setRenderingPending(true);
-  }, [pageNumber]);
+  }, [currentPageNumber]);
 
   /**
    * Extract open parameters from the URL of the PDF
@@ -200,10 +200,10 @@ export default function PdfFragment(props: PdfFragmentProps) {
     if (page) {
       const value = Number.parseInt(page, 10);
       if (!Number.isNaN(value)) {
-        setPageNumber(value);
+        setCurrentPageNumber(value);
       }
     } else {
-      setPageNumber(1);
+      setCurrentPageNumber(firstPage);
     }
 
     const newScale = params.get('zoom');
@@ -413,7 +413,7 @@ export default function PdfFragment(props: PdfFragmentProps) {
   useEffect(() => {
     if (clipContainerDiv && !renderingPending) {
       const div = clipContainerDiv;
-      if (pdfRect) {
+      if (pdfRect && currentPageNumber === firstPage) {
         div.style.height = `${pdfRect.height * scale}px`;
         div.style.width = `${pdfRect.width * scale}px`;
         div.style.overflow = 'hidden';
@@ -425,7 +425,14 @@ export default function PdfFragment(props: PdfFragmentProps) {
         div.style.overflow = 'visible';
       }
     }
-  }, [pdfRect, scale, clipContainerDiv, renderingPending]);
+  }, [
+    pdfRect,
+    scale,
+    clipContainerDiv,
+    renderingPending,
+    currentPageNumber,
+    firstPage,
+  ]);
 
   const SizedLoader = useCallback(() => {
     /*
@@ -570,11 +577,11 @@ export default function PdfFragment(props: PdfFragmentProps) {
                 >
                   <div />
                   <PageControl
-                    page={pageNumber}
+                    page={currentPageNumber}
                     numPages={numPages}
                     allowedPages={props.pages}
                     onPageChanged={(newPageNumber) =>
-                      setPageNumber(newPageNumber)
+                      setCurrentPageNumber(newPageNumber)
                     }
                   />
                   <ZoomControl
@@ -606,7 +613,7 @@ export default function PdfFragment(props: PdfFragmentProps) {
                     onLoadSuccess={onPageLoadSuccess}
                     onRenderSuccess={onRenderSuccess}
                     renderInteractiveForms={false}
-                    pageNumber={pageNumber}
+                    pageNumber={currentPageNumber}
                   />
                 </div>
               </Document>
