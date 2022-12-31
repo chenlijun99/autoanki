@@ -4,6 +4,8 @@ import remarkParse from 'remark-parse';
 import remarkMath from 'remark-math';
 import remarkGfm from 'remark-gfm';
 import remarkRehype from 'remark-rehype';
+// @ts-ignore
+import rehypeWrap from 'rehype-wrap';
 import rehypeHighlight from 'rehype-highlight';
 import rehypeKatex from 'rehype-katex';
 import rehypeRaw from 'rehype-raw';
@@ -124,6 +126,7 @@ export class MarkdownContentPlugin implements TransformerPlugin {
     .use(remarkMath)
     .use(remarkGfm)
     .use(remarkRehype, { allowDangerousHtml: true })
+    .use(rehypeWrap, { wrapper: 'div.markdown-body' })
     .use(rehypeHighlight)
     .use(rehypeKatex)
     .use(rehypeRaw)
