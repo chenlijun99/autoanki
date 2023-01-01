@@ -11,6 +11,7 @@ import type {
 
 import { MEDIA_URL_DATA_ATTRIBUTES } from '@autoanki/utils/plugins/media.js';
 import PdfFragment, { PdfFragmentProps } from './pdf-fragment/index.js';
+import { CssPrefixer } from './css.js';
 
 export interface PluginArgs {
   pdfFilesToRender: string[];
@@ -97,7 +98,11 @@ class PdfRenderPlugin implements AnkiBridgePlugin {
             ) === 'true' || (pages?.length ?? 0) > 1,
           pages,
         };
-        root.render(<PdfFragment {...props} />);
+        root.render(
+          <CssPrefixer>
+            <PdfFragment {...props} />
+          </CssPrefixer>
+        );
       }
     });
   }

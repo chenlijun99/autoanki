@@ -10,7 +10,14 @@ import React, {
 import { Document, Page, pdfjs, PDFPageProxy } from 'react-pdf';
 import { useMeasure } from 'react-use';
 
-import { Card, css, LinearProgress, Box, Fade } from '@mui/material';
+import {
+  Card,
+  css,
+  LinearProgress,
+  Box,
+  Fade,
+  ScopedCssBaseline,
+} from '@mui/material';
 
 import { CSS_CLASSES, CSS_CUSTOM_PROPERTIES } from '../constants.js';
 import Theme from './theme.js';
@@ -449,15 +456,7 @@ export default function PdfFragment(props: PdfFragmentProps) {
   }, [props.width, props.height, currentPdfFragmentSize]);
 
   return (
-    <>
-      {
-        /*
-         * Don't include this. It's too "invasive" and "opinionated" for Anki.
-         * What I mean is that e.g. it forces the margin on the body tag.
-         * This may be very strange for Anki users who are used to this.
-         */
-        // <CssBaseline />
-      }
+    <ScopedCssBaseline>
       <Theme>
         {/*
          * This div should occupy the same space of its parent
@@ -544,6 +543,14 @@ export default function PdfFragment(props: PdfFragmentProps) {
                   // I don't know why, but it is necessary for the toolbar
                   // to be sticky also on horizontal scroll
                   left: 0,
+                  // This toolbar contains Material-UI components that open
+                  // menus wich lock scrolling and which add some padding
+                  // to account for the scrollbar.
+                  // However, for some reason, the padding is applied also
+                  // to this element (observed in Chrome, but not in Firefox).
+                  // The latter padding causes layout-shift in the toolbar.
+                  // See also https://github.com/mui/material-ui/issues/17353
+                  paddingRight: '0 !important',
                 }}
                 scrollContainer={pdfFragmentRef.current}
               >
@@ -621,6 +628,6 @@ export default function PdfFragment(props: PdfFragmentProps) {
           </Card>
         </ConditionalWrapper>
       </Theme>
-    </>
+    </ScopedCssBaseline>
   );
 }

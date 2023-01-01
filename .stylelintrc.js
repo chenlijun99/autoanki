@@ -9,5 +9,7 @@ module.exports = {
     'selector-class-pattern': null,
     // has some false positives
     'property-no-unknown': null,
+    // has some false positives. Reports `!important` as problem.
+    'annotation-no-unknown': null,
   },
 };
