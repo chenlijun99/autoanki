@@ -168,13 +168,72 @@ export default function PdfFragment(props: PdfFragmentProps) {
 
   const firstPage = props.pages ? props.pages[0] : 1;
 
+  const [renderingPending, setRenderingPending] = useState<boolean>(true);
+
   const [currentPageNumber, setCurrentPageNumber] = useState<number>(firstPage);
+  const updateCurrentPageNumber = useCallback(
+    (page: number) => {
+      if (currentPageNumber !== page) {
+        setCurrentPageNumber(page);
+        setRenderingPending(true);
+      }
+    },
+    [currentPageNumber]
+  );
+
   const [scale, setScale] = useState<number>(1);
   const [userSetScale, setUserSetScale] = useState<number | undefined>();
   const [currentPage, setCurrentPage] = useState<PDFPageProxy>();
-  const [pdfView, setPdfView] = useState<PdfView>();
-  const [pdfRect, setPdfRect] = useState<PdfRect>();
-  const [renderingPending, setRenderingPending] = useState<boolean>(true);
+
+  /**
+   * Extract open parameters from the URL of the PDF.
+   */
+  const [prevPdfUrl, setPrevPdfUrl] = useState('');
+  if (props.pdfUrl !== prevPdfUrl) {
+    setPrevPdfUrl(props.pdfUrl);
+
+    const params = new URLSearchParams(new URL(props.pdfUrl).hash.slice(1));
+
+    const page = params.get('page');
+    if (page) {
+      const value = Number.parseInt(page, 10);
+      if (!Number.isNaN(value)) {
+        updateCurrentPageNumber(value);
+      }
+    } else {
+      updateCurrentPageNumber(firstPage);
+    }
+
+    const newScale = params.get('zoom');
+    if (newScale) {
+      const value = Number.parseInt(newScale, 10);
+      if (!Number.isNaN(value)) {
+        setScale(value / 100);
+        setUserSetScale(value / 100);
+      }
+    } else {
+      setScale(1);
+    }
+  }
+  const [pdfView, pdfRect] = useMemo(() => {
+    const params = new URLSearchParams(new URL(props.pdfUrl).hash.slice(1));
+
+    let newPdfView: PdfView | undefined =
+      (params.get('view') as PdfView) ?? undefined;
+    if (
+      typeof newPdfView === 'string' &&
+      !(PdfViews as readonly string[]).includes(newPdfView)
+    ) {
+      newPdfView = undefined;
+    }
+
+    const newPdfRectStr = params.get('viewrect');
+    const newPdfRect =
+      typeof newPdfRectStr === 'string' && firstPage === currentPageNumber
+        ? parsePdfViewRect(newPdfRectStr)
+        : undefined;
+    return [newPdfView, newPdfRect];
+  }, [props.pdfUrl, firstPage, currentPageNumber]);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const onPageLoadSuccess = useCallback(
@@ -190,70 +249,6 @@ export default function PdfFragment(props: PdfFragmentProps) {
     }) as NonNullable<Page['props']['onRenderSuccess']>,
     []
   );
-
-  /*
-   * On page change, set rendering to pending
-   */
-  useEffect(() => {
-    setRenderingPending(true);
-  }, [currentPageNumber]);
-
-  /**
-   * Extract open parameters from the URL of the PDF
-   */
-  useEffect(() => {
-    const params = new URLSearchParams(new URL(props.pdfUrl).hash.slice(1));
-    const page = params.get('page');
-    if (page) {
-      const value = Number.parseInt(page, 10);
-      if (!Number.isNaN(value)) {
-        setCurrentPageNumber(value);
-      }
-    } else {
-      setCurrentPageNumber(firstPage);
-    }
-
-    const newScale = params.get('zoom');
-    if (newScale) {
-      const value = Number.parseInt(newScale, 10);
-      if (!Number.isNaN(value)) {
-        setScale(value / 100);
-        setUserSetScale(value / 100);
-      }
-    } else {
-      setScale(1);
-    }
-
-    const newPdfView = params.get('view');
-    if (
-      typeof newPdfView === 'string' &&
-      (PdfViews as readonly string[]).includes(newPdfView)
-    ) {
-      setPdfView(newPdfView as PdfView);
-    } else {
-      setPdfView(undefined);
-    }
-
-    const newPdfRectStr = params.get('viewrect');
-    const newPdfRect =
-      typeof newPdfRectStr === 'string'
-        ? parsePdfViewRect(newPdfRectStr)
-        : undefined;
-    if (newPdfRect !== undefined && pdfRect !== undefined) {
-      if (
-        newPdfRect.x !== pdfRect.x ||
-        newPdfRect.y !== pdfRect.y ||
-        newPdfRect.width !== pdfRect.width ||
-        newPdfRect.height !== pdfRect.height
-      ) {
-        setPdfRect(newPdfRect);
-      }
-    } else {
-      setPdfRect(newPdfRect);
-    }
-    // pdfRect is intentionally omitted and it should ok given the logic of this effect
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.pdfUrl]);
 
   /*
    * The pdf URL without the hash portion
@@ -417,10 +412,11 @@ export default function PdfFragment(props: PdfFragmentProps) {
   const clipContainerRef = useCallback((node: HTMLDivElement) => {
     setClipContainerDiv(node);
   }, []);
+
   useEffect(() => {
     if (clipContainerDiv && !renderingPending) {
       const div = clipContainerDiv;
-      if (pdfRect && currentPageNumber === firstPage) {
+      if (pdfRect) {
         div.style.height = `${pdfRect.height * scale}px`;
         div.style.width = `${pdfRect.width * scale}px`;
         div.style.overflow = 'hidden';
@@ -432,14 +428,7 @@ export default function PdfFragment(props: PdfFragmentProps) {
         div.style.overflow = 'visible';
       }
     }
-  }, [
-    pdfRect,
-    scale,
-    clipContainerDiv,
-    renderingPending,
-    currentPageNumber,
-    firstPage,
-  ]);
+  }, [pdfRect, scale, clipContainerDiv, renderingPending]);
 
   const SizedLoader = useCallback(() => {
     /*
@@ -588,7 +577,7 @@ export default function PdfFragment(props: PdfFragmentProps) {
                     numPages={numPages}
                     allowedPages={props.pages}
                     onPageChanged={(newPageNumber) =>
-                      setCurrentPageNumber(newPageNumber)
+                      updateCurrentPageNumber(newPageNumber)
                     }
                   />
                   <ZoomControl
