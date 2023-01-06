@@ -16,7 +16,7 @@ You can also use [PDF open parameters](https://pdfobject.com/pdf/pdf_open_parame
 
 The following PDF open parameters are supported:
 
-- `page=<pagenum>`: display the PDF at the specified page
+- `page=<pagenum>`: display the PDF at the specified page. If not provided, the first page of the PDF is displayed.
 - `view=Fit` or `view=FitB`:
 
   > Display the page, with its contents magnified just enough to fit its bounding box entirely within the window both horizontally and vertically. If the required horizontal and vertical magnification factors are different, use the smaller of the two, centering the bounding box within the window in the other dimension
@@ -58,7 +58,7 @@ Additionally, you can also pass the following `data-*` attributes:
 
   NOTE that order matters. `data-autoanki-pdf-pages="2-4"` and `data-autoanki-pdf-pages="4-2"` are different. With the first, pressing the next button you'll go through the pages 2, 3 and 4, while with the latter you'll go through the pages 4,3,2.
 
-  NOTE that the view parameters specified using PDF open parameters are applied only to the first page. All the remaining pages will be shown as full pages.
+  NOTE that the view parameters specified using PDF open parameters are applied only to the first page that is displayed or to the page specified in the `page` open parameter, if it is specified. All the remaining pages will be shown as full pages.
 
 - `data-autoanki-pdf-enable-toolbar`: pass `true` in order to force the toolbar to be shown. Pass `false` to force it to not be shown. By default, if there is need to switch pages (because of `data-autoanki-pdf-pages`), the toolbar will be shown.
 

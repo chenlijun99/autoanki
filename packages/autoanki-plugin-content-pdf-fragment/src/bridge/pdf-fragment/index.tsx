@@ -163,10 +163,59 @@ type PdfFragmentSize = {
   height: number;
 };
 
+type OpenParameters = {
+  page?: number;
+  zoom?: number;
+  view?: PdfView;
+  viewRect?: PdfRect;
+};
+
+function parseOpenParameters(url: string): OpenParameters {
+  const params = new URLSearchParams(new URL(url).hash.slice(1));
+  const ret: OpenParameters = {};
+
+  const page = params.get('page');
+  if (page) {
+    const value = Number.parseInt(page, 10);
+    if (!Number.isNaN(value)) {
+      ret.page = value;
+    }
+  }
+
+  const zoom = params.get('zoom');
+  if (zoom) {
+    const value = Number.parseInt(zoom, 10);
+    if (!Number.isNaN(value)) {
+      ret.zoom = value;
+    }
+  }
+
+  const view: PdfView | undefined =
+    (params.get('view') as PdfView) ?? undefined;
+  if (
+    typeof view === 'string' &&
+    !(PdfViews as readonly string[]).includes(view)
+  ) {
+    ret.view = view;
+  }
+
+  const viewrect = params.get('viewrect');
+  ret.viewRect =
+    typeof viewrect === 'string' ? parsePdfViewRect(viewrect) : undefined;
+  return ret;
+}
+
 export default function PdfFragment(props: PdfFragmentProps) {
+  /**
+   * Extract open parameters from the URL of the PDF.
+   */
+  const openParameters = useMemo(() => {
+    return parseOpenParameters(props.pdfUrl);
+  }, [props.pdfUrl]);
+
   const [numPages, setNumPages] = useState<number>();
 
-  const firstPage = props.pages ? props.pages[0] : 1;
+  const firstPage = props.pages ? props.pages[0] : openParameters.page ?? 1;
 
   const [renderingPending, setRenderingPending] = useState<boolean>(true);
 
@@ -183,57 +232,30 @@ export default function PdfFragment(props: PdfFragmentProps) {
 
   const [scale, setScale] = useState<number>(1);
   const [userSetScale, setUserSetScale] = useState<number | undefined>();
-  const [currentPage, setCurrentPage] = useState<PDFPageProxy>();
 
-  /**
-   * Extract open parameters from the URL of the PDF.
-   */
-  const [prevPdfUrl, setPrevPdfUrl] = useState('');
-  if (props.pdfUrl !== prevPdfUrl) {
-    setPrevPdfUrl(props.pdfUrl);
+  const [prevOpenParameters, setPrevOpenParameters] = useState(openParameters);
+  if (openParameters !== prevOpenParameters) {
+    setPrevOpenParameters(openParameters);
 
-    const params = new URLSearchParams(new URL(props.pdfUrl).hash.slice(1));
-
-    const page = params.get('page');
-    if (page) {
-      const value = Number.parseInt(page, 10);
-      if (!Number.isNaN(value)) {
-        updateCurrentPageNumber(value);
-      }
-    } else {
-      updateCurrentPageNumber(firstPage);
+    if (
+      openParameters.page &&
+      openParameters.page !== prevOpenParameters.page
+    ) {
+      updateCurrentPageNumber(openParameters.page);
     }
-
-    const newScale = params.get('zoom');
-    if (newScale) {
-      const value = Number.parseInt(newScale, 10);
-      if (!Number.isNaN(value)) {
-        setScale(value / 100);
-        setUserSetScale(value / 100);
-      }
-    } else {
-      setScale(1);
+    if (
+      openParameters.zoom &&
+      openParameters.zoom !== prevOpenParameters.zoom
+    ) {
+      setScale(openParameters.zoom / 100);
+      setUserSetScale(openParameters.zoom / 100);
     }
   }
-  const [pdfView, pdfRect] = useMemo(() => {
-    const params = new URLSearchParams(new URL(props.pdfUrl).hash.slice(1));
 
-    let newPdfView: PdfView | undefined =
-      (params.get('view') as PdfView) ?? undefined;
-    if (
-      typeof newPdfView === 'string' &&
-      !(PdfViews as readonly string[]).includes(newPdfView)
-    ) {
-      newPdfView = undefined;
-    }
+  const currentPageRect =
+    firstPage === currentPageNumber ? openParameters.viewRect : undefined;
 
-    const newPdfRectStr = params.get('viewrect');
-    const newPdfRect =
-      typeof newPdfRectStr === 'string' && firstPage === currentPageNumber
-        ? parsePdfViewRect(newPdfRectStr)
-        : undefined;
-    return [newPdfView, newPdfRect];
-  }, [props.pdfUrl, firstPage, currentPageNumber]);
+  const [currentPage, setCurrentPage] = useState<PDFPageProxy>();
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const onPageLoadSuccess = useCallback(
@@ -268,13 +290,13 @@ export default function PdfFragment(props: PdfFragmentProps) {
   const pdfFragmentRef = useRef<HTMLDivElement | null>(null);
 
   const currentPdfFragmentSize: PdfFragmentSize | undefined = useMemo(() => {
-    if (pdfRect || currentPage) {
-      const width = (pdfRect?.width ??
+    if (currentPageRect || currentPage) {
+      const width = (currentPageRect?.width ??
         (currentPage && currentPage.view[2] - currentPage.view[0])) as number;
       /*
        * TODO: should we consider the toolbar height as part of the PDF fragment?
        */
-      const height = (pdfRect?.height ??
+      const height = (currentPageRect?.height ??
         (currentPage && currentPage.view[3] - currentPage.view[1])) as number;
       let rotateSwapsAxis = false;
 
@@ -287,7 +309,7 @@ export default function PdfFragment(props: PdfFragmentProps) {
         height: rotateSwapsAxis ? width : height,
       };
     }
-  }, [currentPage, pdfRect]);
+  }, [currentPage, currentPageRect]);
 
   const userDesiredSize: PdfFragmentSize | undefined = useMemo(() => {
     if (currentPdfFragmentSize && userSetScale) {
@@ -304,21 +326,21 @@ export default function PdfFragment(props: PdfFragmentProps) {
    */
   const [divWithContainerSizeRef, containerSize] = useMeasure();
   useEffect(() => {
-    if (pdfView && currentPdfFragmentSize) {
+    if (openParameters.view && currentPdfFragmentSize) {
       const xScaling = containerSize.width / currentPdfFragmentSize.width;
       const yScaling = containerSize.height / currentPdfFragmentSize.height;
 
-      if (pdfView === 'FitH' || pdfView === 'FitBH') {
+      if (openParameters.view === 'FitH' || openParameters.view === 'FitBH') {
         setScale(xScaling);
       }
-      if (pdfView === 'FitV' || pdfView === 'FitBV') {
+      if (openParameters.view === 'FitV' || openParameters.view === 'FitBV') {
         setScale(yScaling);
       }
-      if (pdfView === 'Fit' || pdfView === 'FitB') {
+      if (openParameters.view === 'Fit' || openParameters.view === 'FitB') {
         setScale(Math.min(xScaling, yScaling));
       }
     }
-  }, [pdfView, containerSize, currentPdfFragmentSize]);
+  }, [openParameters.view, containerSize, currentPdfFragmentSize]);
 
   /*
    * Handle automatic PDF scaling
@@ -416,11 +438,11 @@ export default function PdfFragment(props: PdfFragmentProps) {
   useEffect(() => {
     if (clipContainerDiv && !renderingPending) {
       const div = clipContainerDiv;
-      if (pdfRect) {
-        div.style.height = `${pdfRect.height * scale}px`;
-        div.style.width = `${pdfRect.width * scale}px`;
+      if (currentPageRect) {
+        div.style.height = `${currentPageRect.height * scale}px`;
+        div.style.width = `${currentPageRect.width * scale}px`;
         div.style.overflow = 'hidden';
-        div.scrollTo(pdfRect.x * scale, pdfRect.y * scale);
+        div.scrollTo(currentPageRect.x * scale, currentPageRect.y * scale);
       } else {
         // set default style
         div.style.height = `auto`;
@@ -428,7 +450,7 @@ export default function PdfFragment(props: PdfFragmentProps) {
         div.style.overflow = 'visible';
       }
     }
-  }, [pdfRect, scale, clipContainerDiv, renderingPending]);
+  }, [currentPageRect, scale, clipContainerDiv, renderingPending]);
 
   const SizedLoader = useCallback(() => {
     /*
@@ -451,7 +473,7 @@ export default function PdfFragment(props: PdfFragmentProps) {
          * This div should occupy the same space of its parent
          */}
         <ConditionalWrapper
-          condition={pdfView !== undefined}
+          condition={openParameters.view !== undefined}
           // TODO: revisit this eslint disable
           // eslint-disable-next-line react/no-unstable-nested-components
           wrapper={({ children }) => (
@@ -602,7 +624,10 @@ export default function PdfFragment(props: PdfFragmentProps) {
                   standardFontDataUrl: `https://unpkg.com/pdfjs-dist@${pdfjs.version}/standard_fonts`,
                 }}
               >
-                <div ref={clipContainerRef}>
+                <div
+                  className="pdf-fragment-view-rect-container"
+                  ref={clipContainerRef}
+                >
                   <Page
                     loading={<SizedLoader />}
                     scale={scale}
