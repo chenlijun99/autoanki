@@ -226,6 +226,10 @@ const parser = new XMLParser({
   attributesGroupName: '@_attributes',
   attributeNamePrefix: '',
   allowBooleanAttributes: true,
+  /*
+   * Don't try to parse number-like strings as numbers. Treat everything as text.
+   */
+  parseTagValue: false,
   stopNodes: [
     `*.${AUTOANKI_HTML_CONSTANTS.SOURCE_CONTENT_TAG}`,
     `*.${AUTOANKI_HTML_CONSTANTS.FINAL_CONTENT_TAG}`,
