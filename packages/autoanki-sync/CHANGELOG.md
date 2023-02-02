@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.1.12](https://github.com/chenlijun99/autoanki/compare/@autoanki/sync@0.1.11...@autoanki/sync@0.1.12) (2023-02-02)
+
+### Bug Fixes
+
+- **sync:** failure when note field content is just a number ([0f735f2](https://github.com/chenlijun99/autoanki/commit/0f735f243591f33f308fba62fafe7924a29a9360))
+
 ## [0.1.11](https://github.com/chenlijun99/autoanki/compare/@autoanki/sync@0.1.10...@autoanki/sync@0.1.11) (2022-12-31)
 
 ### Performance Improvements
