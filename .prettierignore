@@ -423,7 +423,7 @@ tags
 pnpm-lock.yaml
 
 ### Project specific ###
-
+.direnv/
 CHANGELOG.md
 packages/joplin-plugin/api/
 packages/joplin-plugin/dist/
