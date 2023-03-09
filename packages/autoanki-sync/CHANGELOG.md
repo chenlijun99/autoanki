@@ -3,6 +3,23 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.1.13](https://github.com/chenlijun99/autoanki/compare/@autoanki/sync@0.1.6...@autoanki/sync@0.1.13) (2023-03-09)
+
+### Bug Fixes
+
+- **sync:** failure when note field content is just a number ([0f735f2](https://github.com/chenlijun99/autoanki/commit/0f735f243591f33f308fba62fafe7924a29a9360))
+- **sync:** fix assertion failure ([f676619](https://github.com/chenlijun99/autoanki/commit/f67661944fb288ce88303733fa8ddd964603a4eb))
+- **sync:** properly handle `PICK_ANKI` and `PICK_SOURCE` choices for sync update conflict ([c1740d4](https://github.com/chenlijun99/autoanki/commit/c1740d4c142a85f1e03a837c8a5abf27b6184b1c))
+- **sync:** wrap long lines in source content when editing it in Anki Desktop's rich editor ([558b12f](https://github.com/chenlijun99/autoanki/commit/558b12fea6fe5a3a1466e231cf7eaede78420bb0))
+
+### Features
+
+- **sync:** handle `PICK_ANKI` and `PIC_SOURCE` choices for sync update conflict ([eddbd44](https://github.com/chenlijun99/autoanki/commit/eddbd446baed3f02456e62d66ac42b1dd5cc7425))
+
+### Performance Improvements
+
+- **sync:** make updating a lot of Autoanki notes much faster ([91b6258](https://github.com/chenlijun99/autoanki/commit/91b62587c227d4418bdd77ae3e6f1eb2c1c4f30e))
+
 ## [0.1.12](https://github.com/chenlijun99/autoanki/compare/@autoanki/sync@0.1.11...@autoanki/sync@0.1.12) (2023-02-02)
 
 ### Bug Fixes

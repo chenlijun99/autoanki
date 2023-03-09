@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.1.10](https://github.com/chenlijun99/autoanki/compare/@autoanki/plugin-content-pdf-fragment@0.1.6...@autoanki/plugin-content-pdf-fragment@0.1.10) (2023-03-09)
+
+### Bug Fixes
+
+- **plugin-content-pdf-fragment:** apply PDF open parameters only to first page ([4e60db1](https://github.com/chenlijun99/autoanki/commit/4e60db1322c205663cd4191197ee06e122cc6ae0))
+- **plugin-content-pdf-fragment:** fine tune styling ([c34881a](https://github.com/chenlijun99/autoanki/commit/c34881abbce155205aa2a833f0bd9cf1208ba214))
+- **plugin-content-pdf-fragment:** viewrect not applied in some cases ([32930a5](https://github.com/chenlijun99/autoanki/commit/32930a5fb73971f9c448bacdad83079853dcd252))
+
+### Features
+
+- **plugin-content-pdf-fragment:** apply `viewrect` PDF open parameters only to first page ([2d50b01](https://github.com/chenlijun99/autoanki/commit/2d50b0102dc38be15ee05bd812669785cb7143aa))
+
 ## [0.1.9](https://github.com/chenlijun99/autoanki/compare/@autoanki/plugin-content-pdf-fragment@0.1.8...@autoanki/plugin-content-pdf-fragment@0.1.9) (2023-01-06)
 
 ### Bug Fixes

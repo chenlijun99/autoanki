@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.1.2](https://github.com/chenlijun99/autoanki/compare/@autoanki/anki-connect@0.1.1...@autoanki/anki-connect@0.1.2) (2023-03-09)
+
+### Bug Fixes
+
+- **anki-connect:** minor formatting issues and minor wrong typescript syntax ([a85b5e9](https://github.com/chenlijun99/autoanki/commit/a85b5e9c6b9f6a2738e208ef96ac133040b3032c))
+
+### Features
+
+- **anki-connect:** add miscellaneous related actions ([f72327a](https://github.com/chenlijun99/autoanki/commit/f72327aec85ed366edf0333c514f8d585d68aab3))
+
 ## [0.1.1](https://github.com/chenlijun99/autoanki/compare/@autoanki/anki-connect@0.1.0...@autoanki/anki-connect@0.1.1) (2022-11-21)
 
 **Note:** Version bump only for package @autoanki/anki-connect

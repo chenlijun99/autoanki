@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.1.5](https://github.com/chenlijun99/autoanki/compare/@autoanki/plugin-content-zotero@0.1.3...@autoanki/plugin-content-zotero@0.1.5) (2023-03-09)
+
+### Features
+
+- **plugin-content-zotero:** add link to open source PDF in Zotero ([cf144e3](https://github.com/chenlijun99/autoanki/commit/cf144e397963e7c1b5d1d62bda177b5fcb55b9d3))
+
 ## [0.1.4](https://github.com/chenlijun99/autoanki/compare/@autoanki/plugin-content-zotero@0.1.3...@autoanki/plugin-content-zotero@0.1.4) (2022-12-31)
 
 ### Features
