@@ -4,6 +4,7 @@ import type { ActionsToPayloadMap as NoteActionsToPayloadMap } from './note.js';
 import type { ActionsToPayloadMap as DeckActionsToPayloadMap } from './deck.js';
 import type { ActionsToPayloadMap as ModelActionsToPayloadMap } from './model.js';
 import type { ActionsToPayloadMap as MediaActionsToPayloadMap } from './media.js';
+import type { ActionsToPayloadMap as MiscellaneousActionsToPayloadMap } from './miscellaneous.js';
 
 export * as CardTypes from './card.js';
 export * as NoteTypes from './note.js';
@@ -13,7 +14,8 @@ export * as MediaTypes from './media.js';
 type ActionsToPayloadMap = NoteActionsToPayloadMap &
   DeckActionsToPayloadMap &
   ModelActionsToPayloadMap &
-  MediaActionsToPayloadMap;
+  MediaActionsToPayloadMap &
+  MiscellaneousActionsToPayloadMap;
 
 export type ActionNames = keyof ActionsToPayloadMap;
 
