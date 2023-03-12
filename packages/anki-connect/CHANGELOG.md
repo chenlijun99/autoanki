@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.1.3](https://github.com/chenlijun99/autoanki/compare/@autoanki/anki-connect@0.1.2...@autoanki/anki-connect@0.1.3) (2023-03-12)
+
+### Bug Fixes
+
+- **anki-connect:** make card sides in `UpdateModel` interface optional ([61e18b6](https://github.com/chenlijun99/autoanki/commit/61e18b6ade35a5873572bc1c276948c5f9b0b080))
+
 ## [0.1.2](https://github.com/chenlijun99/autoanki/compare/@autoanki/anki-connect@0.1.1...@autoanki/anki-connect@0.1.2) (2023-03-09)
 
 ### Bug Fixes

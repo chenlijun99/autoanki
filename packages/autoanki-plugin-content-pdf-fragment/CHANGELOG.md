@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.1.11](https://github.com/chenlijun99/autoanki/compare/@autoanki/plugin-content-pdf-fragment@0.1.10...@autoanki/plugin-content-pdf-fragment@0.1.11) (2023-03-12)
+
+**Note:** Version bump only for package @autoanki/plugin-content-pdf-fragment
+
 ## [0.1.10](https://github.com/chenlijun99/autoanki/compare/@autoanki/plugin-content-pdf-fragment@0.1.6...@autoanki/plugin-content-pdf-fragment@0.1.10) (2023-03-09)
 
 ### Bug Fixes

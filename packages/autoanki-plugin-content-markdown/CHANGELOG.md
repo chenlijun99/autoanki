@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.1.8](https://github.com/chenlijun99/autoanki/compare/@autoanki/plugin-content-markdown@0.1.7...@autoanki/plugin-content-markdown@0.1.8) (2023-03-12)
+
+**Note:** Version bump only for package @autoanki/plugin-content-markdown
+
 ## [0.1.7](https://github.com/chenlijun99/autoanki/compare/@autoanki/plugin-content-markdown@0.1.5...@autoanki/plugin-content-markdown@0.1.7) (2023-03-09)
 
 ### Features
