@@ -26,7 +26,9 @@ export type ModelTemplates = Record<CardName, Omit<CardTemplate, 'Name'>>;
 
 export interface UpdateModel {
   name: ModelName;
-  templates: ModelTemplates;
+  templates: {
+    [key in keyof ModelTemplates]: Partial<ModelTemplates[key]>;
+  };
 }
 
 export type ActionsToPayloadMap = {
