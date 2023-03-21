@@ -32,6 +32,19 @@ function getApiOrigin(input?: ApiOrigin): string {
   return 'http://127.0.0.1:8765';
 }
 
+/**
+ * Can be any type that is also a valid json type, but usually a string.
+ *
+ * Must match the value set in the `"apiKey"` property of the Anki-Connect configuration.
+ */
+export type ApiKey =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: ApiKey }
+  | ApiKey[];
+
 export interface InvokeArgs<
   ActionName extends ActionNames,
   VersionNumber extends 6,
@@ -41,6 +54,7 @@ export interface InvokeArgs<
   version: VersionNumber;
   request: RequestParams;
   origin?: ApiOrigin;
+  key?: ApiKey;
 }
 
 export type InvokeResponse<
@@ -63,11 +77,16 @@ export async function invoke<
   const version = args.version;
   const params = args.request;
   const origin = getApiOrigin(args.origin);
+  const key = args.key;
 
-  const response = await axios.post(
-    origin,
-    JSON.stringify({ action, version, params })
-  );
+  const response = await axios.post(origin, {
+    action,
+    version,
+    params,
+    ...(key !== undefined && {
+      key,
+    }),
+  });
   if (Object.getOwnPropertyNames(response.data).length !== 2) {
     throw new Error('response has an unexpected number of fields');
   }
