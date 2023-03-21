@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.1.4](https://github.com/chenlijun99/autoanki/compare/@autoanki/anki-connect@0.1.3...@autoanki/anki-connect@0.1.4) (2023-03-21)
+
+### Features
+
+- **anki-connect:** add api key argument to invoke function ([196e9b2](https://github.com/chenlijun99/autoanki/commit/196e9b2d835a242cc0c613418dad3de4ac67c77a))
+
 ## [0.1.3](https://github.com/chenlijun99/autoanki/compare/@autoanki/anki-connect@0.1.2...@autoanki/anki-connect@0.1.3) (2023-03-12)
 
 ### Bug Fixes

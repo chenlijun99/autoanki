@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.1.7](https://github.com/chenlijun99/autoanki/compare/@autoanki/plugin-content-local-media-extractor@0.1.6...@autoanki/plugin-content-local-media-extractor@0.1.7) (2023-03-21)
+
+**Note:** Version bump only for package @autoanki/plugin-content-local-media-extractor
+
 ## [0.1.6](https://github.com/chenlijun99/autoanki/compare/@autoanki/plugin-content-local-media-extractor@0.1.5...@autoanki/plugin-content-local-media-extractor@0.1.6) (2023-03-12)
 
 **Note:** Version bump only for package @autoanki/plugin-content-local-media-extractor
