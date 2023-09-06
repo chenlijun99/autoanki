@@ -6,6 +6,8 @@
 [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
 [![styled with prettier](https://img.shields.io/badge/styled_with-prettier-ff69b4.svg)](https://github.com/prettier/prettier)
 
+Status of the project: it barely works for me, there are probably too many rough edges and too little documentation to make it usable by other users. In the near future I don't think I'll have further time to dedicate to this project. Also, when I'll have time to work on this project again, large refactors are planned.
+
 Set of tools that streamline the learning experience with Anki.
 
 ## Features
